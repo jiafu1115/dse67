@@ -67,7 +67,7 @@ public class PerformanceObjectsController implements LifecycleAware {
          plugin = (PluginBean)var2.next();
       } while(!plugin.getClass().equals(pluginClass));
 
-      return plugin;
+      return (T)plugin;
    }
 
    public static String getPerfBeanName(Class<? extends PluginBean> pluginClass) {

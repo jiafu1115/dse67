@@ -47,26 +47,20 @@ public class PluginManager implements LifecycleAware {
       this.injector = injector;
       this.activePlugins = new ConcurrentHashMap();
       this.inactivePlugins = new ConcurrentHashMap();
-      this.dependants = Multimaps.newSetMultimap(new HashMap(), HashSet::<init>);
+      this.dependants = Multimaps.newSetMultimap(new HashMap(), HashSet::new);
    }
 
    public synchronized void postSetup() {
-      if(this.injector != null) {
-         logger.debug("Registering plugins");
-         Iterator var1 = this.injector.getAllBindings().keySet().iterator();
-
-         while(var1.hasNext()) {
-            Key<?> key = (Key)var1.next();
-            Class<?> pluginClass = key.getTypeLiteral().getRawType();
-            if(IPlugin.class.isAssignableFrom(pluginClass) && pluginClass.isAnnotationPresent(DsePlugin.class)) {
-               this.register(pluginClass, (p) -> {
-               });
+      if (this.injector != null) {
+         PluginManager.logger.debug("Registering plugins");
+         for (final Key<?> key : this.injector.getAllBindings().keySet()) {
+            final Class<?> pluginClass = (Class<?>)key.getTypeLiteral().getRawType();
+            if (IPlugin.class.isAssignableFrom(pluginClass) && pluginClass.isAnnotationPresent(DsePlugin.class)) {
+               this.register((Class<? extends IPlugin>)pluginClass, p -> {});
             }
          }
-
          logger.debug("Plugins registration finished");
       }
-
    }
 
    public synchronized void preStart() {
@@ -133,7 +127,7 @@ public class PluginManager implements LifecycleAware {
    }
 
    public synchronized <T extends IPlugin> T getActivePlugin(Class<T> pluginClass) {
-      return (IPlugin)this.activePlugins.get(pluginClass);
+      return (T)this.activePlugins.get(pluginClass);
    }
 
    private synchronized boolean isPluginActive(IPlugin plugin) {
@@ -330,7 +324,7 @@ public class PluginManager implements LifecycleAware {
          return true;
       } else {
          boolean noFailuresInDeps = this.getDependants(plugin.getClass()).stream().map((depClass) -> {
-            return (IPlugin)this.getInstance(depClass).orElse((Object)null);
+            return (IPlugin)this.getInstance(depClass).orElse(null);
          }).allMatch((p) -> {
             return this.deactivate(p, force);
          });

@@ -162,7 +162,7 @@ public class DseTool {
          Class p = (Class)var3.next();
 
          try {
-            T plugin = (Command)p.getConstructor(new Class[0]).newInstance(new Object[0]);
+            T plugin = (T)(Command)p.getConstructor(new Class[0]).newInstance(new Object[0]);
             result.put(plugin.getName(), plugin);
          } catch (IllegalAccessException | NoSuchMethodException | InstantiationException var6) {
             System.err.println("--- Unable to instantiate " + p.getName());

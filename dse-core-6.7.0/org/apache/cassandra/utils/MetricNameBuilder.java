@@ -52,25 +52,15 @@ public class MetricNameBuilder {
    }
 
    public MetricName build() {
-      List<String> objectNameKeys = new ArrayList();
-      List<String> objectNameValues = new ArrayList();
-      Iterator var3 = ObjectNameAllowedKeys.iterator();
-
-      String key;
-      while(var3.hasNext()) {
-         key = (String)var3.next();
-         if(this.objectNameParts.containsKey(key)) {
-            objectNameKeys.add(key);
-            objectNameValues.add(this.objectNameParts.get(key));
-         }
+      ArrayList<String> objectNameKeys = new ArrayList<String>();
+      ArrayList<String> objectNameValues = new ArrayList<String>();
+      for (String key2 : ObjectNameAllowedKeys) {
+         if (!this.objectNameParts.containsKey(key2)) continue;
+         objectNameKeys.add(key2);
+         objectNameValues.add(this.objectNameParts.get(key2));
       }
-
-      String cmrScope = (String)CMRScopeParts.stream().filter((key) -> {
-         return this.objectNameParts.containsKey(key);
-      }).map((key) -> {
-         return (String)this.objectNameParts.get(key);
-      }).collect(Collectors.joining("."));
-      key = JMX.buildMBeanName(JMX.Type.METRICS, MapBuilder.immutable().withKeys(objectNameKeys.toArray(new String[0])).withValues(objectNameValues.toArray(new String[0])).build());
-      return new MetricName("com.datastax.bdp", (String)this.objectNameParts.get("scope"), (String)this.objectNameParts.get("metricType"), cmrScope, key);
+      String cmrScope = CMRScopeParts.stream().filter(key -> this.objectNameParts.containsKey(key)).map(key -> this.objectNameParts.get(key)).collect(Collectors.joining("."));
+      String mbeanName = JMX.buildMBeanName(JMX.Type.METRICS, MapBuilder.<String,String>immutable().withKeys(objectNameKeys.toArray(new String[0])).withValues(objectNameValues.toArray(new String[0])).build());
+      return new MetricName("com.datastax.bdp", this.objectNameParts.get("scope"), this.objectNameParts.get("metricType"), cmrScope, mbeanName);
    }
 }

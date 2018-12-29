@@ -92,28 +92,29 @@ public class DseAuthorizer extends CassandraAuthorizer {
    }
 
    public Map<IResource, PermissionSets> allPermissionSets(RoleResource role) {
-      if(!this.enabled) {
-         return new DseAuthorizer.PermissionsMap(DseAuthorizer::applicablePermissionsTransform, null);
-      } else {
-         switch(null.$SwitchMap$org$apache$cassandra$auth$IAuthorizer$TransitionalMode[this.transitionalMode.ordinal()]) {
-         case 1:
+      if (!this.enabled) {
+         return new PermissionsMap(DseAuthorizer::applicablePermissionsTransform);
+      }
+      switch (this.transitionalMode) {
+         case DISABLED: {
             return super.allPermissionSets(role);
-         case 2:
+         }
+         case NORMAL: {
             return this.allTransitionalPermissionSets(role);
-         case 3:
-            if(role.equals(AuthenticatedUser.ANONYMOUS_USER.getPrimaryRole())) {
+         }
+         case STRICT: {
+            if (role.equals((Object)AuthenticatedUser.ANONYMOUS_USER.getPrimaryRole())) {
                return this.allTransitionalPermissionSets(role);
             }
-
             return super.allPermissionSets(role);
-         default:
-            throw new AssertionError("Unknown transitionalMode " + this.transitionalMode);
          }
       }
+      throw new AssertionError((Object)("Unknown transitionalMode " + (Object)this.transitionalMode));
    }
 
+
    private DseAuthorizer.PermissionsMap allTransitionalPermissionSets(RoleResource role) {
-      return new DseAuthorizer.PermissionsMap(((Boolean)DatabaseDescriptor.getAuthManager().hasSuperUserStatus(role).blockingGet()).booleanValue()?DseAuthorizer::allPermissionsTransform:DseAuthorizer::transitionalPermissionsTransform, null);
+      return new DseAuthorizer.PermissionsMap(((Boolean)DatabaseDescriptor.getAuthManager().hasSuperUserStatus(role).blockingGet()).booleanValue()?DseAuthorizer::allPermissionsTransform:DseAuthorizer::transitionalPermissionsTransform);
    }
 
    private static PermissionSets allPermissionsTransform(IResource resource) {
@@ -173,7 +174,7 @@ public class DseAuthorizer extends CassandraAuthorizer {
       UserRolesAndPermissions userRolesAndPermissions = state.getUserRolesAndPermissions();
       return (Set)userRolesAndPermissions.filterPermissions((s) -> {
          return s;
-      }, HashSet::<init>, (s, role, resource, permissionSets) -> {
+      }, HashSet::new, (s, role, resource, permissionSets) -> {
          if(resource instanceof DseRowResource) {
             DseRowResource dseRowResource = (DseRowResource)resource;
             if(dseRowResource.getParent().equals(dataResource) && permissionSets.hasEffectivePermission(permission)) {
@@ -214,7 +215,7 @@ public class DseAuthorizer extends CassandraAuthorizer {
    private final class PermissionsMap extends AbstractMap<IResource, PermissionSets> {
       private final java.util.function.Function<IResource, PermissionSets> function;
 
-      private PermissionsMap(java.util.function.Function<IResource, PermissionSets> var1) {
+      private PermissionsMap(java.util.function.Function<IResource, PermissionSets> function) {
          this.function = function;
       }
 

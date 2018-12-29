@@ -12,9 +12,9 @@ public class SystemMessageTypes {
    }
 
    static {
-      HANDSHAKE = MessageType.of(MessageType.Domain.SYSTEM, 1);
-      UNSUPPORTED_MESSAGE = MessageType.of(MessageType.Domain.SYSTEM, 2);
-      FAILED_PROCESSOR = MessageType.of(MessageType.Domain.SYSTEM, 3);
-      OVERSIZE_FRAME = MessageType.of(MessageType.Domain.SYSTEM, 4);
+      HANDSHAKE = MessageType.of(MessageType.Domain.SYSTEM, (byte)1);
+      UNSUPPORTED_MESSAGE = MessageType.of(MessageType.Domain.SYSTEM,(byte) 2);
+      FAILED_PROCESSOR = MessageType.of(MessageType.Domain.SYSTEM, (byte)3);
+      OVERSIZE_FRAME = MessageType.of(MessageType.Domain.SYSTEM, (byte)4);
    }
 }

@@ -94,7 +94,7 @@ public class DseConfigYamlLoader {
       } catch (ConfigurationException var10) {
          throw new ExceptionInInitializerError(var10);
       } catch (MarkedYAMLException var11) {
-         Object t;
+         RuntimeException t;
          for(t = var11; ((RuntimeException)t).getCause() != null && ((RuntimeException)t).getCause() instanceof RuntimeException; t = (RuntimeException)((RuntimeException)t).getCause()) {
             ;
          }

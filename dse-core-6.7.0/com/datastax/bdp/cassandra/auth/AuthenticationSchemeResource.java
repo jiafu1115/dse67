@@ -37,14 +37,15 @@ public class AuthenticationSchemeResource implements IResource {
    }
 
    public String getName() {
-      switch(null.$SwitchMap$com$datastax$bdp$cassandra$auth$AuthenticationSchemeResource$Level[this.level.ordinal()]) {
-      case 1:
-         return "authentication_schemes";
-      case 2:
-         return String.format("%s/%s", new Object[]{"authentication_schemes", this.scheme});
-      default:
-         throw new AssertionError();
+      switch (this.level) {
+         case ROOT: {
+            return ROOT_NAME;
+         }
+         case SCHEME: {
+            return String.format("%s/%s", new Object[]{ROOT_NAME, this.scheme});
+         }
       }
+      throw new AssertionError();
    }
 
    public IResource getParent() {
@@ -68,14 +69,15 @@ public class AuthenticationSchemeResource implements IResource {
    }
 
    public String toString() {
-      switch(null.$SwitchMap$com$datastax$bdp$cassandra$auth$AuthenticationSchemeResource$Level[this.level.ordinal()]) {
-      case 1:
-         return "<all schemes>";
-      case 2:
-         return String.format("<scheme %s>", new Object[]{this.scheme});
-      default:
-         throw new AssertionError();
+      switch (this.level) {
+         case ROOT: {
+            return "<all schemes>";
+         }
+         case SCHEME: {
+            return String.format("<scheme %s>", new Object[]{this.scheme});
+         }
       }
+      throw new AssertionError();
    }
 
    public boolean equals(Object o) {

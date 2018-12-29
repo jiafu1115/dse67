@@ -48,7 +48,7 @@ public class DroppedMessageInformation extends Insight {
       public final List<DroppedMessageInformation.DroppedMessageGroupInsight> droppedMessageGroupStats;
 
       private Data(List<DroppedMessageGroupStats> stats) {
-         this.droppedMessageGroupStats = (List)stats.stream().map(DroppedMessageInformation.DroppedMessageGroupInsight::<init>).collect(Collectors.toList());
+         this.droppedMessageGroupStats = (List)stats.stream().map(DroppedMessageInformation.DroppedMessageGroupInsight::new).collect(Collectors.toList());
       }
    }
 }

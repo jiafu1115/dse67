@@ -23,13 +23,13 @@ public class CompositeUtil {
          ByteBuffer bytes;
          if(object instanceof String) {
             bytes = ByteBufferUtil.bytes((String)object);
-            out.writeShort(-32653);
+            out.writeShort((byte)-32653);
             out.writeShort((short)bytes.remaining());
             out.write(bytes);
             out.write(0);
          } else if(object instanceof UUID) {
-            out.writeShort(-32652);
-            out.writeShort(16);
+            out.writeShort((byte)-32652);
+            out.writeShort((byte)16);
             out.write(UUIDGen.decompose((UUID)object));
             out.write(0);
          } else {
@@ -38,7 +38,7 @@ public class CompositeUtil {
             }
 
             bytes = ((ByteBuffer)object).duplicate();
-            out.writeShort(-32670);
+            out.writeShort((short)-32670);
             out.writeShort((short)bytes.remaining());
             out.write(bytes);
             out.write(0);

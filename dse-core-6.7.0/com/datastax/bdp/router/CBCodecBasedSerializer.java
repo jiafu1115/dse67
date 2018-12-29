@@ -42,7 +42,7 @@ class CBCodecBasedSerializer<T> implements MessageBodySerializer<T> {
          buf.release();
       }
 
-      return var4;
+      return (T)var4;
    }
 
    static {

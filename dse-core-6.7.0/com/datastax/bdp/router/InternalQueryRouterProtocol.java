@@ -40,9 +40,9 @@ public class InternalQueryRouterProtocol implements InternodeProtocol {
    }
 
    static {
-      REQUEST_MESSAGE_TYPE = MessageType.of(MessageType.Domain.GENERIC_QUERY_ROUTER, 1);
-      RESPONSE_MESSAGE_TYPE = MessageType.of(MessageType.Domain.GENERIC_QUERY_ROUTER, 2);
-      RPC_REQUEST_MESSAGE_TYPE = MessageType.of(MessageType.Domain.GENERIC_QUERY_ROUTER, 3);
+      REQUEST_MESSAGE_TYPE = MessageType.of(MessageType.Domain.GENERIC_QUERY_ROUTER, (byte)1);
+      RESPONSE_MESSAGE_TYPE = MessageType.of(MessageType.Domain.GENERIC_QUERY_ROUTER, (byte)2);
+      RPC_REQUEST_MESSAGE_TYPE = MessageType.of(MessageType.Domain.GENERIC_QUERY_ROUTER, (byte)3);
    }
 
    private class RpcRoutingServerProcessor implements ServerProcessor<RoutedRpcRequest, RoutedQueryResponse> {

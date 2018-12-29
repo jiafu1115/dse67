@@ -4,6 +4,7 @@ import com.datastax.bdp.insights.events.CompactionEndedInformation;
 import com.datastax.bdp.insights.events.CompactionStartedInformation;
 import com.datastax.bdp.insights.events.SSTableCompactionInformation;
 import com.datastax.insights.client.InsightsClient;
+import com.datastax.insights.core.Insight;
 import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -39,27 +40,25 @@ public class CompactionInformationReporter implements CompactionEventListener {
 
    public void handleCompactionEvent(CompactionEvent event, CompactionIterator ci, Map<SSTableReader, AbstractCompactionStrategy> compactionStrategyMap, long sstableSizeBytes) {
       CompactionInfo info = ci.getCompactionInfo();
-      List<SSTableCompactionInformation> sstables = new ArrayList(compactionStrategyMap.size());
-      Iterator var8 = compactionStrategyMap.entrySet().iterator();
-
-      while(var8.hasNext()) {
-         Entry<SSTableReader, AbstractCompactionStrategy> entry = (Entry)var8.next();
-         SSTableReader sstable = (SSTableReader)entry.getKey();
-         AbstractCompactionStrategy strategy = (AbstractCompactionStrategy)entry.getValue();
+      ArrayList<SSTableCompactionInformation> sstables = new ArrayList<SSTableCompactionInformation>(compactionStrategyMap.size());
+      for (Map.Entry<SSTableReader, AbstractCompactionStrategy> entry : compactionStrategyMap.entrySet()) {
+         SSTableReader sstable = entry.getKey();
+         AbstractCompactionStrategy strategy = entry.getValue();
          sstables.add(new SSTableCompactionInformation(sstable.getFilename(), sstable.getSSTableLevel(), sstable.getTotalRows(), sstable.descriptor.generation, sstable.descriptor.version.getVersion(), sstable.onDiskLength(), strategy.getName()));
       }
-
       try {
-         switch(null.$SwitchMap$org$apache$cassandra$db$compaction$CompactionEvent[event.ordinal()]) {
-         case 1:
-            this.insightsClient.report(new CompactionStartedInformation(info.getTaskId(), (String)info.getKeyspace().orElse((Object)null), (String)info.getTable().orElse((Object)null), info.getTaskType(), info.getTotal(), ci.isStopRequested(), sstableSizeBytes, sstables));
-            break;
-         case 2:
-            this.insightsClient.report(new CompactionEndedInformation(info.getTaskId(), (String)info.getKeyspace().orElse((Object)null), (String)info.getTable().orElse((Object)null), info.getTaskType(), info.getCompleted(), info.getTotal(), ci.isStopRequested(), ci.getTotalSourceCQLRows(), sstableSizeBytes, sstables));
+         switch (event) {
+            case STARTED: {
+               this.insightsClient.report((Insight)new CompactionStartedInformation(info.getTaskId(), info.getKeyspace().orElse(null), info.getTable().orElse(null), info.getTaskType(), info.getTotal(), ci.isStopRequested(), sstableSizeBytes, sstables));
+               break;
+            }
+            case ENDED: {
+               this.insightsClient.report((Insight)new CompactionEndedInformation(info.getTaskId(), info.getKeyspace().orElse(null), info.getTable().orElse(null), info.getTaskType(), info.getCompleted(), info.getTotal(), ci.isStopRequested(), ci.getTotalSourceCQLRows(), sstableSizeBytes, sstables));
+            }
          }
-      } catch (Exception var12) {
-         logger.warn("Error reporting compaction information", var12);
       }
-
+      catch (Exception e) {
+         logger.warn("Error reporting compaction information", (Throwable)e);
+      }
    }
 }

@@ -118,7 +118,7 @@ class ShellUtils {
                ps.waitFor();
                if(ps.exitValue() == 0) {
                   var9 = handler.apply(input, error);
-                  return var9;
+                  return (T)var9;
                }
 
                var9 = errorHandler.apply(Integer.valueOf(ps.exitValue()), error);
@@ -158,7 +158,7 @@ class ShellUtils {
 
          }
 
-         return var9;
+         return (T)var9;
       } catch (InterruptedException var41) {
          throw new RuntimeException(var41);
       }

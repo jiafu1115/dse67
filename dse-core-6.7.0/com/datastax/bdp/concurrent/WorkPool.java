@@ -1,6 +1,7 @@
 package com.datastax.bdp.concurrent;
 
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
 import com.datastax.bdp.concurrent.metrics.HdrSlidingTimeStats;
 import com.datastax.bdp.concurrent.metrics.SlidingTimeRate;
 import com.datastax.bdp.concurrent.metrics.SlidingTimeStats;
@@ -325,38 +326,18 @@ public class WorkPool implements WorkPoolMXBean {
          return (new MetricNameBuilder()).withScope("search").withIndex(index).withMetricType("IndexPool");
       };
       IntStream.range(0, this.queues.length).forEach((queueIndex) -> {
-         CassandraMetricsRegistry var10000 = CassandraMetricsRegistry.Metrics;
-         MetricName var10001 = this.buildCMRName(builder, "Queue Size", queueIndex);
-         BlockingQueue var10002 = this.queues[queueIndex];
-         this.queues[queueIndex].getClass();
-         Gauge var3 = (Gauge)var10000.register(var10001, var10002::size);
+          CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder,"Query Size",queueIndex),(Metric)((Gauge)()->this.queues[queueIndex].size()));
       });
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Queue Size", "Total"), this::getTotalQueueSize);
-      IntStream.range(0, this.queues.length).forEach((queueIndex) -> {
-         CassandraMetricsRegistry var10000 = CassandraMetricsRegistry.Metrics;
-         MetricName var10001 = this.buildCMRName(builder, "Task Processing Time Nanos", queueIndex);
-         Worker var10002 = this.workers[queueIndex];
-         this.workers[queueIndex].getClass();
-         Gauge var3 = (Gauge)var10000.register(var10001, var10002::getTaskProcessingTimeNanos);
-      });
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Task Processing Time Nanos", "Total"), () -> {
-         return Long.valueOf(LongStream.of(this.getTaskProcessingTimeNanos()).sum());
-      });
-      IntStream.range(0, this.queues.length).forEach((queueIndex) -> {
-         CassandraMetricsRegistry var10000 = CassandraMetricsRegistry.Metrics;
-         MetricName var10001 = this.buildCMRName(builder, "Processed Tasks", queueIndex);
-         Worker var10002 = this.workers[queueIndex];
-         this.workers[queueIndex].getClass();
-         Gauge var3 = (Gauge)var10000.register(var10001, var10002::getProcessedTasks);
-      });
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Processed Tasks", "Total"), () -> {
-         return Long.valueOf(LongStream.of(this.getProcessedTasks()).sum());
-      });
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Queue Size StdDev"), this::getQueueSizeStdDev);
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Backpressure Pause Nanos"), this::getBackPressurePauseNanos);
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Incoming Rate"), this::getIncomingRate);
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Outgoing Rate"), this::getOutgoingRate);
-      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Throughput"), this::getThroughput);
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, "Queue Size", "Total"),(Metric)((Gauge)() -> this.getTotalQueueSize()));
+      IntStream.range(0, this.queues.length).forEach(queueIndex -> CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_TASK_PROCESSING_TIME_NANOS_GAUGE_NAME, queueIndex), (Metric)((Gauge)this.workers[queueIndex]::getTaskProcessingTimeNanos)));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_TASK_PROCESSING_TIME_NANOS_GAUGE_NAME, TOTAL), (Metric)((Gauge)() -> LongStream.of(this.getTaskProcessingTimeNanos()).sum()));
+      IntStream.range(0, this.queues.length).forEach(queueIndex -> CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_PROCESSED_TASKS_GAUGE_NAME, queueIndex), (Metric)((Gauge)this.workers[queueIndex]::getProcessedTasks)));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_PROCESSED_TASKS_GAUGE_NAME, TOTAL), (Metric)((Gauge)() -> LongStream.of(this.getProcessedTasks()).sum()));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_QUEUE_SIZE_STDDEV_GAUGE_NAME), (Metric)((Gauge)this::getQueueSizeStdDev));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_BACKPRESSURE_PAUSE_NANOS_GAUGE_NAME), (Metric)((Gauge)this::getBackPressurePauseNanos));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_INCOMING_RATE_GAUGE_NAME), (Metric)((Gauge)this::getIncomingRate));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_OUTGOING_RATE_GAUGE_NAME), (Metric)((Gauge)this::getOutgoingRate));
+      CassandraMetricsRegistry.Metrics.register(this.buildCMRName(builder, INDEX_POOL_THROUGHPUT_GAUGE_NAME), (Metric)((Gauge)this::getThroughput));
    }
 
    public void removeFromCassandraMetricsRegistry(String index) {

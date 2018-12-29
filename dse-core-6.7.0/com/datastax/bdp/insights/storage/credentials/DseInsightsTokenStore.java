@@ -215,10 +215,7 @@ public final class DseInsightsTokenStore implements TokenStore {
    }
 
    static {
-      com.google.common.base.Supplier var10000 = Suppliers.memoize(() -> {
-         return new File((String)InsightsConfig.logDirectory.get() + File.separator + "insights.token");
-      });
-      tokenFile = var10000::get;
+      tokenFile = Suppliers.memoize(() -> new File(InsightsConfig.logDirectory.get() + File.separator + "insights.token"))::get;
       TOKENS_TABLE = String.format("%s.%s", new Object[]{"dse_insights", "tokens"});
       INSERT_TOKEN_CQL = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)", new Object[]{TOKENS_TABLE, "node", "bearer_token", "max_added_date_seen_by_node", "last_updated"});
       UPDATE_TOKEN_CQL = String.format("UPDATE %s SET %s = ?, %s = ? WHERE %s = ?", new Object[]{TOKENS_TABLE, "bearer_token", "last_updated", "node"});

@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CollectdController {
-   public static final Supplier<CollectdController> instance = Suppliers.memoize(CollectdController::<init>);
+   public static final Supplier<CollectdController> instance = Suppliers.memoize(CollectdController::new);
    private static final MustacheFactory mf = new DefaultMustacheFactory();
    private static final Logger logger = LoggerFactory.getLogger(CollectdController.class);
    private static final String errorPreamble;

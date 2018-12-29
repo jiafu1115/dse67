@@ -42,7 +42,10 @@ public class HistogramSummaryWriter extends CqlWriter<HistogramInfo> {
    }
 
    protected CqlWriter<HistogramInfo>.WriterConfig createWriterConfig(Version dseVersion) {
-      return dseVersion.compareTo(ProductVersion.DSE_VERSION_51) >= 0?new CqlWriter.WriterConfig(this.getInsertCQL(), this::getVariables):new CqlWriter.WriterConfig(this.getInsertCQL_5_0(), this::getVariables_5_0);
+      if(dseVersion.compareTo(ProductVersion.DSE_VERSION_51) >= 0)
+          return new CqlWriter<HistogramInfo>.WriterConfig(this.getInsertCQL(), this::getVariables);
+       else
+          return new CqlWriter<HistogramInfo>.WriterConfig(this.getInsertCQL_5_0(), this::getVariables_5_0);
    }
 
    protected List<ByteBuffer> getVariables(HistogramInfo writeable) {

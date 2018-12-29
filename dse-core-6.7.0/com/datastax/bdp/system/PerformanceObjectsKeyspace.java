@@ -53,7 +53,7 @@ public class PerformanceObjectsKeyspace {
    public static final String USER_READ_IO_SNAPSHOT = "user_read_io_snapshot";
    public static final String USER_WRITE_IO_SNAPSHOT = "user_write_io_snapshot";
    public static final String WRITE_LATENCY_HISTOGRAMS = "write_latency_histograms";
-   public static final List<String> GLOBAL_METRICS = ImmutableList.builder().add(new String[]{"range_latency_histograms", "read_latency_histograms", "write_latency_histograms"}).build();
+   public static final List<String> GLOBAL_METRICS = ImmutableList.<String>builder().add(new String[]{"range_latency_histograms", "read_latency_histograms", "write_latency_histograms"}).build();
    public static final List<String> KEYSPACE_METRICS;
    public static final ImmutableList<String> TABLE_METRICS;
    public static final String LEASES = "leases";
@@ -200,8 +200,8 @@ public class PerformanceObjectsKeyspace {
    }
 
    static {
-      KEYSPACE_METRICS = ImmutableList.builder().add("sstables_per_read_histograms").addAll(GLOBAL_METRICS).build();
-      TABLE_METRICS = ImmutableList.builder().add(new String[]{"cell_count_histograms", "partition_size_histograms"}).addAll(KEYSPACE_METRICS).build();
+      KEYSPACE_METRICS = ImmutableList.<String>builder().add("sstables_per_read_histograms").addAll(GLOBAL_METRICS).build();
+      TABLE_METRICS = ImmutableList.<String>builder().add(new String[]{"cell_count_histograms", "partition_size_histograms"}).addAll(KEYSPACE_METRICS).build();
       SCHEMA_ADD_NODE_SLOW_LOG_TRACING_SESSION_ID = String.format("ALTER TABLE %s.%s ADD %s uuid;", new Object[]{"dse_perf", "node_slow_log", "tracing_session_id"});
       NODE_SNAPSHOT_ADD_BACKGROUND_IO_PENDING = String.format("ALTER TABLE %s.%s ADD %s bigint;", new Object[]{"dse_perf", "node_snapshot", "background_io_pending"});
       CLUSTER_SNAPSHOT_ADD_BACKGROUND_IO_PENDING = String.format("ALTER TABLE %s.%s ADD %s bigint;", new Object[]{"dse_perf", "cluster_snapshot", "background_io_pending"});

@@ -222,24 +222,20 @@ public class DseAuthenticator implements IAuthenticator {
    }
 
    public AuthenticatedUser plainTextAuthenticate(Credentials credentials, DseAuthenticator.AuthenticationState state) throws DseAuthenticationException {
-      Iterator var3 = (state.legacy?Collections.singleton(this.defaultScheme):this.allowedSchemes).iterator();
-
-      while(var3.hasNext()) {
-         AuthenticationScheme scheme = (AuthenticationScheme)var3.next();
-
+      for (AuthenticationScheme scheme : state.legacy ? Collections.singleton(this.defaultScheme) : this.allowedSchemes) {
          try {
             state.actualScheme = scheme;
-            switch(null.$SwitchMap$com$datastax$bdp$cassandra$auth$AuthenticationScheme[scheme.ordinal()]) {
-            case 1:
-               return this.internalAuthenticator.legacyAuthenticate(credentials.toMap());
-            case 2:
-               return LdapUtils.instance.authenticate(credentials);
+            switch (scheme) {
+               case INTERNAL: {
+                  return this.internalAuthenticator.legacyAuthenticate(credentials.toMap());
+               }
+               case LDAP: {
+                  return LdapUtils.instance.authenticate(credentials);
+               }
             }
-         } catch (AuthenticationException var6) {
-            ;
          }
+         catch (AuthenticationException authenticationException) {}
       }
-
       throw new DseAuthenticationException(credentials.authorizationUser, credentials.authenticationUser);
    }
 
@@ -248,7 +244,7 @@ public class DseAuthenticator implements IAuthenticator {
          return AuthenticatedUser.ANONYMOUS_USER;
       } else {
          Credentials creds = new Credentials(credentials);
-         DseAuthenticator.AuthenticationState authenticationState = new DseAuthenticator.AuthenticationState(null);
+         DseAuthenticator.AuthenticationState authenticationState = new DseAuthenticator.AuthenticationState();
          AuthenticatedUser user = null;
          if(this.forceAnonymous(creds.authenticationUser, !StringUtils.isEmpty(creds.password))) {
             return AuthenticatedUser.ANONYMOUS_USER;
@@ -401,7 +397,7 @@ public class DseAuthenticator implements IAuthenticator {
             passwordCallback.ifPresent((pc) -> {
                byte[] decomposedId = Base64.decodeBase64((String)nameCallback.flatMap((name) -> {
                   return Optional.ofNullable(name.getDefaultName());
-               }).orElseThrow(DseAuthenticationException::<init>));
+               }).orElseThrow(DseAuthenticationException::new));
                Optional<Pair<byte[], Long>> decomposedPassword = this.digestTokensManager.getPasswordById(decomposedId, ConsistencyLevel.LOCAL_QUORUM);
                if(!decomposedPassword.isPresent()) {
                   throw new DseAuthenticationException(InClusterAuthenticator.TokenId.compose(decomposedId).username);
@@ -424,7 +420,7 @@ public class DseAuthenticator implements IAuthenticator {
          state.actualScheme = AuthenticationScheme.KERBEROS;
 
          try {
-            this.saslServer = Sasl.createSaslServer(SaslMechanism.DIGEST.mechanism, (String)null, "default", SaslProperties.defaultProperties(ClientConfigurationFactory.getClientConfiguration()), new DseAuthenticator.DigestMD5SaslNegotiator.DigestMD5CallbackHandler(null));
+            this.saslServer = Sasl.createSaslServer(SaslMechanism.DIGEST.mechanism, (String)null, "default", SaslProperties.defaultProperties(ClientConfigurationFactory.getClientConfiguration()), new DseAuthenticator.DigestMD5SaslNegotiator.DigestMD5CallbackHandler());
          } catch (SaslException var4) {
             DseAuthenticator.logger.error("Error initialising SASL server", var4);
             throw new RuntimeException(var4);
@@ -617,8 +613,8 @@ public class DseAuthenticator implements IAuthenticator {
       }
 
       public byte[] evaluateResponse(byte[] clientResponse) throws DseAuthenticationException {
-         int split1 = ArrayUtils.indexOf(clientResponse, 0);
-         int split2 = ArrayUtils.indexOf(clientResponse, 0, split1 + 1);
+         int split1 = ArrayUtils.indexOf(clientResponse, (byte)0);
+         int split2 = ArrayUtils.indexOf(clientResponse, (byte)0, split1 + 1);
          if(split1 >= 0 && split2 >= 0) {
             this.credentials = new Credentials(new String(clientResponse, split1 + 1, split2 - split1 - 1, StandardCharsets.UTF_8), new String(clientResponse, split2 + 1, clientResponse.length - split2 - 1, StandardCharsets.UTF_8), new String(clientResponse, 0, split1, StandardCharsets.UTF_8));
 
@@ -644,7 +640,7 @@ public class DseAuthenticator implements IAuthenticator {
    }
 
    protected class UnifiedSaslNegotiator implements SaslNegotiator {
-      private DseAuthenticator.AuthenticationState authenticationState = DseAuthenticator.this.new AuthenticationState(null);
+      private DseAuthenticator.AuthenticationState authenticationState = DseAuthenticator.this.new AuthenticationState();
       private SaslNegotiator selectedNegotiator;
 
       public UnifiedSaslNegotiator(InetAddress clientAddress) {

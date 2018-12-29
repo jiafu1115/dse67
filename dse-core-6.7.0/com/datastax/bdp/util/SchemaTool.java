@@ -119,59 +119,57 @@ public class SchemaTool {
       long start = System.nanoTime();
 
       try {
-         if(stability.getCount() == 0L) {
-            return;
-         }
+         if(stability.getCount() != 0L) {
+            int normalAttempts = 0;
+            boolean gossipHasBeenEnabled = false;
+            int attempts = 0;
 
-         int normalAttempts = 0;
-         boolean gossipHasBeenEnabled = false;
-         int attempts = 0;
-
-         while(true) {
-            if(Gossiper.instance.isEnabled()) {
-               if(keySpace != null && getKeyspaceMetadata(keySpace) != null) {
-                  stability.await();
-                  break;
-               }
-
-               gossipHasBeenEnabled = true;
-               boolean allNormal = true;
-               Iterator var7 = StorageService.instance.getLiveRingMembers(true).iterator();
-
-               while(var7.hasNext()) {
-                  InetAddress node = (InetAddress)var7.next();
-                  String status = getStatus(node);
-                  if(status == null || !status.startsWith("NORMAL")) {
-                     allNormal = false;
-                     normalAttempts = 0;
-                     break;
-                  }
-               }
-
-               if(allNormal) {
-                  if(normalAttempts == EXTRA_NORMAL_ATTEMPTS) {
-                     logger.info("All ring nodes are in the NORMAL state now.");
-                     break;
+            while(true) {
+               if(Gossiper.instance.isEnabled()) {
+                  if(keySpace != null && getKeyspaceMetadata(keySpace) != null) {
+                     stability.await();
+                     return;
                   }
 
-                  ++normalAttempts;
+                  gossipHasBeenEnabled = true;
+                  boolean allNormal = true;
+                  Iterator var7 = StorageService.instance.getLiveRingMembers(true).iterator();
+
+                  while(var7.hasNext()) {
+                     InetAddress node = (InetAddress)var7.next();
+                     String status = getStatus(node);
+                     if(status == null || !status.startsWith("NORMAL")) {
+                        allNormal = false;
+                        normalAttempts = 0;
+                        break;
+                     }
+                  }
+
+                  if(allNormal) {
+                     if(normalAttempts == EXTRA_NORMAL_ATTEMPTS) {
+                        logger.info("All ring nodes are in the NORMAL state now.");
+                        return;
+                     }
+
+                     ++normalAttempts;
+                  }
+
+                  if(attempts >= MAX_ATTEMPTS) {
+                     logger.warn("Ring hasn't stabilized for a long time. continuing");
+                     return;
+                  }
+
+                  ++attempts;
+               } else {
+                  if(gossipHasBeenEnabled) {
+                     throw new RuntimeException("Server has been shutdown");
+                  }
+
+                  logger.info("Waiting for gossip to start...");
                }
 
-               if(attempts >= MAX_ATTEMPTS) {
-                  logger.warn("Ring hasn't stabilized for a long time. continuing");
-                  break;
-               }
-
-               ++attempts;
-            } else {
-               if(gossipHasBeenEnabled) {
-                  throw new RuntimeException("Server has been shutdown");
-               }
-
-               logger.info("Waiting for gossip to start...");
+               Thread.sleep((long)STABILITY_CHECK_INTERVAL_MS);
             }
-
-            Thread.sleep((long)STABILITY_CHECK_INTERVAL_MS);
          }
       } catch (InterruptedException var13) {
          throw new RuntimeException(var13);
@@ -290,7 +288,7 @@ public class SchemaTool {
 
          while(var3.hasNext()) {
             UserType expectedType = (UserType)var3.next();
-            UserType definedType = (UserType)defined.types.get(expectedType.name).orElse((Object)null);
+            UserType definedType = (UserType)defined.types.get(expectedType.name).orElse(null);
             if(definedType == null) {
                migrations.add(MigrationManager.announceNewType(expectedType, false));
             } else if(!expectedType.equals(definedType)) {
@@ -309,7 +307,7 @@ public class SchemaTool {
                }
 
                expectedTable = (TableMetadata)var3.next();
-               definedTable = (TableMetadata)defined.tables.get(expectedTable.name).orElse((Object)null);
+               definedTable = (TableMetadata)defined.tables.get(expectedTable.name).orElse(null);
             } while(definedTable != null && definedTable.equals(expectedTable));
 
             migrations.add(MigrationManager.forceAnnounceNewTable(expectedTable));
@@ -462,15 +460,16 @@ public class SchemaTool {
    }
 
    public static AbstractType<?> getElementType(CollectionType type) {
-      switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[type.kind.ordinal()]) {
-      case 1:
-      case 2:
-         return type.valueComparator();
-      case 3:
-         return type.nameComparator();
-      default:
-         throw new IllegalStateException("Unexpected collection type: " + type);
+      switch (type.kind) {
+         case MAP:
+         case LIST: {
+            return type.valueComparator();
+         }
+         case SET: {
+            return type.nameComparator();
+         }
       }
+      throw new IllegalStateException("Unexpected collection type: " + (Object)type);
    }
 
    public static AbstractType<?> getTupleSubFieldType(String solrFieldName, AbstractType<?> parentType, boolean returnElementType) {

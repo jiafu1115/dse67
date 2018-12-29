@@ -179,7 +179,7 @@ public class LdapUtils implements LdapUtilsMXBean {
          this.connectionTimeout = Long.getLong("dse.ldap.connection.timeout.ms", 30000L).longValue();
          this.connectionPool.setMinIdle(Integer.getInteger("dse.ldap.pool.min.idle", 0).intValue());
          String exhaustedAction = System.getProperty("dse.ldap.pool.exhausted.action", "block");
-         byte exhaustedValue = exhaustedAction.equals("fail")?0:(exhaustedAction.equals("grow")?2:1);
+         byte exhaustedValue = (byte)(exhaustedAction.equals("fail")?0:(exhaustedAction.equals("grow")?2:1));
          this.connectionPool.setWhenExhaustedAction((byte)exhaustedValue);
          this.connectionPool.setMaxWait(Long.getLong("dse.ldap.pool.max.wait", 30000L).longValue());
          this.connectionPool.setTestOnBorrow(Boolean.parseBoolean(System.getProperty("dse.ldap.pool.test.borrow", "false")));
@@ -224,7 +224,7 @@ public class LdapUtils implements LdapUtilsMXBean {
 
    public void setupAuthentication() {
       this.setup();
-      JMX.registerMBean(this, JMX.Type.CORE, MapBuilder.immutable().withKeys(new String[]{"name"}).withValues(new String[]{"LdapAuthenticator"}).build());
+      JMX.registerMBean(this, JMX.Type.CORE, MapBuilder.<String,String>immutable().withKeys(new String[]{"name"}).withValues(new String[]{"LdapAuthenticator"}).build());
    }
 
    public AuthenticatedUser authenticate(Credentials credentials) throws AuthenticationException {
@@ -400,7 +400,7 @@ public class LdapUtils implements LdapUtilsMXBean {
                logger.trace("[ldap-bind] ERROR - bind failed for userDN: " + userDn, var11);
             }
 
-            t = var11;
+            t = (LdapException) var11;
          } finally {
             this.freeConnection(connection, t);
          }
@@ -466,7 +466,7 @@ public class LdapUtils implements LdapUtilsMXBean {
 
                AuthenticationException exception = new DseAuthenticationException("LDAP authentication failure");
                exception.initCause(var12);
-               t = exception;
+               t = (DseAuthenticationException) exception;
                throw exception;
             } finally {
                this.freeConnection(connection, t);
@@ -589,7 +589,7 @@ public class LdapUtils implements LdapUtilsMXBean {
                logger.trace("[ldap-fetch-user-groups] ERROR - failed to fetch groups for username: " + username, var16);
             }
 
-            t = var16;
+            t = (CursorException) var16;
          } finally {
             this.freeConnection(connection, t);
          }

@@ -83,7 +83,7 @@ public abstract class CqlWriter<T extends CqlWritable> {
    }
 
    protected CqlWriter<T>.WriterConfig createWriterConfig(Version dseVersion) {
-      return new CqlWriter.WriterConfig(this.getInsertCQL(), this::getVariables);
+      return new CqlWriter<T>.WriterConfig(this.getInsertCQL(), this::getVariables);
    }
 
    public void maybeAlterSchema() {
@@ -130,7 +130,7 @@ public abstract class CqlWriter<T extends CqlWritable> {
       public final String insert;
       public final Function<T, List<ByteBuffer>> variablesProvider;
 
-      public WriterConfig(String this$0, Function<T, List<ByteBuffer>> insert) {
+      public WriterConfig(String insert, Function<T, List<ByteBuffer>> variablesProvider) {
          this.insert = insert;
          this.variablesProvider = variablesProvider;
       }

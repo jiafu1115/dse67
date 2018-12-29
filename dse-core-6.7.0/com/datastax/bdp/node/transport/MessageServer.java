@@ -54,7 +54,7 @@ public abstract class MessageServer {
    private final MessageCodec codec;
 
    public static MessageServer.Builder newBuilder() {
-      return new MessageServer.Builder(null);
+      return new MessageServer.Builder();
    }
 
    public MessageServer(int acceptorThreads, int workerThreads, Optional<SSLOptions> sslOptions, Map<MessageType, ServerProcessor> processors, MessageCodec codec, String name) {
@@ -79,9 +79,9 @@ public abstract class MessageServer {
             MessageServer.this.sslOptions.ifPresent((sslOptions) -> {
                pipeline.addFirst(new ChannelHandler[]{sslOptions.createServerSslHandler()});
             });
-            pipeline.addLast(new ChannelHandler[]{MessageServer.this.new ChannelStateHandler(null)});
+            pipeline.addLast(new ChannelHandler[]{MessageServer.this.new ChannelStateHandler()});
             pipeline.addLast(MessageServer.this.codec.newPipeline());
-            pipeline.addLast(new ChannelHandler[]{MessageServer.this.new MessageRequestHandler(null)});
+            pipeline.addLast(new ChannelHandler[]{MessageServer.this.new MessageRequestHandler()});
          }
       });
       Iterator var2 = this.doBind(bootstrap).iterator();
@@ -137,13 +137,13 @@ public abstract class MessageServer {
                         response.trySetVersion(request.getVersion());
                      } catch (Exception var9) {
                         response = new Message(EnumSet.of(Message.Flag.FAILED_PROCESSOR), request.getId(), SystemMessageTypes.FAILED_PROCESSOR, new FailedProcessorException(var9.getClass(), var9.getMessage()));
-                        response.trySetVersion(-1);
+                        response.trySetVersion((byte)-1);
                         MessageServer.this.logger.error("Failed to process request: " + request, var9);
                      }
                   } else {
                      UnsupportedMessageException exx = new UnsupportedMessageException("Cannot find processor for message type: " + type);
                      response = new Message(EnumSet.of(Message.Flag.UNSUPPORTED_MESSAGE), request.getId(), SystemMessageTypes.UNSUPPORTED_MESSAGE, exx);
-                     response.trySetVersion(-1);
+                     response.trySetVersion((byte)-1);
                      MessageServer.this.logger.error(exx.getMessage());
                   }
                }
@@ -175,7 +175,7 @@ public abstract class MessageServer {
             } else if(cause instanceof OversizeFrameException) {
                MessageServer.this.logger.error(cause.getMessage(), cause);
                Message errorResponse = new Message(EnumSet.of(Message.Flag.OVERSIZE_FRAME), request.getId(), SystemMessageTypes.OVERSIZE_FRAME, cause);
-               errorResponse.trySetVersion(-1);
+               errorResponse.trySetVersion((byte)-1);
                context.writeAndFlush(errorResponse).awaitUninterruptibly();
             } else if(cause != null) {
                MessageServer.this.logger.error(cause.getMessage(), cause);

@@ -455,7 +455,7 @@ public class InsightsRuntimeConfigManager implements InsightsConfigPluginMXBean 
    }
 
    private MapBuilder.ImmutableMap<String, String> jmxCoordinates() {
-      return MapBuilder.immutable().withKeys(new String[]{"name"}).withValues(new String[]{"InsightsRuntimeConfig"}).build();
+      return MapBuilder.<String,String>immutable().withKeys(new String[]{"name"}).withValues(new String[]{"InsightsRuntimeConfig"}).build();
    }
 
    private void configureAndRefresh(Runnable configureAction) {
