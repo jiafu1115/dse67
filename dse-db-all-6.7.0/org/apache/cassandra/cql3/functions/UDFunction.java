@@ -46,7 +46,7 @@ public abstract class UDFunction extends AbstractFunction implements ScalarFunct
    @VisibleForTesting
    static Runnable postExecHook = () -> {
    };
-   static final ClassLoader udfClassLoader = new UDFunction.UDFClassLoader(null);
+   static final ClassLoader udfClassLoader = new UDFunction.UDFClassLoader();
    private static final long INITIAL_EXECUTION_GRACE_TIME;
    protected volatile boolean executed;
 

@@ -129,64 +129,58 @@ class AsyncPartitionReader {
 
    }
 
-   public boolean prepareRow() throws Exception {
-      if(this.filePos != -1L) {
-         this.dfile.seek(this.filePos);
-      }
-
-      label52: {
-         switch(null.$SwitchMap$org$apache$cassandra$io$sstable$format$AsyncPartitionReader$State[this.state.ordinal()]) {
-         case 1:
-            assert this.indexEntry == null;
-
-            this.indexEntry = this.table.getExactPosition(this.key, this.listener, Rebufferer.ReaderConstraint.ASYNC);
-            if(this.indexEntry == null) {
-               this.state = AsyncPartitionReader.State.PREPARED;
-               return false;
-            }
-
-            this.state = AsyncPartitionReader.State.HAVE_INDEX_ENTRY;
-         case 2:
-            boolean needSeekAtPartitionStart = !this.indexEntry.isIndexed() || !this.selectedColumns.fetchedColumns().statics.isEmpty();
-            if(!needSeekAtPartitionStart) {
-               this.partitionLevelDeletion = this.indexEntry.deletionTime();
-               this.staticRow = Rows.EMPTY_STATIC_ROW;
-               this.state = AsyncPartitionReader.State.PREPARED;
-               return true;
-            }
-
-            if(this.dataFileOwner.compareAndSet(AsyncPartitionReader.DataFileOwner.NONE, AsyncPartitionReader.DataFileOwner.PARTITION_READER)) {
-               this.dfile = this.table.openDataReader(Rebufferer.ReaderConstraint.ASYNC, FileAccessType.RANDOM);
-            }
-
-            this.filePos = this.indexEntry.position;
-            this.state = AsyncPartitionReader.State.HAVE_DFILE;
+    public boolean prepareRow() throws Exception {
+        if (this.filePos != -1L) {
             this.dfile.seek(this.filePos);
-         case 3:
-            ByteBufferUtil.skipShortLength(this.dfile);
-            this.filePos = this.dfile.getFilePointer();
-            this.state = AsyncPartitionReader.State.HAVE_SKIPPED_KEY;
-         case 4:
-            break;
-         case 5:
-            break label52;
-         case 6:
-         default:
-            throw new AssertionError();
-         }
+        }
+        switch (this.state) {
+            case STARTING: {
+                assert (this.indexEntry == null);
+                this.indexEntry = this.table.getExactPosition(this.key, this.listener, Rebufferer.ReaderConstraint.ASYNC);
+                if (this.indexEntry == null) {
+                    this.state = State.PREPARED;
+                    return false;
+                }
+                this.state = State.HAVE_INDEX_ENTRY;
+            }
+            case HAVE_INDEX_ENTRY: {
+                boolean needSeekAtPartitionStart;
+                boolean bl = needSeekAtPartitionStart = !this.indexEntry.isIndexed() || !this.selectedColumns.fetchedColumns().statics.isEmpty();
+                if (!needSeekAtPartitionStart) {
+                    this.partitionLevelDeletion = this.indexEntry.deletionTime();
+                    this.staticRow = Rows.EMPTY_STATIC_ROW;
+                    this.state = State.PREPARED;
+                    return true;
+                }
+                if (this.dataFileOwner.compareAndSet(DataFileOwner.NONE, DataFileOwner.PARTITION_READER)) {
+                    this.dfile = this.table.openDataReader(Rebufferer.ReaderConstraint.ASYNC, FileAccessType.RANDOM);
+                }
+                this.filePos = this.indexEntry.position;
+                this.state = State.HAVE_DFILE;
+                this.dfile.seek(this.filePos);
+            }
+            case HAVE_DFILE: {
+                ByteBufferUtil.skipShortLength(this.dfile);
+                this.filePos = this.dfile.getFilePointer();
+                this.state = State.HAVE_SKIPPED_KEY;
+            }
+            case HAVE_SKIPPED_KEY: {
+                this.partitionLevelDeletion = DeletionTime.serializer.deserialize(this.dfile);
+                this.filePos = this.dfile.getFilePointer();
+                this.state = State.HAVE_DELETION_TIME;
+            }
+            case HAVE_DELETION_TIME: {
+                this.staticRow = SSTableReader.readStaticRow(this.table, this.dfile, this.helper, this.selectedColumns.fetchedColumns().statics);
+                this.filePos = this.dfile.getFilePointer();
+                this.state = State.PREPARED;
+                return true;
+            }
+        }
+        throw new AssertionError();
+    }
 
-         this.partitionLevelDeletion = DeletionTime.serializer.deserialize(this.dfile);
-         this.filePos = this.dfile.getFilePointer();
-         this.state = AsyncPartitionReader.State.HAVE_DELETION_TIME;
-      }
 
-      this.staticRow = SSTableReader.readStaticRow(this.table, this.dfile, this.helper, this.selectedColumns.fetchedColumns().statics);
-      this.filePos = this.dfile.getFilePointer();
-      this.state = AsyncPartitionReader.State.PREPARED;
-      return true;
-   }
-
-   class PartitionSubscription extends FlowableUnfilteredPartition.FlowSource implements AsyncPartitionReader.Reader {
+    class PartitionSubscription extends FlowableUnfilteredPartition.FlowSource implements AsyncPartitionReader.Reader {
       final TPCScheduler onReadyExecutor = TPC.bestTPCScheduler();
       SSTableReader.PartitionReader sstableReader;
       boolean provideLowerBound;
@@ -197,21 +191,23 @@ class AsyncPartitionReader {
       }
 
       private FileDataInput openFile() {
-         if(AsyncPartitionReader.this.dataFileOwner.compareAndSet(AsyncPartitionReader.DataFileOwner.PARTITION_READER, AsyncPartitionReader.DataFileOwner.PARTITION_SUBSCRIPTION)) {
+         if (AsyncPartitionReader.this.dataFileOwner.compareAndSet(DataFileOwner.PARTITION_READER, DataFileOwner.PARTITION_SUBSCRIPTION)) {
             return AsyncPartitionReader.this.dfile;
-         } else {
-            switch(null.$SwitchMap$org$apache$cassandra$io$sstable$format$AsyncPartitionReader$DataFileOwner[((AsyncPartitionReader.DataFileOwner)AsyncPartitionReader.this.dataFileOwner.get()).ordinal()]) {
-            case 1:
+         }
+         switch (AsyncPartitionReader.this.dataFileOwner.get()) {
+            case EXTERNAL: {
                return AsyncPartitionReader.this.dfile;
-            case 2:
+            }
+            case PARTITION_SUBSCRIPTION: {
                return AsyncPartitionReader.this.dfile;
-            case 3:
-               AsyncPartitionReader.this.dataFileOwner.set(AsyncPartitionReader.DataFileOwner.PARTITION_SUBSCRIPTION);
-               return AsyncPartitionReader.this.dfile = AsyncPartitionReader.this.table.openDataReader(Rebufferer.ReaderConstraint.ASYNC, FileAccessType.RANDOM);
-            default:
-               throw new AssertionError();
+            }
+            case NONE: {
+               AsyncPartitionReader.this.dataFileOwner.set(DataFileOwner.PARTITION_SUBSCRIPTION);
+               AsyncPartitionReader.this.dfile = AsyncPartitionReader.this.table.openDataReader(Rebufferer.ReaderConstraint.ASYNC, FileAccessType.RANDOM);
+               return AsyncPartitionReader.this.dfile;
             }
          }
+         throw new AssertionError();
       }
 
       public void performRead(boolean isRetry) throws Exception {

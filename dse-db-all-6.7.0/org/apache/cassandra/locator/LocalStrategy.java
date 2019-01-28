@@ -12,7 +12,7 @@ import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.UnmodifiableArrayList;
 
 public class LocalStrategy extends AbstractReplicationStrategy {
-   private final List<InetAddress> naturalEndpoints = UnmodifiableArrayList.of((Object)FBUtilities.getBroadcastAddress());
+   private final List<InetAddress> naturalEndpoints = UnmodifiableArrayList.of(FBUtilities.getBroadcastAddress());
 
    public LocalStrategy(String keyspaceName, TokenMetadata tokenMetadata, IEndpointSnitch snitch, Map<String, String> configOptions) {
       super(keyspaceName, tokenMetadata, snitch, configOptions);

@@ -44,7 +44,7 @@ final class LogFile implements AutoCloseable {
    private final UUID id;
 
    static LogFile make(File logReplica) {
-      return make(logReplica.getName(), UnmodifiableArrayList.of((Object)logReplica));
+      return make(logReplica.getName(), UnmodifiableArrayList.of(logReplica));
    }
 
    static LogFile make(String fileName, List<File> logReplicas) {
@@ -278,9 +278,7 @@ final class LogFile implements AutoCloseable {
    }
 
    void deleteFilesForRecordsOfType(LogRecord.Type type) {
-      Stream var10000 = this.records.stream();
-      type.getClass();
-      var10000.filter(type::matches).forEach(LogFile::deleteRecordFiles);
+      this.records.stream().filter(type::matches).forEach(LogFile::deleteRecordFiles);
       this.records.clear();
    }
 
@@ -292,20 +290,15 @@ final class LogFile implements AutoCloseable {
       files.forEach(LogTransaction::delete);
    }
 
+
    Map<LogRecord, Set<File>> getFilesOfType(Path folder, NavigableSet<File> files, LogRecord.Type type) {
-      Map<LogRecord, Set<File>> ret = new HashMap();
-      Stream var10000 = this.records.stream();
-      type.getClass();
-      var10000.filter(type::matches).filter(LogRecord::isValid).filter((r) -> {
-         return r.isInFolder(folder);
-      }).forEach((r) -> {
-         Set var10000 = (Set)ret.put(r, getRecordFiles(files, r));
-      });
+      HashMap<LogRecord, Set<File>> ret = new HashMap<LogRecord, Set<File>>();
+      this.records.stream().filter(type::matches).filter(LogRecord::isValid).filter(r -> r.isInFolder(folder)).forEach(r -> ret.put((LogRecord)r, LogFile.getRecordFiles(files, r)));
       return ret;
    }
 
    LogRecord getLastRecord() {
-      return (LogRecord)Iterables.getLast(this.records, (Object)null);
+      return (LogRecord)Iterables.getLast(this.records, null);
    }
 
    private static Set<File> getRecordFiles(NavigableSet<File> files, LogRecord record) {

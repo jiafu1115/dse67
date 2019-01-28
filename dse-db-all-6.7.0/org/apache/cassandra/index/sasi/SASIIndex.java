@@ -71,7 +71,7 @@ import org.apache.cassandra.utils.time.ApolloTime;
 
 public class SASIIndex implements Index, INotificationConsumer {
    public static final String USAGE_WARNING = "SASI index was enabled for '%s.%s'. SASI is still in beta, take extra caution when using it in production.";
-   private static final SASIIndex.SASIIndexBuildingSupport INDEX_BUILDER_SUPPORT = new SASIIndex.SASIIndexBuildingSupport(null);
+   private static final SASIIndex.SASIIndexBuildingSupport INDEX_BUILDER_SUPPORT = new SASIIndex.SASIIndexBuildingSupport();
    private final ColumnFamilyStore baseCfs;
    private final IndexMetadata config;
    private final ColumnIndex index;
@@ -79,23 +79,19 @@ public class SASIIndex implements Index, INotificationConsumer {
    public SASIIndex(ColumnFamilyStore baseCfs, IndexMetadata config) {
       this.baseCfs = baseCfs;
       this.config = config;
-      ColumnMetadata column = (ColumnMetadata)TargetParser.parse(baseCfs.metadata(), config).left;
+      ColumnMetadata column = (ColumnMetadata)TargetParser.parse((TableMetadata)baseCfs.metadata(), (IndexMetadata)config).left;
       this.index = new ColumnIndex(baseCfs.metadata().partitionKeyType, column, config);
       Tracker tracker = baseCfs.getTracker();
       tracker.subscribe(this);
-      SortedMap<SSTableReader, Multimap<ColumnMetadata, ColumnIndex>> toRebuild = new TreeMap((a, b) -> {
-         return Integer.compare(a.descriptor.generation, b.descriptor.generation);
-      });
-
-      Object perSSTable;
-      for(Iterator var6 = this.index.init(tracker.getView().liveSSTables()).iterator(); var6.hasNext(); ((Multimap)perSSTable).put(this.index.getDefinition(), this.index)) {
-         SSTableReader sstable = (SSTableReader)var6.next();
-         perSSTable = (Multimap)toRebuild.get(sstable);
-         if(perSSTable == null) {
-            toRebuild.put(sstable, perSSTable = HashMultimap.create());
+      TreeMap<SSTableReader, Multimap<ColumnMetadata, ColumnIndex>> toRebuild = new TreeMap<SSTableReader, Multimap<ColumnMetadata, ColumnIndex>>((a, b) -> Integer.compare(a.descriptor.generation, b.descriptor.generation));
+      for (SSTableReader sstable : this.index.init(tracker.getView().liveSSTables())) {
+         Multimap perSSTable = (Multimap<ColumnMetadata, ColumnIndex>)toRebuild.get(sstable);
+         if (perSSTable == null) {
+            perSSTable = HashMultimap.create();
+            toRebuild.put(sstable, (Multimap<ColumnMetadata, ColumnIndex>)perSSTable);
          }
+         perSSTable.put((Object)this.index.getDefinition(), (Object)this.index);
       }
-
       CompactionManager.instance.submitIndexBuild(new SASIIndexBuilder(baseCfs, toRebuild));
    }
 
@@ -293,7 +289,7 @@ public class SASIIndex implements Index, INotificationConsumer {
       }
 
       public SecondaryIndexBuilder getIndexBuildTask(ColumnFamilyStore cfs, Set<Index> indexes, Collection<SSTableReader> sstablesToRebuild) {
-         NavigableMap<SSTableReader, Multimap<ColumnMetadata, ColumnIndex>> sstables = new TreeMap(Comparator.comparingInt((a) -> {
+         NavigableMap<SSTableReader, Multimap<ColumnMetadata, ColumnIndex>> sstables = new TreeMap<SSTableReader, Multimap<ColumnMetadata, ColumnIndex>> (Comparator.comparingInt((a) -> {
             return a.descriptor.generation;
          }));
          indexes.stream().filter((i) -> {

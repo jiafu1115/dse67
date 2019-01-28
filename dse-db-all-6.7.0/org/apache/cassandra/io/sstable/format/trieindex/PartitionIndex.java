@@ -321,9 +321,9 @@ public class PartitionIndex implements Closeable {
       public void write(DataOutput dest, TrieNode type, SerializationNode<PartitionIndex.Payload> node, long nodePosition) throws IOException {
          PartitionIndex.Payload payload = (PartitionIndex.Payload)node.payload();
          if(payload != null) {
-            int payloadBits = false;
+            int payloadBits = 0;
             int size = SizedInts.nonZeroSize(payload.position);
-            int payloadBits = 7 + size;
+            payloadBits = 7 + size;
             type.serialize(dest, node, payloadBits, nodePosition);
             dest.writeByte(payload.hashBits);
             SizedInts.write(dest, payload.position, size);

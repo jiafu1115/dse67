@@ -16,7 +16,7 @@ public class ApproximateTime extends ApproximateTimePad2 {
       try {
          Field field = Class.forName("io.netty.util.concurrent.ScheduledFutureTask", true, ClassLoader.getSystemClassLoader()).getDeclaredField("START_TIME");
          field.setAccessible(true);
-         return field.getLong((Object)null);
+         return field.getLong(null);
       } catch (Exception var1) {
          throw new RuntimeException(var1);
       }

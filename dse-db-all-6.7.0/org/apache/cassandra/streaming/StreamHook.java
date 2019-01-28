@@ -16,7 +16,7 @@ public interface StreamHook {
 
    void reportIncomingFile(ColumnFamilyStore var1, SSTableMultiWriter var2, StreamSession var3, int var4);
 
-   static default StreamHook createHook() {
+   static StreamHook createHook() {
       String className = PropertyConfiguration.getString("cassandra.stream_hook");
       return className != null?(StreamHook)FBUtilities.construct(className, StreamHook.class.getSimpleName()):new StreamHook() {
          public OutgoingFileMessage reportOutgoingFile(StreamSession session, SSTableReader sstable, OutgoingFileMessage message) {

@@ -24,6 +24,6 @@ class ForwardRequest<P, Q> extends Request<P, Q> {
    }
 
    public FailureResponse<Q> respondWithFailure(RequestFailureReason reason) {
-      return new FailureResponse(local, this.replyTo, this.id(), this.verb(), reason, this.messageData.withPayload((Object)null, -1L));
+      return new FailureResponse(local, this.replyTo, this.id(), this.verb(), reason, this.messageData.withPayload(null, -1L));
    }
 }

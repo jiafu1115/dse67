@@ -57,94 +57,69 @@ public class IncrementalTrieWriterPageAware<Value> extends IncrementalTrieWriter
       return root;
    }
 
-   void complete(IncrementalTrieWriterPageAware.Node<Value> node) throws IOException {
-      assert node.filePos == -1L;
-
+   void complete(Node<Value> node) throws IOException {
+      assert (node.filePos == -1L);
       int branchSize = 0;
-
-      IncrementalTrieWriterPageAware.Node child;
-      for(Iterator var3 = node.children.iterator(); var3.hasNext(); branchSize += child.branchSize + child.nodeSize) {
-         child = (IncrementalTrieWriterPageAware.Node)var3.next();
+      for (Node<Value> child : node.children) {
+         branchSize += child.branchSize + child.nodeSize;
       }
-
       node.branchSize = branchSize;
       int nodeSize = this.serializer.sizeofNode(node, ((DataOutputPlus)this.dest).position());
-      if(nodeSize + branchSize >= 4096) {
-         this.layoutChildren(node);
-      } else {
+      if (nodeSize + branchSize < 4096) {
          node.nodeSize = nodeSize;
          node.hasOutOfPageChildren = false;
          node.hasOutOfPageInBranch = false;
-         Iterator var7 = node.children.iterator();
-
-         while(true) {
-            while(var7.hasNext()) {
-               IncrementalTrieWriterPageAware.Node<Value> child = (IncrementalTrieWriterPageAware.Node)var7.next();
-               if(child.filePos != -1L) {
-                  node.hasOutOfPageChildren = true;
-               } else if(child.hasOutOfPageChildren || child.hasOutOfPageInBranch) {
-                  node.hasOutOfPageInBranch = true;
-               }
+         for (Node child : node.children) {
+            if (child.filePos != -1L) {
+               node.hasOutOfPageChildren = true;
+               continue;
             }
-
-            return;
+            if (!child.hasOutOfPageChildren && !child.hasOutOfPageInBranch) continue;
+            node.hasOutOfPageInBranch = true;
          }
-      }
-   }
-
-   private void layoutChildren(IncrementalTrieWriterPageAware.Node<Value> node) throws IOException {
-      assert node.filePos == -1L;
-
-      NavigableSet<IncrementalTrieWriterPageAware.Node<Value>> children = new TreeSet(BRANCH_SIZE_COMPARATOR);
-      Iterator var3 = node.children.iterator();
-
-      IncrementalTrieWriterPageAware.Node cmp;
-      while(var3.hasNext()) {
-         cmp = (IncrementalTrieWriterPageAware.Node)var3.next();
-         if(cmp.filePos == -1L) {
-            children.add(cmp);
-         }
-      }
-
-      int bytesLeft = this.bytesLeftInPage();
-      cmp = new IncrementalTrieWriterPageAware.Node(256);
-      cmp.nodeSize = 0;
-
-      while(true) {
-         while(!children.isEmpty()) {
-            cmp.branchSize = bytesLeft;
-            IncrementalTrieWriterPageAware.Node<Value> child = (IncrementalTrieWriterPageAware.Node)children.headSet(cmp, true).pollLast();
-            if(child == null) {
-               PageAware.pad((DataOutputPlus)this.dest);
-               bytesLeft = 4096;
-               child = (IncrementalTrieWriterPageAware.Node)children.pollLast();
-            }
-
-            if(child.hasOutOfPageChildren || child.hasOutOfPageInBranch) {
-               int actualSize = this.recalcTotalSize(child, ((DataOutputPlus)this.dest).position());
-               if(actualSize > bytesLeft) {
-                  if(bytesLeft == 4096) {
-                     this.layoutChildren(child);
-                     bytesLeft = this.bytesLeftInPage();
-
-                     assert child.filePos == -1L;
-                  }
-
-                  children.add(child);
-                  continue;
-               }
-            }
-
-            child.finalizeWithPosition(this.writeRecursive(child));
-            bytesLeft = this.bytesLeftInPage();
-         }
-
-         node.branchSize = 0;
-         node.hasOutOfPageChildren = true;
-         node.hasOutOfPageInBranch = false;
-         node.nodeSize = this.serializer.sizeofNode(node, ((DataOutputPlus)this.dest).position());
          return;
       }
+      this.layoutChildren(node);
+   }
+
+   private void layoutChildren(final Node<Value> node) throws IOException {
+      assert node.filePos == -1L;
+      final NavigableSet<Node<Value>> children = new TreeSet<Node<Value>>(IncrementalTrieWriterPageAware.BRANCH_SIZE_COMPARATOR);
+      for (final Node<Value> child : node.children) {
+         if (child.filePos == -1L) {
+            children.add(child);
+         }
+      }
+      int bytesLeft = this.bytesLeftInPage();
+      final Node<Value> cmp = new Node<Value>(256);
+      cmp.nodeSize = 0;
+      while (!children.isEmpty()) {
+         cmp.branchSize = bytesLeft;
+         Node<Value> child2 = children.headSet(cmp, true).pollLast();
+         if (child2 == null) {
+            PageAware.pad((DataOutputPlus)this.dest);
+            bytesLeft = 4096;
+            child2 = children.pollLast();
+         }
+         if (child2.hasOutOfPageChildren || child2.hasOutOfPageInBranch) {
+            final int actualSize = this.recalcTotalSize(child2, ((DataOutputPlus)this.dest).position());
+            if (actualSize > bytesLeft) {
+               if (bytesLeft == 4096) {
+                  this.layoutChildren(child2);
+                  bytesLeft = this.bytesLeftInPage();
+                  assert child2.filePos == -1L;
+               }
+               children.add(child2);
+               continue;
+            }
+         }
+         child2.finalizeWithPosition(this.writeRecursive(child2));
+         bytesLeft = this.bytesLeftInPage();
+      }
+      node.branchSize = 0;
+      node.hasOutOfPageChildren = true;
+      node.hasOutOfPageInBranch = false;
+      node.nodeSize = this.serializer.sizeofNode((SerializationNode<Value>)node, ((DataOutputPlus)this.dest).position());
    }
 
    private int recalcTotalSize(IncrementalTrieWriterPageAware.Node<Value> node, long nodePosition) throws IOException {
@@ -283,7 +258,7 @@ public class IncrementalTrieWriterPageAware<Value> extends IncrementalTrieWriter
       final long startPosition;
       final List<IncrementalTrieWriterPageAware.Node<Value>> childrenToClear;
 
-      WritePartialRecursion(IncrementalTrieWriterPageAware.Node<Value> this$0, IncrementalTrieWriterPageAware<Value>.WritePartialRecursion node) {
+      WritePartialRecursion(IncrementalTrieWriterPageAware.Node<Value> node, IncrementalTrieWriterPageAware<Value>.WritePartialRecursion parent) {
          super(node, node.children.iterator(), parent);
          this.dest = parent.dest;
          this.baseOffset = parent.baseOffset;
@@ -291,7 +266,7 @@ public class IncrementalTrieWriterPageAware<Value> extends IncrementalTrieWriter
          this.childrenToClear = new ArrayList();
       }
 
-      WritePartialRecursion(IncrementalTrieWriterPageAware.Node<Value> this$0, DataOutputPlus node, long dest) {
+      WritePartialRecursion(IncrementalTrieWriterPageAware.Node<Value> node, DataOutputPlus dest, long baseOffset) {
          super(node, node.children.iterator(), (IncrementalTrieWriterPageAware.Recursion)null);
          this.dest = dest;
          this.baseOffset = baseOffset;
@@ -332,7 +307,7 @@ public class IncrementalTrieWriterPageAware<Value> extends IncrementalTrieWriter
    class WriteRecursion extends IncrementalTrieWriterPageAware.Recursion<IncrementalTrieWriterPageAware.Node<Value>> {
       long nodePosition;
 
-      WriteRecursion(IncrementalTrieWriterPageAware.Node<Value> this$0, IncrementalTrieWriterPageAware.Recursion<IncrementalTrieWriterPageAware.Node<Value>> node) {
+      WriteRecursion(IncrementalTrieWriterPageAware.Node<Value> node, IncrementalTrieWriterPageAware.Recursion<IncrementalTrieWriterPageAware.Node<Value>> parent) {
          super(node, node.children.iterator(), parent);
          this.nodePosition = ((DataOutputPlus)IncrementalTrieWriterPageAware.this.dest).position();
       }
@@ -358,7 +333,7 @@ public class IncrementalTrieWriterPageAware<Value> extends IncrementalTrieWriter
       final long nodePosition;
       int sz = 0;
 
-      RecalcTotalSizeRecursion(IncrementalTrieWriterPageAware.Node<Value> this$0, IncrementalTrieWriterPageAware.Recursion<IncrementalTrieWriterPageAware.Node<Value>> node, long parent) {
+      RecalcTotalSizeRecursion(IncrementalTrieWriterPageAware.Node<Value> node, IncrementalTrieWriterPageAware.Recursion<IncrementalTrieWriterPageAware.Node<Value>> parent, long nodePosition) {
          super(node, node.children.iterator(), parent);
          this.nodePosition = nodePosition;
       }
@@ -399,29 +374,31 @@ public class IncrementalTrieWriterPageAware<Value> extends IncrementalTrieWriter
       void completeChild(NodeType child) {
       }
 
-      IncrementalTrieWriterPageAware.Recursion<NodeType> process() throws IOException {
-         IncrementalTrieWriterPageAware.Recursion curr = this;
 
-         while(true) {
-            while(!curr.childIterator.hasNext()) {
-               curr.complete();
-               IncrementalTrieWriterPageAware.Recursion<NodeType> parent = curr.parent;
-               if(parent == null) {
-                  return curr;
+       Recursion<NodeType> process() throws IOException {
+           Recursion<NodeType> curr = this;
+           while (true) {
+               if (curr.childIterator.hasNext()) {
+                   final NodeType child = curr.childIterator.next();
+                   final Recursion<NodeType> childRec = curr.makeChild(child);
+                   if (childRec != null) {
+                       curr = childRec;
+                   }
+                   else {
+                       curr.completeChild(child);
+                   }
                }
-
-               parent.completeChild(curr.node);
-               curr = parent;
-            }
-
-            NodeType child = curr.childIterator.next();
-            IncrementalTrieWriterPageAware.Recursion<NodeType> childRec = curr.makeChild(child);
-            if(childRec != null) {
-               curr = childRec;
-            } else {
-               curr.completeChild(child);
-            }
-         }
-      }
+               else {
+                   curr.complete();
+                   final Recursion<NodeType> parent = curr.parent;
+                   if (parent == null) {
+                       break;
+                   }
+                   parent.completeChild(curr.node);
+                   curr = parent;
+               }
+           }
+           return curr;
+       }
    }
 }

@@ -29,7 +29,7 @@ public interface ChunkReader extends RebuffererFactory {
    }
 
    @VisibleForTesting
-   static default ChunkReader simple(AsynchronousChannelProxy channel, long fileLength, int bufferSize) {
+   static ChunkReader simple(AsynchronousChannelProxy channel, long fileLength, int bufferSize) {
       return new SimpleChunkReader(channel, fileLength, bufferSize);
    }
 

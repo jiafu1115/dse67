@@ -351,7 +351,7 @@ public class LifecycleTransaction extends Transactional.AbstractTransactional {
    public SSTableReader onlyOne() {
       assert this.originals.size() == 1;
 
-      return (SSTableReader)Iterables.getFirst(this.originals, (Object)null);
+      return (SSTableReader)Iterables.getFirst(this.originals, null);
    }
 
    public void trackNew(SSTable table) {

@@ -48,7 +48,7 @@ public abstract class MemtableAllocator {
       return new Single<T>() {
          protected void subscribeActual(final SingleObserver<? super T> subscriber) {
             class WhenBelowLimits implements Disposable {
-               final AtomicReference<TPCRunnable> task = new AtomicReference((Object)null);
+               final AtomicReference<TPCRunnable> task = new AtomicReference(null);
                final Timer.Context timerContext;
 
                WhenBelowLimits() {
@@ -77,7 +77,7 @@ public abstract class MemtableAllocator {
                }
 
                public void dispose() {
-                  TPCRunnable prev = (TPCRunnable)this.task.getAndSet((Object)null);
+                  TPCRunnable prev = (TPCRunnable)this.task.getAndSet(null);
                   if(prev != null) {
                      this.timerContext.close();
                      prev.cancelled();
@@ -90,7 +90,7 @@ public abstract class MemtableAllocator {
                }
 
                public void complete() {
-                  TPCRunnable prev = (TPCRunnable)this.task.getAndSet((Object)null);
+                  TPCRunnable prev = (TPCRunnable)this.task.getAndSet(null);
                   if(prev != null) {
                      this.timerContext.close();
 
@@ -202,19 +202,18 @@ public abstract class MemtableAllocator {
       private LifeCycle() {
       }
 
-      MemtableAllocator.LifeCycle transition(MemtableAllocator.LifeCycle targetState) {
-         switch(null.$SwitchMap$org$apache$cassandra$utils$memory$MemtableAllocator$LifeCycle[targetState.ordinal()]) {
-         case 1:
-            assert this == LIVE;
-
-            return DISCARDING;
-         case 2:
-            assert this == DISCARDING;
-
-            return DISCARDED;
-         default:
-            throw new IllegalStateException();
+      LifeCycle transition(LifeCycle targetState) {
+         switch (targetState) {
+            case DISCARDING: {
+               assert (this == LIVE);
+               return DISCARDING;
+            }
+            case DISCARDED: {
+               assert (this == DISCARDING);
+               return DISCARDED;
+            }
          }
+         throw new IllegalStateException();
       }
    }
 }

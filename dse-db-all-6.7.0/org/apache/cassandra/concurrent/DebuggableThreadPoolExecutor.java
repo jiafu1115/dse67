@@ -169,7 +169,7 @@ public class DebuggableThreadPoolExecutor extends ThreadPoolExecutor implements 
       }
 
       public LocalSessionWrapper(Runnable command, ExecutorLocals locals) {
-         this.delegate = command instanceof FutureTask?(FutureTask)command:new FutureTask(command, (Object)null);
+         this.delegate = command instanceof FutureTask?(FutureTask)command:new FutureTask(command, null);
          this.locals = locals;
       }
 

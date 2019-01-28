@@ -90,7 +90,7 @@ public class Validator implements Runnable {
                while(var7.hasNext()) {
                   dk = (DecoratedKey)var7.next();
 
-                  assert range.contains((RingPosition)dk.getToken()) : "Token " + dk.getToken() + " is not within range " + this.desc.ranges;
+                  assert range.contains(dk.getToken()) : "Token " + dk.getToken() + " is not within range " + this.desc.ranges;
 
                   keys.add(dk);
                }
@@ -182,7 +182,7 @@ public class Validator implements Runnable {
 
    public void fail() {
       logger.error("Failed creating a merkle tree for {}, {} (see log for details)", this.desc, this.initiator);
-      MessagingService.instance().send(Verbs.REPAIR.VALIDATION_COMPLETE.newRequest(this.initiator, (Object)(new ValidationComplete(this.desc))));
+      MessagingService.instance().send(Verbs.REPAIR.VALIDATION_COMPLETE.newRequest(this.initiator, (new ValidationComplete(this.desc))));
    }
 
    public void run() {
@@ -191,7 +191,7 @@ public class Validator implements Runnable {
          Tracing.traceRepair("Sending completed merkle tree to {} for {}.{}", new Object[]{this.initiator, this.desc.keyspace, this.desc.columnFamily});
       }
 
-      MessagingService.instance().send(Verbs.REPAIR.VALIDATION_COMPLETE.newRequest(this.initiator, (Object)(new ValidationComplete(this.desc, this.trees))));
+      MessagingService.instance().send(Verbs.REPAIR.VALIDATION_COMPLETE.newRequest(this.initiator, (new ValidationComplete(this.desc, this.trees))));
    }
 
    static class CountingHasher implements Hasher {

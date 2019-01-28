@@ -16,11 +16,11 @@ public interface SSTableFormat {
 
    SSTableReader.Factory getReaderFactory();
 
-   static default SSTableFormat current() {
+   static SSTableFormat current() {
       return SSTableFormat.Type.TRIE_INDEX.info;
    }
 
-   static default SSTableFormat.Type streamWriteFormat() {
+   static SSTableFormat.Type streamWriteFormat() {
       return SSTableFormat.Type.TRIE_INDEX;
    }
 

@@ -314,25 +314,22 @@ public class FBUtilities {
       return waitOnFutures(futures, -1L);
    }
 
-   public static <T> List<T> waitOnFutures(Iterable<? extends Future<? extends T>> futures, long ms) {
-      List<T> results = new ArrayList();
+   public static <T> List<T> waitOnFutures(final Iterable<? extends Future<? extends T>> futures, final long ms) {
+      final List<T> results = new ArrayList<T>();
       Throwable fail = null;
-      Iterator var5 = futures.iterator();
-
-      while(var5.hasNext()) {
-         Future f = (Future)var5.next();
-
+      for (final Future<? extends T> f : futures) {
          try {
-            if(ms <= 0L) {
-               results.add(f.get());
-            } else {
-               results.add(f.get(ms, TimeUnit.MILLISECONDS));
+            if (ms <= 0L) {
+               results.add((T)f.get());
             }
-         } catch (Throwable var8) {
-            fail = Throwables.merge(fail, var8);
+            else {
+               results.add((T)f.get(ms, TimeUnit.MILLISECONDS));
+            }
+         }
+         catch (Throwable t) {
+            fail = Throwables.merge(fail, t);
          }
       }
-
       Throwables.maybeFail(fail);
       return results;
    }
@@ -430,7 +427,7 @@ public class FBUtilities {
 
    public static <T> Class<T> classForName(String classname, String readable) throws ConfigurationException {
       try {
-         return Class.forName(classname);
+         return (Class<T>) Class.forName(classname);
       } catch (NoClassDefFoundError | ClassNotFoundException var3) {
          throw new ConfigurationException(String.format("Unable to find %s class '%s'", new Object[]{readable, classname}), var3);
       }
@@ -441,9 +438,9 @@ public class FBUtilities {
 
       try {
          Field instance = cls.getField("instance");
-         return cls.cast(instance.get((Object)null));
+         return (T)cls.cast(instance.get(null));
       } catch (SecurityException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException var4) {
-         return construct(cls, classname, readable);
+         return construct((Class<T>) cls, classname, readable);
       }
    }
 
@@ -912,7 +909,7 @@ public class FBUtilities {
       private FBUtilities.CpuInfo.PhysicalProcessor getProcessor(int physicalId) {
          return (FBUtilities.CpuInfo.PhysicalProcessor)this.processors.stream().filter((p) -> {
             return p.physicalId == physicalId;
-         }).findFirst().orElse((Object)null);
+         }).findFirst().orElse(null);
       }
 
       public String fetchCpuScalingGovernor(int cpuId) {

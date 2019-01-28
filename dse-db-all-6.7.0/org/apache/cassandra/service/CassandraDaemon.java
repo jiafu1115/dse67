@@ -567,7 +567,7 @@ public class CassandraDaemon {
    }
 
    public CompletableFuture stopNativeTransportAsync() {
-      return this.nativeTransportService != null?this.nativeTransportService.stopAsync():CompletableFuture.completedFuture((Object)null);
+      return this.nativeTransportService != null?this.nativeTransportService.stopAsync():CompletableFuture.completedFuture(null);
    }
 
    public boolean isNativeTransportRunning() {

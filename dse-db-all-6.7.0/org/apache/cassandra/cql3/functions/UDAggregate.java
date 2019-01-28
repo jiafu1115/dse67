@@ -40,7 +40,7 @@ public class UDAggregate extends AbstractFunction implements AggregateFunction {
       List<AbstractType<?>> stateTypes = new ArrayList(argTypes.size() + 1);
       stateTypes.add(stateType);
       stateTypes.addAll(argTypes);
-      List<AbstractType<?>> finalTypes = UnmodifiableArrayList.of((Object)stateType);
+      List<AbstractType<?>> finalTypes = UnmodifiableArrayList.of(stateType);
       return new UDAggregate(name, argTypes, returnType, resolveScalar(functions, name, stateFunc, stateTypes), finalFunc != null?resolveScalar(functions, name, finalFunc, finalTypes):null, initcond, deterministic);
    }
 

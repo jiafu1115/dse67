@@ -76,16 +76,18 @@ public class OutboundTcpConnection extends FastThreadLocalThread implements Park
    private volatile Message.Serializer messageSerializer;
 
    private static int getMaxBackLogSize(Message.Kind kind) {
-      switch(null.$SwitchMap$org$apache$cassandra$net$Message$Kind[kind.ordinal()]) {
-      case 1:
-         return 2147483647;
-      case 2:
-         return SOFT_MAX_QUEUE_SIZE_SMALL;
-      case 3:
-         return SOFT_MAX_QUEUE_SIZE_LARGE;
-      default:
-         throw new IllegalStateException("Unsupported message kind: " + kind);
+      switch (kind) {
+         case GOSSIP: {
+            return Integer.MAX_VALUE;
+         }
+         case SMALL: {
+            return SOFT_MAX_QUEUE_SIZE_SMALL;
+         }
+         case LARGE: {
+            return SOFT_MAX_QUEUE_SIZE_LARGE;
+         }
       }
+      throw new IllegalStateException("Unsupported message kind: " + (Object)((Object)kind));
    }
 
    private static CoalescingStrategies.CoalescingStrategy newCoalescingStrategy(String displayName, OutboundTcpConnection owner) {
@@ -176,7 +178,7 @@ public class OutboundTcpConnection extends FastThreadLocalThread implements Park
       }
 
       ((ParkedThreadsMonitor)ParkedThreadsMonitor.instance.get()).addThreadToMonitor(this);
-      int drainedMessageSize = true;
+      int drainedMessageSize = 128;
       ArrayList drainedMessages = new ArrayList(128);
 
       label69:
@@ -250,30 +252,35 @@ public class OutboundTcpConnection extends FastThreadLocalThread implements Park
    }
 
    private static boolean shouldCompressConnection(InetAddress endpoint) {
-      switch(null.$SwitchMap$org$apache$cassandra$config$Config$InternodeCompression[DatabaseDescriptor.internodeCompression().ordinal()]) {
-      case 1:
-         return false;
-      case 2:
-         return true;
-      case 3:
-         return !isLocalDC(endpoint);
-      default:
-         throw new AssertionError("internode-compression " + DatabaseDescriptor.internodeCompression());
+      switch (DatabaseDescriptor.internodeCompression()) {
+         case none: {
+            return false;
+         }
+         case all: {
+            return true;
+         }
+         case dc: {
+            return !OutboundTcpConnection.isLocalDC(endpoint);
+         }
       }
+      throw new AssertionError((Object)("internode-compression " + (Object)((Object)DatabaseDescriptor.internodeCompression())));
    }
 
    public static boolean shouldCompressConnection(String dc) {
-      switch(null.$SwitchMap$org$apache$cassandra$config$Config$InternodeCompression[DatabaseDescriptor.internodeCompression().ordinal()]) {
-      case 1:
-         return false;
-      case 2:
-         return true;
-      case 3:
-         return !isLocalDC(dc);
-      default:
-         throw new AssertionError("internode-compression " + DatabaseDescriptor.internodeCompression());
+      switch (DatabaseDescriptor.internodeCompression()) {
+         case none: {
+            return false;
+         }
+         case all: {
+            return true;
+         }
+         case dc: {
+            return !OutboundTcpConnection.isLocalDC(dc);
+         }
       }
+      throw new AssertionError((Object)("internode-compression " + (Object)((Object)DatabaseDescriptor.internodeCompression())));
    }
+
 
    private void writeConnected(OutboundTcpConnection.QueuedMessage qm, boolean flush) {
       try {
@@ -340,9 +347,8 @@ public class OutboundTcpConnection extends FastThreadLocalThread implements Park
    private boolean connect() throws OutboundTcpConnection.InternodeAuthFailed {
       InetAddress endpoint = this.poolReference.endPoint();
       IInternodeAuthenticator var10000 = DatabaseDescriptor.getInternodeAuthenticator();
-      OutboundTcpConnectionPool var10002 = this.poolReference;
       if(!var10000.authenticate(endpoint, OutboundTcpConnectionPool.portFor(endpoint))) {
-         throw new OutboundTcpConnection.InternodeAuthFailed(null);
+         throw new OutboundTcpConnection.InternodeAuthFailed();
       } else {
          logger.debug("Attempting to connect to {}", endpoint);
          long start = ApolloTime.approximateNanoTime();

@@ -149,17 +149,12 @@ class ValidationScheduler implements SchemaChangeListener, IEndpointLifecycleSub
 
          try {
             List<TableMetadata> added = new ArrayList(states.size());
-            Iterator var3 = states.iterator();
-
-            while(var3.hasNext()) {
-               TableState state = (TableState)var3.next();
+            for(TableState state:states){
                if(this.addContinuousInternal(state) == null) {
                   added.add(state.table());
                }
             }
-
-            ArrayList var8 = added;
-            return var8;
+            return added;
          } finally {
             this.lock.unlock();
          }

@@ -78,16 +78,16 @@ public class Monitor {
    }
 
    private void abort() {
-      switch(null.$SwitchMap$org$apache$cassandra$db$monitoring$MonitoringState[this.state.ordinal()]) {
-      case 1:
-         if(this.withReporting) {
-            MonitoringTask.addFailedOperation(this, ApolloTime.millisTime());
+      switch (this.state) {
+         case IN_PROGRESS: {
+            if (this.withReporting) {
+               MonitoringTask.addFailedOperation(this, ApolloTime.millisTime());
+            }
+            this.state = MonitoringState.ABORTED;
          }
-
-         this.state = MonitoringState.ABORTED;
-      case 2:
-         throw new AbortedOperationException();
-      default:
+         case ABORTED: {
+            throw new AbortedOperationException();
+         }
       }
    }
 

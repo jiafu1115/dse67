@@ -253,9 +253,7 @@ public class MmappedRegions extends SharedCloseableImpl {
             throw new IllegalStateException(String.format("Attempted to lock memory for %s twice", new Object[]{this.channel.filePath()}));
          } else {
             MmappedRegions.logger.debug("Locking file {} in RAM", this.channel.filePath());
-            Stream var10001 = Arrays.stream(this.buffers).filter(Objects::nonNull);
-            memoryOnlyStatus.getClass();
-            this.lockedBuffers = (List)var10001.map(memoryOnlyStatus::lock).collect(Collectors.toList());
+            this.lockedBuffers=Arrays.stream(this.buffers).filter(Objects::nonNull).map(memoryOnlyStatus::lock).collect(Collectors.toList());
          }
       }
 

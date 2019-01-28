@@ -142,7 +142,7 @@ public class Columns extends AbstractCollection<ColumnMetadata> {
          } else if(Arrays.equals(this.columns, other.columns)) {
             return this;
          } else {
-            CloseableIterator<ColumnMetadata> merge = MergeIterator.get(Lists.newArrayList(new UnmodifiableIterator[]{Iterators.forArray(this.columns), Iterators.forArray(other.columns)}), Comparator.naturalOrder(), new Reducer<ColumnMetadata, ColumnMetadata>() {
+            CloseableIterator<ColumnMetadata> merge = MergeIterator.<ColumnMetadata,ColumnMetadata>get(Lists.newArrayList(new UnmodifiableIterator[]{Iterators.forArray(this.columns), Iterators.forArray(other.columns)}), Comparator.naturalOrder(), new Reducer<ColumnMetadata, ColumnMetadata>() {
                ColumnMetadata reduced = null;
 
                public boolean trivialReduceIsTrivial() {
@@ -380,7 +380,7 @@ public class Columns extends AbstractCollection<ColumnMetadata> {
             columns[i] = column;
          }
 
-         return new Columns(columns, null);
+         return new Columns(columns);
       }
 
       public void serializeSubset(Collection<ColumnMetadata> columns, Columns superset, DataOutputPlus out) throws IOException {
@@ -430,7 +430,7 @@ public class Columns extends AbstractCollection<ColumnMetadata> {
                }
             }
 
-            return new Columns(columns.length == index?columns:(ColumnMetadata[])Arrays.copyOf(columns, index), firstComplexIdx, null);
+            return new Columns(columns.length == index?columns:(ColumnMetadata[])Arrays.copyOf(columns, index), firstComplexIdx);
          }
       }
 
@@ -535,7 +535,7 @@ public class Columns extends AbstractCollection<ColumnMetadata> {
             }
          }
 
-         return new Columns(columns, null);
+         return new Columns(columns);
       }
 
       private int serializeLargeSubsetSize(Collection<ColumnMetadata> columns, int columnCount, Columns superset, int supersetCount) {

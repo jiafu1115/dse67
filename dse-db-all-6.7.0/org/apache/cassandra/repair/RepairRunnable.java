@@ -141,7 +141,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
    }
 
    protected void runMayThrow() throws Exception {
-      ActiveRepairService.instance.recordRepairStatus(this.cmd, ActiveRepairService.ParentRepairStatus.IN_PROGRESS, UnmodifiableArrayList.of((Object[])(new String[0])));
+      ActiveRepairService.instance.recordRepairStatus(this.cmd, ActiveRepairService.ParentRepairStatus.IN_PROGRESS, UnmodifiableArrayList.of((new String[0])));
       UUID parentSession = UUIDGen.getTimeUUID();
       AtomicInteger progress = new AtomicInteger();
       int totalProgress = 4 + this.options.getRanges().size();
@@ -159,7 +159,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
 
       Collection<ColumnFamilyStore> withNodeSync = this.skipNodeSyncValidation?Collections.emptyList():this.getTablesWithNodeSync(validColumnFamilies);
       if(!((Collection)withNodeSync).isEmpty()) {
-         List<String> tableNames = (List)((Collection)withNodeSync).stream().map((t) -> {
+         List<String> tableNames = (List)(withNodeSync).stream().map((t) -> {
             return String.format("%s.%s", new Object[]{t.keyspace.getName(), t.name});
          }).sorted().collect(Collectors.toList());
          String message;
@@ -325,7 +325,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
                }
             }
 
-            return Futures.immediateFuture((Object)null);
+            return Futures.immediateFuture(null);
          }
       });
       Futures.addCallback(repairResult, new RepairRunnable.RepairCompleteCallback(parentSession, (Collection)(skippedReplicas?Collections.emptySet():this.flatMapRanges(commonRanges)), startTime, traceState, hasFailure, executor));
@@ -377,7 +377,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
       Futures.addCallback(allSessions, new FutureCallback<List<RepairSessionResult>>() {
          public void onSuccess(List<RepairSessionResult> results) {
             try {
-               RepairRunnable.this.result.set((Object)null);
+               RepairRunnable.this.result.set(null);
                PreviewKind previewKind = RepairRunnable.this.options.getPreviewKind();
 
                assert previewKind != PreviewKind.NONE;
@@ -565,12 +565,9 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
       }, "Repair-Runnable-" + threadCounter.incrementAndGet());
    }
 
-   private Set<InetAddress> filterLive(Set<InetAddress> allNeighbors) {
-      Stream var10000 = allNeighbors.stream();
-      IFailureDetector var10001 = FailureDetector.instance;
-      FailureDetector.instance.getClass();
-      return (Set)var10000.filter(var10001::isAlive).collect(Collectors.toSet());
-   }
+    private Set<InetAddress> filterLive(Set<InetAddress> allNeighbors) {
+        return allNeighbors.stream().filter(FailureDetector.instance::isAlive).collect(Collectors.toSet());
+    }
 
    private class RepairCompleteCallback implements FutureCallback<Object> {
       final UUID parentSession;
@@ -580,7 +577,8 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
       final AtomicBoolean hasFailure;
       final ExecutorService executor;
 
-      public RepairCompleteCallback(UUID var1, Collection<Range<Token>> parentSession, long successfulRanges, TraceState startTime, AtomicBoolean traceState, ExecutorService hasFailure) {
+      public RepairCompleteCallback(UUID parentSession, Collection<Range<Token>> successfulRanges, long startTime,
+                                    TraceState traceState, AtomicBoolean hasFailure, ExecutorService executor) {
          this.parentSession = parentSession;
          this.successfulRanges = successfulRanges;
          this.startTime = startTime;
@@ -597,7 +595,7 @@ public class RepairRunnable extends WrappedRunnable implements ProgressEventNoti
             RepairRunnable.this.result.setException(new RuntimeException(message));
             RepairRunnable.this.fireProgressEvent(new ProgressEvent(ProgressEventType.ERROR, RepairRunnable.this.progress.get(), RepairRunnable.this.totalProgress, message));
          } else {
-            RepairRunnable.this.result.set((Object)null);
+            RepairRunnable.this.result.set(null);
             message = "Repair completed successfully";
             RepairRunnable.this.fireProgressEvent(new ProgressEvent(ProgressEventType.SUCCESS, RepairRunnable.this.progress.get(), RepairRunnable.this.totalProgress, message));
          }

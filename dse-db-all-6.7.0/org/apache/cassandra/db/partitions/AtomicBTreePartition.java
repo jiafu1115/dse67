@@ -182,7 +182,7 @@ public class AtomicBTreePartition extends AbstractBTreePartition {
       private final EnsureOnHeap ensureOnHeap;
 
       private AtomicBTreePartitionOnHeap(AtomicBTreePartition inner, EnsureOnHeap ensureOnHeap) {
-         super(inner.metadata, ensureOnHeap.applyToPartitionKey(inner.partitionKey()), inner.ref, null);
+         super(inner.metadata, ensureOnHeap.applyToPartitionKey(inner.partitionKey()), inner.ref);
          this.ensureOnHeap = ensureOnHeap;
       }
 

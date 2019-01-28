@@ -163,7 +163,7 @@ public class AutoSavingCache<K extends CacheKey, V> extends InstrumentingCache<K
 
                   ColumnFamilyStore cfs = Schema.instance.getColumnFamilyStoreInstance(tableId);
                   if(indexName != null && cfs != null) {
-                     cfs = (ColumnFamilyStore)cfs.indexManager.getIndexByName(indexName).getBackingTable().orElse((Object)null);
+                     cfs = (ColumnFamilyStore)cfs.indexManager.getIndexByName(indexName).getBackingTable().orElse(null);
                   }
 
                   entryFuture = this.cacheLoader.deserialize(in, cfs);
@@ -280,11 +280,11 @@ public class AutoSavingCache<K extends CacheKey, V> extends InstrumentingCache<K
                   writer.writeLong(schemaVersion.getLeastSignificantBits());
 
                   while(this.keyIterator.hasNext()) {
-                     K key = (CacheKey)this.keyIterator.next();
+                     K key = (K)this.keyIterator.next();
                      ColumnFamilyStore cfs = Schema.instance.getColumnFamilyStoreInstance(key.tableId);
                      if(cfs != null) {
                         if(key.indexName != null) {
-                           cfs = (ColumnFamilyStore)cfs.indexManager.getIndexByName(key.indexName).getBackingTable().orElse((Object)null);
+                           cfs = (ColumnFamilyStore)cfs.indexManager.getIndexByName(key.indexName).getBackingTable().orElse(null);
                         }
 
                         AutoSavingCache.this.cacheLoader.serialize(key, writer, cfs);

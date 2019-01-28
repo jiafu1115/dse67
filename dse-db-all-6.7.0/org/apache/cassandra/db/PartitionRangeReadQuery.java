@@ -16,7 +16,7 @@ public interface PartitionRangeReadQuery extends ReadQuery {
 
    PartitionRangeReadQuery withUpdatedLimitsAndDataRange(DataLimits var1, DataRange var2);
 
-   static default ReadQuery create(TableMetadata table, int nowInSec, ColumnFilter columnFilter, RowFilter rowFilter, DataLimits limits, DataRange dataRange) {
+   static ReadQuery create(TableMetadata table, int nowInSec, ColumnFilter columnFilter, RowFilter rowFilter, DataLimits limits, DataRange dataRange) {
       return (ReadQuery)(table.isVirtual()?VirtualTablePartitionRangeReadQuery.create(table, nowInSec, columnFilter, rowFilter, limits, dataRange):PartitionRangeReadCommand.create(table, nowInSec, columnFilter, rowFilter, limits, dataRange));
    }
 

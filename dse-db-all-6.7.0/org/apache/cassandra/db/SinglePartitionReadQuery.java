@@ -47,7 +47,7 @@ public interface SinglePartitionReadQuery extends ReadQuery {
       return !this.partitionKey().equals(key)?false:this.rowFilter().partitionKeyRestrictionsAreSatisfiedBy(key, this.metadata().partitionKeyType);
    }
 
-   static default SinglePartitionReadQuery.Group<? extends SinglePartitionReadQuery> createGroup(TableMetadata metadata, int nowInSec, ColumnFilter columnFilter, RowFilter rowFilter, DataLimits limits, List<DecoratedKey> partitionKeys, ClusteringIndexFilter clusteringIndexFilter) {
+   static SinglePartitionReadQuery.Group<? extends SinglePartitionReadQuery> createGroup(TableMetadata metadata, int nowInSec, ColumnFilter columnFilter, RowFilter rowFilter, DataLimits limits, List<DecoratedKey> partitionKeys, ClusteringIndexFilter clusteringIndexFilter) {
       return (SinglePartitionReadQuery.Group)(metadata.isVirtual()?VirtualTableSinglePartitionReadQuery.Group.create(metadata, nowInSec, columnFilter, rowFilter, limits, partitionKeys, clusteringIndexFilter):SinglePartitionReadCommand.Group.create(metadata, nowInSec, columnFilter, rowFilter, limits, partitionKeys, clusteringIndexFilter));
    }
 
@@ -63,7 +63,7 @@ public interface SinglePartitionReadQuery extends ReadQuery {
 
          this.queries = queries;
          this.limits = limits;
-         T firstQuery = (SinglePartitionReadQuery)queries.get(0);
+         T firstQuery = (T)queries.get(0);
          this.nowInSec = firstQuery.nowInSec();
          this.selectsFullPartitions = firstQuery.selectsFullPartition();
          this.rowPurger = firstQuery.metadata().rowPurger();
@@ -120,7 +120,7 @@ public interface SinglePartitionReadQuery extends ReadQuery {
                ((List)queries).sort(Comparator.comparing(SinglePartitionReadQuery::partitionKey));
             }
 
-            return Flow.fromIterable((Iterable)queries).flatMap((query) -> {
+            return Flow.fromIterable(queries).flatMap((query) -> {
                return query.executeLocally(monitor);
             });
          }

@@ -589,13 +589,9 @@ public class TableState {
          this.checkAllLocalRanges(localSubRanges);
          UnmodifiableArrayList.Builder<TableState.Ref> builder = UnmodifiableArrayList.builder();
 
-         for(int i = 0; i < this.size; ++i) {
-            Stream var10000 = localSubRanges.stream();
-            Range var10001 = this.segments.get(i).range;
-            var10001.getClass();
-            if(var10000.anyMatch(var10001::intersects)) {
-               builder.add((Object)this.newRef(i));
-            }
+         for (int i = 0; i < this.size; ++i) {
+            if (!localSubRanges.stream().anyMatch(this.segments.get((int)i).range::intersects)) continue;
+            builder.add(this.newRef(i));
          }
 
          return builder.build();

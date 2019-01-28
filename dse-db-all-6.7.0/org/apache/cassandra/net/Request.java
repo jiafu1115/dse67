@@ -75,7 +75,7 @@ public class Request<P, Q> extends Message<P> {
    }
 
    public FailureResponse<Q> respondWithFailure(RequestFailureReason reason) {
-      return new FailureResponse(local, this.from(), this.id(), this.verb, reason, this.messageData.withPayload((Object)null, -1L));
+      return new FailureResponse(local, this.from(), this.id(), this.verb, reason, this.messageData.withPayload(null, -1L));
    }
 
    TracingAwareExecutor requestExecutor() {

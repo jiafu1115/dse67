@@ -278,16 +278,18 @@ public class CassandraAuthorizer implements IAuthorizer {
       }
 
       String columnForGrantMode(GrantMode grantMode) {
-         switch(null.$SwitchMap$org$apache$cassandra$auth$GrantMode[grantMode.ordinal()]) {
-         case 1:
-            return "permissions";
-         case 2:
-            return "restricted";
-         case 3:
-            return "grantables";
-         default:
-            throw new AssertionError();
+         switch (grantMode) {
+            case GRANT: {
+               return CassandraAuthorizer.PERMISSIONS;
+            }
+            case RESTRICT: {
+               return CassandraAuthorizer.RESTRICTED;
+            }
+            case GRANTABLE: {
+               return CassandraAuthorizer.GRANTABLES;
+            }
          }
+         throw new AssertionError();
       }
 
       Map<IResource, PermissionSets> permissionsForRole(RoleResource role) {
@@ -295,38 +297,29 @@ public class CassandraAuthorizer implements IAuthorizer {
       }
 
       Map<RoleResource, Map<IResource, PermissionSets>> permissionsForRoles(Iterable<? extends RoleResource> roles) {
-         Map<RoleResource, Map<IResource, PermissionSets>> roleResourcePermissions = new HashMap();
-         List<String> names = new ArrayList();
-         Iterator var4 = roles.iterator();
-
-         while(var4.hasNext()) {
-            RoleResource role = (RoleResource)var4.next();
+         HashMap<RoleResource, Map<IResource, PermissionSets>> roleResourcePermissions = new HashMap<RoleResource, Map<IResource, PermissionSets>>();
+         ArrayList<String> names = new ArrayList<String>();
+         for (RoleResource role : roles) {
             names.add(role.getRoleName());
             roleResourcePermissions.put(role, new HashMap());
          }
-
          ByteBuffer roleNames = ListSerializer.getInstance(UTF8Serializer.instance).serialize(names);
-         QueryOptions options = QueryOptions.forInternalCalls(ConsistencyLevel.LOCAL_ONE, UnmodifiableArrayList.of((Object)roleNames));
+         QueryOptions options = QueryOptions.forInternalCalls(ConsistencyLevel.LOCAL_ONE, UnmodifiableArrayList.of(roleNames));
          SelectStatement st = this.permissionsForRolesStatement;
-         ResultMessage.Rows rows = (ResultMessage.Rows)TPCUtils.blockingGet(st.execute(QueryState.forInternalCalls(), options, ApolloTime.approximateNanoTime()));
+         ResultMessage.Rows rows = TPCUtils.blockingGet(st.execute(QueryState.forInternalCalls(), options, ApolloTime.approximateNanoTime()));
          UntypedResultSet result = UntypedResultSet.create(rows.result);
-         if(result.isEmpty()) {
-            return roleResourcePermissions;
-         } else {
-            Iterator var9 = result.iterator();
-
-            while(var9.hasNext()) {
-               UntypedResultSet.Row row = (UntypedResultSet.Row)var9.next();
-               IResource resource = Resources.fromName(row.getString("resource"));
-               PermissionSets.Builder builder = PermissionSets.builder();
-               this.addPermissionsFromRow(row, builder);
-               RoleResource role = RoleResource.role(row.getString("role"));
-               Map<IResource, PermissionSets> resourcePermissions = (Map)roleResourcePermissions.get(role);
-               resourcePermissions.put(resource, builder.build());
-            }
-
+         if (result.isEmpty()) {
             return roleResourcePermissions;
          }
+         for (UntypedResultSet.Row row : result) {
+            IResource resource = Resources.fromName(row.getString(CassandraAuthorizer.RESOURCE));
+            PermissionSets.Builder builder = PermissionSets.builder();
+            this.addPermissionsFromRow(row, builder);
+            RoleResource role = RoleResource.role(row.getString(CassandraAuthorizer.ROLE));
+            Map<IResource, PermissionSets> resourcePermissions = roleResourcePermissions.get(role);
+            resourcePermissions.put(resource, builder.build());
+         }
+         return roleResourcePermissions;
       }
 
       public void initialize() {
@@ -348,15 +341,16 @@ public class CassandraAuthorizer implements IAuthorizer {
       }
 
       String columnForGrantMode(GrantMode grantMode) {
-         switch(null.$SwitchMap$org$apache$cassandra$auth$GrantMode[grantMode.ordinal()]) {
-         case 1:
-            return "permissions";
-         case 2:
-         case 3:
-            throw new InvalidRequestException("GRANT AUTHORIZE FOR + RESTRICT are not available until all nodes are on DSE 6.0");
-         default:
-            throw new AssertionError();
+         switch (grantMode) {
+            case GRANT: {
+               return CassandraAuthorizer.PERMISSIONS;
+            }
+            case RESTRICT:
+            case GRANTABLE: {
+               throw new InvalidRequestException("GRANT AUTHORIZE FOR + RESTRICT are not available until all nodes are on DSE 6.0");
+            }
          }
+         throw new AssertionError();
       }
 
       Map<IResource, PermissionSets> permissionsForRole(RoleResource role) {
@@ -375,7 +369,7 @@ public class CassandraAuthorizer implements IAuthorizer {
          }
 
          ByteBuffer roleNames = ListSerializer.getInstance(UTF8Serializer.instance).serialize(names);
-         QueryOptions options = QueryOptions.forInternalCalls(ConsistencyLevel.LOCAL_ONE, UnmodifiableArrayList.of((Object)roleNames));
+         QueryOptions options = QueryOptions.forInternalCalls(ConsistencyLevel.LOCAL_ONE, UnmodifiableArrayList.of(roleNames));
          SelectStatement st = this.permissionsForRolesStatement;
          ResultMessage.Rows rows = (ResultMessage.Rows)TPCUtils.blockingGet(st.execute(QueryState.forInternalCalls(), options, ApolloTime.approximateNanoTime()));
          UntypedResultSet result = UntypedResultSet.create(rows.result);

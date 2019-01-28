@@ -112,33 +112,33 @@ public class RepairRunner extends JMXNotificationProgressListener {
       } else {
          ActiveRepairService.ParentRepairStatus parentRepairStatus = ActiveRepairService.ParentRepairStatus.valueOf((String)status.get(0));
          List<String> messages = status.subList(1, status.size());
-         switch(null.$SwitchMap$org$apache$cassandra$service$ActiveRepairService$ParentRepairStatus[parentRepairStatus.ordinal()]) {
-         case 1:
-         case 2:
-            this.out.println(String.format("[%s] %s %s discovered repair %s.", new Object[]{this.format.format(Long.valueOf(ApolloTime.systemClockMillis())), triggeringCondition, queriedString, parentRepairStatus.name().toLowerCase()}));
-            if(parentRepairStatus == ActiveRepairService.ParentRepairStatus.FAILED) {
-               this.error = new IOException((String)messages.get(0));
-            }
 
-            this.printMessages(messages);
-            this.condition.signalAll();
-         case 3:
-            break;
-         default:
-            this.out.println(String.format("[%s] WARNING Encountered unexpected RepairRunnable.ParentRepairStatus: %s", new Object[]{Long.valueOf(ApolloTime.systemClockMillis()), parentRepairStatus}));
-            this.printMessages(messages);
+         switch (parentRepairStatus) {
+            case COMPLETED:
+            case FAILED: {
+               this.out.println(String.format("[%s] %s %s discovered repair %s.", this.format.format(ApolloTime.systemClockMillis()), triggeringCondition, queriedString, parentRepairStatus.name().toLowerCase()));
+               if (parentRepairStatus == ActiveRepairService.ParentRepairStatus.FAILED) {
+                  this.error = new IOException(messages.get(0));
+               }
+               this.printMessages(messages);
+               this.condition.signalAll();
+               break;
+            }
+            case IN_PROGRESS: {
+               break;
+            }
+            default: {
+               this.out.println(String.format("[%s] WARNING Encountered unexpected RepairRunnable.ParentRepairStatus: %s", new Object[]{ApolloTime.systemClockMillis(), parentRepairStatus}));
+               this.printMessages(messages);
+            }
          }
       }
 
    }
 
    private void printMessages(List<String> messages) {
-      Iterator var2 = messages.iterator();
-
-      while(var2.hasNext()) {
-         String message = (String)var2.next();
-         this.out.println(String.format("[%s] %s", new Object[]{this.format.format(Long.valueOf(ApolloTime.systemClockMillis())), message}));
-      }
-
+       for (String message : messages) {
+           this.out.println(String.format("[%s] %s", this.format.format(ApolloTime.systemClockMillis()), message));
+       }
    }
 }

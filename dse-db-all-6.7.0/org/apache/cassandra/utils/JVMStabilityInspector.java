@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public final class JVMStabilityInspector {
    private static final Logger logger = LoggerFactory.getLogger(JVMStabilityInspector.class);
-   private static JVMKiller killer = new JVMStabilityInspector.Killer(null);
+   private static JVMKiller killer = new JVMStabilityInspector.Killer();
    private static final List<Pair<Thread, Runnable>> shutdownHooks = new ArrayList(1);
    private static AtomicBoolean printingHeapHistogram = new AtomicBoolean(false);
    private static volatile ErrorHandler diskHandler;
@@ -86,19 +86,19 @@ public final class JVMStabilityInspector {
    }
 
    public static void userFunctionTimeout(Throwable t) {
-      switch(null.$SwitchMap$org$apache$cassandra$config$Config$UserFunctionFailPolicy[DatabaseDescriptor.getUserFunctionFailPolicy().ordinal()]) {
-      case 1:
-         ScheduledExecutors.nonPeriodicTasks.schedule(() -> {
+      switch (DatabaseDescriptor.getUserFunctionFailPolicy()) {
+         case die: {
+            ScheduledExecutors.nonPeriodicTasks.schedule(() -> killer.killJVM(t), 250L, TimeUnit.MILLISECONDS);
+            break;
+         }
+         case die_immediate: {
             killer.killJVM(t);
-         }, 250L, TimeUnit.MILLISECONDS);
-         break;
-      case 2:
-         killer.killJVM(t);
-         break;
-      case 3:
-         logger.error(t.getMessage());
+            break;
+         }
+         case ignore: {
+            logger.error(t.getMessage());
+         }
       }
-
    }
 
    public static void registerShutdownHook(Thread hook, Runnable runOnHookRemoved) {
@@ -140,7 +140,7 @@ public final class JVMStabilityInspector {
 
    static {
       diskHandler = new StartupDiskErrorHandler(killer);
-      globalHandler = new JVMStabilityInspector.GlobalHandler(null);
+      globalHandler = new JVMStabilityInspector.GlobalHandler();
       errorListeners = new CopyOnWriteArraySet();
    }
 

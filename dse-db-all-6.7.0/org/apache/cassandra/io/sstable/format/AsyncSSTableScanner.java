@@ -52,7 +52,7 @@ public class AsyncSSTableScanner extends FlowSource<FlowableUnfilteredPartition>
    }
 
    public static AsyncSSTableScanner getScanner(SSTableReader sstable) {
-      return getScanner(sstable, (List)UnmodifiableArrayList.of((Object)SSTableScanner.fullRange(sstable)));
+      return getScanner(sstable, UnmodifiableArrayList.of(SSTableScanner.fullRange(sstable)));
    }
 
    public static AsyncSSTableScanner getScanner(SSTableReader sstable, Collection<Range<Token>> ranges) {
@@ -68,7 +68,7 @@ public class AsyncSSTableScanner extends FlowSource<FlowableUnfilteredPartition>
    }
 
    private Flow<FlowableUnfilteredPartition> flow() {
-      return this.ranges.size() == 1?this.sstable.coveredKeysFlow(this.dfile, (AbstractBounds)this.ranges.get(0)).flatMap(this::partitions):Flow.fromIterable(this.ranges).flatMap((range) -> {
+      return this.ranges.size() == 1?this.sstable.coveredKeysFlow(this.dfile, this.ranges.get(0)).flatMap(this::partitions):Flow.fromIterable(this.ranges).flatMap((range) -> {
          return this.sstable.coveredKeysFlow(this.dfile, range);
       }).flatMap(this::partitions);
    }

@@ -71,7 +71,7 @@ public final class ThreadAwareSecurityManager extends SecurityManager {
    static UDFQuotaState enterSecureSection(UDFQuotaState quotaState, Set<String> allowedPackages) {
       ThreadAwareSecurityManager.ThreadStatus status = (ThreadAwareSecurityManager.ThreadStatus)threadStatus.get();
       if(status == null) {
-         threadStatus.set(status = new ThreadAwareSecurityManager.ThreadStatus(null));
+         threadStatus.set(status = new ThreadAwareSecurityManager.ThreadStatus());
       }
 
       assert status.quotaState == null;

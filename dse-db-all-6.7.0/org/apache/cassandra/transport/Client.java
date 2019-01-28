@@ -148,7 +148,7 @@ public class Client extends SimpleClient {
                type = line.substring(9).toUpperCase();
 
                try {
-                  return new RegisterMessage(UnmodifiableArrayList.of((Object)Enum.valueOf(Event.Type.class, type)));
+                  return new RegisterMessage(UnmodifiableArrayList.of(Enum.valueOf(Event.Type.class, type)));
                } catch (IllegalArgumentException var13) {
                   System.err.println("[ERROR] Unknown event type: " + type);
                   return null;

@@ -30,6 +30,7 @@ import org.apache.cassandra.db.rows.UnfilteredRowIterator;
 import org.apache.cassandra.dht.AbstractBounds;
 import org.apache.cassandra.dht.Bounds;
 import org.apache.cassandra.dht.IPartitioner;
+import org.apache.cassandra.dht.Token;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.sstable.Component;
 import org.apache.cassandra.io.sstable.Descriptor;
@@ -241,16 +242,11 @@ public class SSTablePartitions {
             ISSTableScanner currentScanner = null;
             if(keys != null && keys.length > 0) {
                try {
-                  Stream var10000 = Arrays.stream(keys).filter((key) -> {
-                     return !excludes.contains(key);
-                  });
-                  AbstractType var10001 = metadata.partitionKeyType;
-                  metadata.partitionKeyType.getClass();
-                  var10000 = var10000.map(var10001::fromString);
-                  partitioner.getClass();
-                  List<AbstractBounds<PartitionPosition>> bounds = (List)var10000.map(partitioner::decorateKey).sorted().map(PartitionPosition::getToken).map((token) -> {
-                     return new Bounds(token.minKeyBound(), token.maxKeyBound());
-                  }).collect(Collectors.toList());
+                   List bounds = Arrays.stream(keys).filter(key -> !excludes.contains(key)).
+                          map(metadata.partitionKeyType::fromString).map(partitioner::decorateKey).
+                          sorted().map(PartitionPosition::getToken).
+                          map(token -> new Bounds(token.minKeyBound(), token.maxKeyBound())).
+                          collect(Collectors.toList());
                   currentScanner = sstable.getScanner(bounds.iterator());
                } catch (RuntimeException var33) {
                   System.err.printf("Cannot use one or more partition keys in %s for the partition key type ('%s') of the underlying table: %s%n", new Object[]{Arrays.toString(keys), metadata.partitionKeyType.asCQL3Type(), var33});

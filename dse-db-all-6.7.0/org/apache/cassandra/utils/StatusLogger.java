@@ -71,7 +71,6 @@ public class StatusLogger {
 
       int pendingSmallMessages = 0;
 
-      int n;
       for(Iterator var15 = MessagingService.instance().getSmallMessagePendingTasks().values().iterator(); var15.hasNext(); pendingSmallMessages += n) {
          n = ((Integer)var15.next()).intValue();
       }

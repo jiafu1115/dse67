@@ -42,7 +42,7 @@ public class InMemoryStatus extends NodeTool.NodeToolCmd {
    }
 
    private void printInmemoryInfo(MemoryOnlyStatusMXBean proxy, String ks, String cf) {
-      this.printInmemoryInfo(UnmodifiableArrayList.of((Object)proxy.getMemoryOnlyTableInformation(ks, cf)), proxy.getMemoryOnlyTotals());
+      this.printInmemoryInfo(UnmodifiableArrayList.of(proxy.getMemoryOnlyTableInformation(ks, cf)), proxy.getMemoryOnlyTotals());
    }
 
    private void printInmemoryInfo(List<MemoryOnlyStatusMXBean.TableInfo> infos, MemoryOnlyStatusMXBean.TotalInfo totals) {

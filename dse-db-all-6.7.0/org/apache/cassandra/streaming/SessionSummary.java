@@ -19,7 +19,7 @@ import org.apache.cassandra.utils.versioning.VersionDependent;
 import org.apache.cassandra.utils.versioning.Versioned;
 
 public class SessionSummary implements Serializable {
-   public static final Versioned<RepairVerbs.RepairVersion, Serializer<SessionSummary>> serializers = RepairVerbs.RepairVersion.versioned(SessionSummary.SessionSummarySerializer::<init>);
+   public static final Versioned<RepairVerbs.RepairVersion, Serializer<SessionSummary>> serializers = RepairVerbs.RepairVersion.versioned(SessionSummary.SessionSummarySerializer::new);
    public final InetAddress coordinator;
    public final InetAddress peer;
    public final Collection<StreamSummary> receivingSummaries;

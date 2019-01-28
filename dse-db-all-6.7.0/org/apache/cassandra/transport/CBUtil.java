@@ -537,7 +537,7 @@ public abstract class CBUtil {
       allocator = (ByteBufAllocator)(USE_HEAP_ALLOCATOR?new UnpooledByteBufAllocator(false):new PooledByteBufAllocator(true));
       TL_UTF8_DECODING_BITS = new FastThreadLocal<CBUtil.ThreadLocalUTF8DecodingReusables>() {
          protected CBUtil.ThreadLocalUTF8DecodingReusables initialValue() {
-            return new CBUtil.ThreadLocalUTF8DecodingReusables(StandardCharsets.UTF_8.newDecoder(), CharBuffer.allocate(4096), UnsafeByteBufferAccess.allocateHollowDirectByteBuffer(), null);
+            return new CBUtil.ThreadLocalUTF8DecodingReusables(StandardCharsets.UTF_8.newDecoder(), CharBuffer.allocate(4096), UnsafeByteBufferAccess.allocateHollowDirectByteBuffer());
          }
       };
    }

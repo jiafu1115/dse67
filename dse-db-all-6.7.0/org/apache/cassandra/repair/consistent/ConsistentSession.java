@@ -82,42 +82,42 @@ public abstract class ConsistentSession {
 
       T withState(ConsistentSession.State state) {
          this.state = state;
-         return this;
+         return (T)this;
       }
 
       T withSessionID(UUID sessionID) {
          this.sessionID = sessionID;
-         return this;
+         return (T)this;
       }
 
       T withCoordinator(InetAddress coordinator) {
          this.coordinator = coordinator;
-         return this;
+         return (T)this;
       }
 
       T withUUIDTableIds(Iterable<UUID> ids) {
          this.ids = ImmutableSet.copyOf(Iterables.transform(ids, TableId::fromUUID));
-         return this;
+         return (T)this;
       }
 
       T withTableIds(Set<TableId> ids) {
          this.ids = ids;
-         return this;
+         return (T)this;
       }
 
       T withRepairedAt(long repairedAt) {
          this.repairedAt = repairedAt;
-         return this;
+         return (T)this;
       }
 
       T withRanges(Collection<Range<Token>> ranges) {
          this.ranges = ranges;
-         return this;
+         return (T)this;
       }
 
       T withParticipants(Set<InetAddress> peers) {
          this.participants = peers;
-         return this;
+         return (T)this;
       }
 
       void validate() {

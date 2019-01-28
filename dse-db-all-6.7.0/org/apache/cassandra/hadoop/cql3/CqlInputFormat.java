@@ -266,7 +266,7 @@ public class CqlInputFormat extends InputFormat<Long, Row> implements org.apache
       private final Configuration conf;
       private final Session session;
 
-      public SplitCallable(TokenRange this$0, Set<Host> tr, Configuration hosts, Session conf) {
+      public SplitCallable(TokenRange tr, Set<Host> hosts, Configuration conf, Session session) {
          this.tokenRange = tr;
          this.hosts = hosts;
          this.conf = conf;

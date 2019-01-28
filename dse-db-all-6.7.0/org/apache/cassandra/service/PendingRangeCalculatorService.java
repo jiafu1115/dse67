@@ -38,7 +38,7 @@ public class PendingRangeCalculatorService {
 
    public void update() {
       this.updateJobs.incrementAndGet();
-      this.executor.submit(new PendingRangeCalculatorService.PendingRangeTask(null));
+      this.executor.submit(new PendingRangeCalculatorService.PendingRangeTask());
    }
 
    public void blockUntilFinished() {

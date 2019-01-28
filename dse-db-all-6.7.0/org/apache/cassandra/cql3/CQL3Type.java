@@ -119,31 +119,31 @@ public interface CQL3Type {
       }
 
       public static CQL3Type.Raw from(CQL3Type type) {
-         return new CQL3Type.Raw.RawType(type, null);
+         return new CQL3Type.Raw.RawType(type );
       }
 
       public static CQL3Type.Raw userType(UTName name) {
-         return new CQL3Type.Raw.RawUT(name, null);
+         return new CQL3Type.Raw.RawUT(name );
       }
 
       public static CQL3Type.Raw map(CQL3Type.Raw t1, CQL3Type.Raw t2) {
-         return new CQL3Type.Raw.RawCollection(CollectionType.Kind.MAP, t1, t2, null);
+         return new CQL3Type.Raw.RawCollection(CollectionType.Kind.MAP, t1, t2 );
       }
 
       public static CQL3Type.Raw list(CQL3Type.Raw t) {
-         return new CQL3Type.Raw.RawCollection(CollectionType.Kind.LIST, (CQL3Type.Raw)null, t, null);
+         return new CQL3Type.Raw.RawCollection(CollectionType.Kind.LIST, (CQL3Type.Raw)null, t );
       }
 
       public static CQL3Type.Raw set(CQL3Type.Raw t) {
-         return new CQL3Type.Raw.RawCollection(CollectionType.Kind.SET, (CQL3Type.Raw)null, t, null);
+         return new CQL3Type.Raw.RawCollection(CollectionType.Kind.SET, (CQL3Type.Raw)null, t );
       }
 
       public static CQL3Type.Raw tuple(List<CQL3Type.Raw> ts) {
-         return new CQL3Type.Raw.RawTuple(ts, null);
+         return new CQL3Type.Raw.RawTuple(ts );
       }
 
       public static CQL3Type.Raw tuple(List<CQL3Type.Raw> ts, boolean frozenDefault) {
-         return new CQL3Type.Raw.RawTuple(ts, frozenDefault, null);
+         return new CQL3Type.Raw.RawTuple(ts, frozenDefault );
       }
 
       public static CQL3Type.Raw frozen(CQL3Type.Raw t) throws InvalidRequestException {
@@ -205,7 +205,7 @@ public interface CQL3Type {
                ts.add(t.prepare(keyspace, udts).getType());
             }
 
-            return new CQL3Type.Tuple(new TupleType(ts, !this.frozen), null);
+            return new CQL3Type.Tuple(new TupleType(ts, !this.frozen) );
          }
 
          public boolean referencesUserType(String name) {
@@ -267,7 +267,7 @@ public interface CQL3Type {
                   type = type.freeze();
                }
 
-               return new CQL3Type.UserDefined(this.name.toString(), type, null);
+               return new CQL3Type.UserDefined(this.name.toString(), type );
             }
          }
 
@@ -350,18 +350,19 @@ public interface CQL3Type {
                }
 
                AbstractType<?> valueType = this.values.prepare(keyspace, udts).getType();
-               switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[this.kind.ordinal()]) {
-               case 1:
-                  return new CQL3Type.Collection(ListType.getInstance(valueType, !this.frozen));
-               case 2:
-                  return new CQL3Type.Collection(SetType.getInstance(valueType, !this.frozen));
-               case 3:
-                  assert this.keys != null : "Got null keys type for a collection";
-
-                  return new CQL3Type.Collection(MapType.getInstance(this.keys.prepare(keyspace, udts).getType(), valueType, !this.frozen));
-               default:
-                  throw new AssertionError();
+               switch (this.kind) {
+                  case LIST: {
+                     return new Collection(ListType.getInstance(valueType, !this.frozen));
+                  }
+                  case SET: {
+                     return new Collection(SetType.getInstance(valueType, !this.frozen));
+                  }
+                  case MAP: {
+                     assert (this.keys != null);
+                     return new Collection(MapType.getInstance(this.keys.prepare(keyspace, udts).getType(), valueType, !this.frozen));
+                  }
                }
+               throw new AssertionError();
             }
          }
 
@@ -378,18 +379,20 @@ public interface CQL3Type {
          }
 
          public String toString() {
-            String start = this.frozen?"frozen<":"";
-            String end = this.frozen?">":"";
-            switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[this.kind.ordinal()]) {
-            case 1:
-               return start + "list<" + this.values + '>' + end;
-            case 2:
-               return start + "set<" + this.values + '>' + end;
-            case 3:
-               return start + "map<" + this.keys + ", " + this.values + '>' + end;
-            default:
-               throw new AssertionError();
+            String start = this.frozen ? "frozen<" : "";
+            String end = this.frozen ? ">" : "";
+            switch (this.kind) {
+               case LIST: {
+                  return start + "list<" + this.values + '>' + end;
+               }
+               case SET: {
+                  return start + "set<" + this.values + '>' + end;
+               }
+               case MAP: {
+                  return start + "map<" + this.keys + ", " + this.values + '>' + end;
+               }
             }
+            throw new AssertionError();
          }
       }
 
@@ -605,34 +608,34 @@ public interface CQL3Type {
       }
 
       public String toCQLLiteral(ByteBuffer buffer, ProtocolVersion version) {
-         if(buffer == null) {
+         if (buffer == null) {
             return "null";
-         } else {
-            StringBuilder target = new StringBuilder();
-            buffer = buffer.duplicate();
-            int size = CollectionSerializer.readCollectionSize(buffer, version);
-            CQL3Type elements;
-            switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[this.type.kind.ordinal()]) {
-            case 1:
-               elements = ((ListType)this.type).getElementsType().asCQL3Type();
+         }
+         StringBuilder target = new StringBuilder();
+         buffer = buffer.duplicate();
+         int size = CollectionSerializer.readCollectionSize(buffer, version);
+         switch (this.type.kind) {
+            case LIST: {
+               CQL3Type elements = ((ListType)this.type).getElementsType().asCQL3Type();
                target.append('[');
-               generateSetOrListCQLLiteral(buffer, version, target, size, elements);
+               Collection.generateSetOrListCQLLiteral(buffer, version, target, size, elements);
                target.append(']');
                break;
-            case 2:
-               elements = ((SetType)this.type).getElementsType().asCQL3Type();
+            }
+            case SET: {
+               CQL3Type elements = ((SetType)this.type).getElementsType().asCQL3Type();
                target.append('{');
-               generateSetOrListCQLLiteral(buffer, version, target, size, elements);
+               Collection.generateSetOrListCQLLiteral(buffer, version, target, size, elements);
                target.append('}');
                break;
-            case 3:
+            }
+            case MAP: {
                target.append('{');
                this.generateMapCQLLiteral(buffer, version, target, size);
                target.append('}');
             }
-
-            return target.toString();
          }
+         return target.toString();
       }
 
       private void generateMapCQLLiteral(ByteBuffer buffer, ProtocolVersion version, StringBuilder target, int size) {
@@ -680,30 +683,32 @@ public interface CQL3Type {
 
       public String toString() {
          boolean isFrozen = !this.type.isMultiCell();
-         StringBuilder sb = new StringBuilder(isFrozen?"frozen<":"");
-         switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[this.type.kind.ordinal()]) {
-         case 1:
-            AbstractType<?> listType = ((ListType)this.type).getElementsType();
-            sb.append("list<").append(listType.asCQL3Type());
-            break;
-         case 2:
-            AbstractType<?> setType = ((SetType)this.type).getElementsType();
-            sb.append("set<").append(setType.asCQL3Type());
-            break;
-         case 3:
-            AbstractType<?> keysType = ((MapType)this.type).getKeysType();
-            AbstractType<?> valuesType = ((MapType)this.type).getValuesType();
-            sb.append("map<").append(keysType.asCQL3Type()).append(", ").append(valuesType.asCQL3Type());
-            break;
-         default:
-            throw new AssertionError();
+         StringBuilder sb = new StringBuilder(isFrozen ? "frozen<" : "");
+         switch (this.type.kind) {
+            case LIST: {
+               AbstractType listType = ((ListType)this.type).getElementsType();
+               sb.append("list<").append(listType.asCQL3Type());
+               break;
+            }
+            case SET: {
+               AbstractType setType = ((SetType)this.type).getElementsType();
+               sb.append("set<").append(setType.asCQL3Type());
+               break;
+            }
+            case MAP: {
+               AbstractType keysType = ((MapType)this.type).getKeysType();
+               AbstractType valuesType = ((MapType)this.type).getValuesType();
+               sb.append("map<").append(keysType.asCQL3Type()).append(", ").append(valuesType.asCQL3Type());
+               break;
+            }
+            default: {
+               throw new AssertionError();
+            }
          }
-
          sb.append('>');
-         if(isFrozen) {
+         if (isFrozen) {
             sb.append('>');
          }
-
          return sb.toString();
       }
    }

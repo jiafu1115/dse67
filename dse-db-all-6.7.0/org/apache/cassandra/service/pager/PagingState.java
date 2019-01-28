@@ -279,7 +279,7 @@ public class PagingState {
          } else if(metadata.isCompound() && CompositeType.isStaticName(value)) {
             return Clustering.STATIC_CLUSTERING;
          } else {
-            List<ByteBuffer> components = metadata.isCompound()?CompositeType.splitName(value):UnmodifiableArrayList.of((Object)value);
+            List<ByteBuffer> components = metadata.isCompound()?CompositeType.splitName(value):UnmodifiableArrayList.of(value);
             return Clustering.make((ByteBuffer[])((List)components).subList(0, Math.min(csize, ((List)components).size())).toArray(ByteBufferUtil.EMPTY_BUFFER_ARRAY));
          }
       }

@@ -190,7 +190,7 @@ public class Tracker {
 
    @VisibleForTesting
    public void reset(Memtable memtable) {
-      this.view.set(new View(memtable != null?UnmodifiableArrayList.of((Object)memtable):UnmodifiableArrayList.emptyList(), UnmodifiableArrayList.emptyList(), Collections.emptyMap(), Collections.emptyMap(), SSTableIntervalTree.empty()));
+      this.view.set(new View(memtable != null?UnmodifiableArrayList.of(memtable):UnmodifiableArrayList.emptyList(), UnmodifiableArrayList.emptyList(), Collections.emptyMap(), Collections.emptyMap(), SSTableIntervalTree.empty()));
    }
 
    @VisibleForTesting

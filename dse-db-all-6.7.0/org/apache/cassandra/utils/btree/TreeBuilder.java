@@ -8,7 +8,7 @@ import java.util.Iterator;
 final class TreeBuilder {
    private static final Recycler<TreeBuilder> builderRecycler = new Recycler<TreeBuilder>() {
       protected TreeBuilder newObject(Handle handle) {
-         return new TreeBuilder(handle, null);
+         return new TreeBuilder(handle);
       }
    };
    private final Handle recycleHandle;
@@ -68,11 +68,9 @@ final class TreeBuilder {
       }
 
       current.reset(BTree.EMPTY_LEAF, BTree.POSITIVE_INFINITY, updateF, (Comparator)null);
-      Iterator var5 = source.iterator();
 
-      while(var5.hasNext()) {
-         K key = var5.next();
-         current.addNewKey(key);
+      for (K k : source) {
+         current.addNewKey(k);
       }
 
       current = current.ascendToRoot();

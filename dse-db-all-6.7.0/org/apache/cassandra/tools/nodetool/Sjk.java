@@ -225,7 +225,7 @@ public class Sjk extends NodeTool.NodeToolCmd {
       }
 
       protected List<String> getCommandPackages() {
-         return UnmodifiableArrayList.of((Object)"org.gridkit.jvmtool.cmd");
+         return UnmodifiableArrayList.of("org.gridkit.jvmtool.cmd");
       }
 
       private void addCommands() throws InstantiationException, IllegalAccessException {

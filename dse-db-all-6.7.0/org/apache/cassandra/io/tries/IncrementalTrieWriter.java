@@ -18,7 +18,7 @@ public interface IncrementalTrieWriter<Value> extends AutoCloseable {
 
    IncrementalTrieWriter.PartialTail makePartialRoot() throws IOException;
 
-   static default <Value> IncrementalTrieWriter<Value> open(TrieSerializer<Value, ? super DataOutputPlus> trieSerializer, DataOutputPlus dest) {
+   static <Value> IncrementalTrieWriter<Value> open(TrieSerializer<Value, ? super DataOutputPlus> trieSerializer, DataOutputPlus dest) {
       return new IncrementalTrieWriterPageAware(trieSerializer, dest);
    }
 

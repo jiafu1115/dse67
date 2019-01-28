@@ -124,74 +124,39 @@ public class JavaUDFByteCodeVerifier {
 
    private Class<?> classForAsmType(String name, String desc, Type rt, Set<String> errors) {
       try {
-         String className = rt.getClassName();
-         byte var7 = -1;
-         switch(className.hashCode()) {
-         case -1325958191:
-            if(className.equals("double")) {
-               var7 = 7;
+         String className;
+         switch (className = rt.getClassName()) {
+            case "void": {
+               return Void.TYPE;
             }
-            break;
-         case 104431:
-            if(className.equals("int")) {
-               var7 = 4;
+            case "byte": {
+               return Byte.TYPE;
             }
-            break;
-         case 3039496:
-            if(className.equals("byte")) {
-               var7 = 1;
+            case "char": {
+               return Character.TYPE;
             }
-            break;
-         case 3052374:
-            if(className.equals("char")) {
-               var7 = 2;
+            case "short": {
+               return Short.TYPE;
             }
-            break;
-         case 3327612:
-            if(className.equals("long")) {
-               var7 = 5;
+            case "int": {
+               return Integer.TYPE;
             }
-            break;
-         case 3625364:
-            if(className.equals("void")) {
-               var7 = 0;
+            case "long": {
+               return Long.TYPE;
             }
-            break;
-         case 97526364:
-            if(className.equals("float")) {
-               var7 = 6;
+            case "float": {
+               return Float.TYPE;
             }
-            break;
-         case 109413500:
-            if(className.equals("short")) {
-               var7 = 3;
+            case "double": {
+               return Double.TYPE;
             }
          }
-
-         switch(var7) {
-         case 0:
-            return Void.TYPE;
-         case 1:
-            return Byte.TYPE;
-         case 2:
-            return Character.TYPE;
-         case 3:
-            return Short.TYPE;
-         case 4:
-            return Integer.TYPE;
-         case 5:
-            return Long.TYPE;
-         case 6:
-            return Float.TYPE;
-         case 7:
-            return Double.TYPE;
-         default:
-            Class<?> returnClass = Class.forName(className);
-            errors.add("not allowed method declared: " + name + desc);
-            return returnClass;
-         }
-      } catch (ClassNotFoundException var8) {
-         throw new RuntimeException(var8);
+         Class<?> returnClass = Class.forName(className);
+         errors.add("not allowed method declared: " + name + desc);
+         return returnClass;
+      }
+      catch (ClassNotFoundException e) {
+         throw new RuntimeException(e);
       }
    }
 
@@ -243,7 +208,7 @@ public class JavaUDFByteCodeVerifier {
       private final Set<String> errors;
       private final Class<?> returnType;
 
-      ExecuteImplVisitor(Set<String> var1, MethodVisitor errors, Class<?> delegate) {
+      ExecuteImplVisitor(Set<String> errors, MethodVisitor delegate, Class<?> returnType) {
          super(327680, delegate);
          this.errors = errors;
          this.returnType = returnType;

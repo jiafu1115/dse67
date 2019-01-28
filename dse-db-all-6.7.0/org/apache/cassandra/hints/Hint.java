@@ -62,7 +62,7 @@ public final class Hint {
          }
       }
 
-      return CompletableFuture.completedFuture((Object)null);
+      return CompletableFuture.completedFuture(null);
    }
 
    void apply() {

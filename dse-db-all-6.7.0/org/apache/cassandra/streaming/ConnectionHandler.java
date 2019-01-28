@@ -70,11 +70,11 @@ public class ConnectionHandler {
    }
 
    public ListenableFuture<?> closeOutgoing() {
-      return this.outgoing == null?Futures.immediateFuture((Object)null):this.outgoing.close();
+      return this.outgoing == null?Futures.immediateFuture(null):this.outgoing.close();
    }
 
    public ListenableFuture<?> closeIncoming() {
-      return this.incoming == null?Futures.immediateFuture((Object)null):this.incoming.close();
+      return this.incoming == null?Futures.immediateFuture(null):this.incoming.close();
    }
 
    public void sendMessages(Collection<? extends StreamMessage> messages) {
@@ -265,7 +265,7 @@ public class ConnectionHandler {
 
       public ListenableFuture<?> close() {
          SettableFuture<?> future = SettableFuture.create();
-         return (ListenableFuture)(this.closeFuture.compareAndSet((Object)null, future)?future:(ListenableFuture)this.closeFuture.get());
+         return (ListenableFuture)(this.closeFuture.compareAndSet(null, future)?future:(ListenableFuture)this.closeFuture.get());
       }
 
       public boolean isClosed() {
@@ -277,7 +277,7 @@ public class ConnectionHandler {
             this.close();
          }
 
-         ((SettableFuture)this.closeFuture.get()).set((Object)null);
+         ((SettableFuture)this.closeFuture.get()).set(null);
          if(this.incomingConnection != null) {
             this.incomingConnection.close();
          } else {

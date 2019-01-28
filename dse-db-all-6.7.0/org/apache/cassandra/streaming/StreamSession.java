@@ -232,70 +232,50 @@ public class StreamSession {
    }
 
    @VisibleForTesting
-   public static List<StreamSession.SSTableStreamingSections> getSSTableSectionsForRanges(Collection<Range<Token>> ranges, Collection<ColumnFamilyStore> stores, UUID pendingRepair, PreviewKind previewKind) {
-      Refs refs = new Refs();
-
+   public static List<SSTableStreamingSections> getSSTableSectionsForRanges(final Collection<Range<Token>> ranges, final Collection<ColumnFamilyStore> stores, final UUID pendingRepair, final PreviewKind previewKind) {
+      final Refs<SSTableReader> refs = new Refs<SSTableReader>();
       try {
-         Iterator var5 = stores.iterator();
-
-         while(var5.hasNext()) {
-            ColumnFamilyStore cfStore = (ColumnFamilyStore)var5.next();
-            List<Range<PartitionPosition>> keyRanges = new ArrayList(ranges.size());
-            Iterator var8 = ranges.iterator();
-
-            while(var8.hasNext()) {
-               Range<Token> range = (Range)var8.next();
+         for (final ColumnFamilyStore cfStore : stores) {
+            final List<Range<PartitionPosition>> keyRanges = new ArrayList<Range<PartitionPosition>>(ranges.size());
+            for (final Range<Token> range : ranges) {
                keyRanges.add(Range.makeRowRange(range));
             }
-
-            refs.addAll(cfStore.selectAndReference((view) -> {
-               Set<SSTableReader> sstables = Sets.newHashSet();
-               SSTableIntervalTree intervalTree = SSTableIntervalTree.build(view.select(SSTableSet.CANONICAL));
-               Predicate predicate;
-               if(previewKind.isPreview()) {
+            refs.addAll(cfStore.selectAndReference((Function<View, Iterable<SSTableReader>>)(view -> {
+               final Set<SSTableReader> sstables = Sets.newHashSet();
+               final SSTableIntervalTree intervalTree = SSTableIntervalTree.build(view.select(SSTableSet.CANONICAL));
+               Predicate<SSTableReader> predicate;
+               if (previewKind.isPreview()) {
                   predicate = previewKind.getStreamingPredicate();
-               } else if(pendingRepair == ActiveRepairService.NO_PENDING_REPAIR) {
-                  predicate = Predicates.alwaysTrue();
-               } else {
-                  predicate = (s) -> {
-                     return s.isPendingRepair() && s.getSSTableMetadata().pendingRepair.equals(pendingRepair);
-                  };
                }
-
-               Iterator var7 = keyRanges.iterator();
-
-               while(var7.hasNext()) {
-                  Range<PartitionPosition> keyRange = (Range)var7.next();
-                  Iterator var9 = Iterables.filter(View.sstablesInBounds((PartitionPosition)keyRange.left, (PartitionPosition)keyRange.right, intervalTree), predicate).iterator();
-
-                  while(var9.hasNext()) {
-                     SSTableReader sstable = (SSTableReader)var9.next();
+               else if (pendingRepair == ActiveRepairService.NO_PENDING_REPAIR) {
+                  predicate = Predicates.alwaysTrue();
+               }
+               else {
+                  predicate = (Predicate<SSTableReader>)(s -> s.isPendingRepair() && s.getSSTableMetadata().pendingRepair.equals(pendingRepair));
+               }
+               for (final Range<PartitionPosition> keyRange : keyRanges) {
+                  for (SSTableReader sstable : (Iterable<SSTableReader>)Iterables.filter(View.sstablesInBounds(keyRange.left, keyRange.right, intervalTree), (Predicate)predicate)) {
                      sstables.add(sstable);
                   }
                }
-
-               if(logger.isDebugEnabled()) {
-                  logger.debug("ViewFilter for {}/{} sstables", Integer.valueOf(sstables.size()), Integer.valueOf(Iterables.size(view.select(SSTableSet.CANONICAL))));
+               if (StreamSession.logger.isDebugEnabled()) {
+                  StreamSession.logger.debug("ViewFilter for {}/{} sstables", (Object)sstables.size(), (Object)Iterables.size((Iterable)view.select(SSTableSet.CANONICAL)));
                }
-
                return sstables;
-            }).refs);
+            })).refs);
          }
-
-         List<StreamSession.SSTableStreamingSections> sections = new ArrayList(refs.size());
-         Iterator var12 = refs.iterator();
-
-         while(var12.hasNext()) {
-            SSTableReader sstable = (SSTableReader)var12.next();
-            sections.add(new StreamSession.SSTableStreamingSections(refs.get(sstable), sstable.getPositionsForRanges(ranges), sstable.estimatedKeysForRanges(ranges)));
+         final List<SSTableStreamingSections> sections = new ArrayList<SSTableStreamingSections>(refs.size());
+         for (final SSTableReader sstable : refs) {
+            sections.add(new SSTableStreamingSections(refs.get(sstable), sstable.getPositionsForRanges(ranges), sstable.estimatedKeysForRanges(ranges)));
          }
-
          return sections;
-      } catch (Throwable var10) {
+      }
+      catch (Throwable t) {
          refs.release();
-         throw var10;
+         throw t;
       }
    }
+
 
    public synchronized void addTransferFiles(Collection<StreamSession.SSTableStreamingSections> sstableDetails) {
       this.failIfFinished();
@@ -360,27 +340,31 @@ public class StreamSession {
       return this.state == StreamSession.State.COMPLETE;
    }
 
-   public void messageReceived(StreamMessage message) {
-      switch(null.$SwitchMap$org$apache$cassandra$streaming$messages$StreamMessage$Type[message.type.ordinal()]) {
-      case 1:
-         PrepareMessage msg = (PrepareMessage)message;
-         this.prepare(msg.requests, msg.summaries);
-         break;
-      case 2:
-         this.receive((IncomingFileMessage)message);
-         break;
-      case 3:
-         ReceivedMessage received = (ReceivedMessage)message;
-         this.received(received.tableId, received.sequenceNumber);
-         break;
-      case 4:
-         this.complete();
-         break;
-      case 5:
-         this.sessionFailed();
-      }
-
-   }
+    public void messageReceived(StreamMessage message) {
+        switch (message.type) {
+            case PREPARE: {
+                PrepareMessage msg = (PrepareMessage)message;
+                this.prepare(msg.requests, msg.summaries);
+                break;
+            }
+            case FILE: {
+                this.receive((IncomingFileMessage)message);
+                break;
+            }
+            case RECEIVED: {
+                ReceivedMessage received = (ReceivedMessage)message;
+                this.received(received.tableId, received.sequenceNumber);
+                break;
+            }
+            case COMPLETE: {
+                this.complete();
+                break;
+            }
+            case SESSION_FAILED: {
+                this.sessionFailed();
+            }
+        }
+    }
 
    public void onInitializationComplete() {
       this.state(StreamSession.State.PREPARING);

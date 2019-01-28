@@ -76,7 +76,7 @@ public final class CompactionParams {
 
    public void validate() {
       try {
-         Map<?, ?> unknownOptions = (Map)this.klass.getMethod("validateOptions", new Class[]{Map.class}).invoke((Object)null, new Object[]{this.options});
+         Map<?, ?> unknownOptions = (Map)this.klass.getMethod("validateOptions", new Class[]{Map.class}).invoke(null, new Object[]{this.options});
          if(!unknownOptions.isEmpty()) {
             throw new ConfigurationException(String.format("Properties specified %s are not understood by %s", new Object[]{unknownOptions.keySet(), this.klass.getSimpleName()}));
          }
@@ -150,7 +150,7 @@ public final class CompactionParams {
 
    public static boolean supportsThresholdParams(Class<? extends AbstractCompactionStrategy> klass) {
       try {
-         Map<String, String> unrecognizedOptions = (Map)klass.getMethod("validateOptions", new Class[]{Map.class}).invoke((Object)null, new Object[]{DEFAULT_THRESHOLDS});
+         Map<String, String> unrecognizedOptions = (Map)klass.getMethod("validateOptions", new Class[]{Map.class}).invoke(null, new Object[]{DEFAULT_THRESHOLDS});
          return unrecognizedOptions.isEmpty();
       } catch (Exception var2) {
          throw Throwables.cleaned(var2);

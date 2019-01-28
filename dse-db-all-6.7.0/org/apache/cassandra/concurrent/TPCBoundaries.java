@@ -21,7 +21,7 @@ public class TPCBoundaries {
    }
 
    private static TPCBoundaries computeLocalRanges(IPartitioner partitioner, int numCores) {
-      return !partitioner.splitter().isPresent()?NONE:compute(UnmodifiableArrayList.of((Object)(new Range(partitioner.getMinimumToken(), partitioner.getMaximumToken()))), numCores);
+      return !partitioner.splitter().isPresent()?NONE:compute(UnmodifiableArrayList.of((new Range(partitioner.getMinimumToken(), partitioner.getMaximumToken()))), numCores);
    }
 
    public static TPCBoundaries compute(List<Range<Token>> localRanges, int numCores) {

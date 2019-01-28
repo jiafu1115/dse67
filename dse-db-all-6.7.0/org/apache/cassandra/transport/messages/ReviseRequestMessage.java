@@ -5,6 +5,7 @@ import io.reactivex.Single;
 import io.reactivex.functions.Function;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import org.apache.cassandra.cql3.ColumnIdentifier;
@@ -40,24 +41,24 @@ public class ReviseRequestMessage extends Message.Request {
       this.nextPages = nextPages;
    }
 
-   public Single<Message.Response> execute(Single<QueryState> queryState, long queryStartNanoTime) {
-      Single ret;
-      if(this.revisionType == ReviseRequestMessage.RevisionType.CONTINUOUS_PAGING_CANCEL) {
-         ret = ContinuousPagingService.cancel(queryState, this.id);
-      } else if(this.revisionType == ReviseRequestMessage.RevisionType.CONTINUOUS_PAGING_BACKPRESSURE) {
-         ret = ContinuousPagingService.updateBackpressure(queryState, this.id, this.nextPages);
-      } else {
-         ret = Single.error(new InvalidRequestException(String.format("Unknown update type: %s", new Object[]{this.revisionType})));
-      }
+    public Single<Message.Response> execute(Single<QueryState> queryState, long queryStartNanoTime) {
+        Single ret;
+        if(this.revisionType == ReviseRequestMessage.RevisionType.CONTINUOUS_PAGING_CANCEL) {
+            ret = ContinuousPagingService.cancel(queryState, this.id);
+        } else if(this.revisionType == ReviseRequestMessage.RevisionType.CONTINUOUS_PAGING_BACKPRESSURE) {
+            ret = ContinuousPagingService.updateBackpressure(queryState, this.id, this.nextPages);
+        } else {
+            ret = Single.error(new InvalidRequestException(String.format("Unknown update type: %s", new Object[]{this.revisionType})));
+        }
 
-      return ret.map((res) -> {
-         List<List<ByteBuffer>> rows = UnmodifiableArrayList.of((Object)UnmodifiableArrayList.of((Object)BooleanType.instance.decompose(res)));
-         return new ResultMessage.Rows(new ResultSet(RESULT_METADATA, rows));
-      }).onErrorReturn((err) -> {
-         JVMStabilityInspector.inspectThrowable(err);
-         return ErrorMessage.fromException(err);
-      });
-   }
+        return ret.map((res) -> {
+            List<List<ByteBuffer>> rows = Collections.singletonList(Collections.singletonList(BooleanType.instance.decompose((Boolean) res)));
+            return new ResultMessage.Rows(new ResultSet(RESULT_METADATA, rows));
+        }).onErrorReturn((err) -> {
+            JVMStabilityInspector.inspectThrowable((Throwable) err);
+            return ErrorMessage.fromException((Throwable) err);
+        });
+    }
 
    public String toString() {
       return String.format("REVISE REQUEST %d with revision %s (nextPages %s)", new Object[]{Integer.valueOf(this.id), this.revisionType, Integer.valueOf(this.nextPages)});
@@ -65,14 +66,14 @@ public class ReviseRequestMessage extends Message.Request {
 
    static {
       RESULT_COLUMN_SPEC = new ColumnSpecification("", "", RESULT_COLUMN, BooleanType.instance);
-      RESULT_METADATA = new ResultSet.ResultMetadata(UnmodifiableArrayList.of((Object)RESULT_COLUMN_SPEC));
+      RESULT_METADATA = new ResultSet.ResultMetadata(UnmodifiableArrayList.of(RESULT_COLUMN_SPEC));
       codec = new Message.Codec<ReviseRequestMessage>() {
          public ReviseRequestMessage decode(ByteBuf body, ProtocolVersion version) {
             ReviseRequestMessage.RevisionType revisionType = ReviseRequestMessage.RevisionType.decode(body.readInt());
             if(revisionType == ReviseRequestMessage.RevisionType.CONTINUOUS_PAGING_CANCEL) {
-               return new ReviseRequestMessage(revisionType, body.readInt(), null);
+               return new ReviseRequestMessage(revisionType, body.readInt());
             } else if(revisionType == ReviseRequestMessage.RevisionType.CONTINUOUS_PAGING_BACKPRESSURE) {
-               return new ReviseRequestMessage(revisionType, body.readInt(), body.readInt(), null);
+               return new ReviseRequestMessage(revisionType, body.readInt(), body.readInt());
             } else {
                throw new InvalidRequestException(String.format("Unknown update type: %s", new Object[]{revisionType}));
             }

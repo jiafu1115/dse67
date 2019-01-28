@@ -14,7 +14,7 @@ public class FailureResponse<Q> extends Response<Q> {
 
    public static <R> FailureResponse<R> local(Verb<?, R> verb, RequestFailureReason reason, long createdAtMillis) {
       InetAddress local = FBUtilities.getLocalAddress();
-      return new FailureResponse(local, local, -1, verb, reason, new Message.Data((Object)null, -1L, createdAtMillis, 9223372036854775807L));
+      return new FailureResponse(local, local, -1, verb, reason, new Message.Data(null, -1L, createdAtMillis, 9223372036854775807L));
    }
 
    public RequestFailureReason reason() {

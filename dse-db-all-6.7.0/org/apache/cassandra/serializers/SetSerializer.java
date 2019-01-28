@@ -40,10 +40,7 @@ public class SetSerializer<T> extends CollectionSerializer<Set<T>> {
 
    public List<ByteBuffer> serializeValues(Set<T> values) {
       List<ByteBuffer> buffers = new ArrayList(values.size());
-      Iterator var3 = values.iterator();
-
-      while(var3.hasNext()) {
-         T value = var3.next();
+      for(T value:values){
          buffers.add(this.elements.serialize(value));
       }
 
@@ -104,7 +101,7 @@ public class SetSerializer<T> extends CollectionSerializer<Set<T>> {
       boolean isFirst = true;
 
       Object element;
-      for(Iterator var4 = value.iterator(); var4.hasNext(); sb.append(this.elements.toString(element))) {
+      for(Iterator var4 = value.iterator(); var4.hasNext(); sb.append(this.elements.toString((T)element))) {
          element = var4.next();
          if(isFirst) {
             isFirst = false;
@@ -118,7 +115,7 @@ public class SetSerializer<T> extends CollectionSerializer<Set<T>> {
    }
 
    public Class<Set<T>> getType() {
-      return Set.class;
+      return (Class)Set.class;
    }
 
    public ByteBuffer getSerializedValue(ByteBuffer collection, ByteBuffer key, AbstractType<?> comparator) {

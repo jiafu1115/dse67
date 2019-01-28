@@ -213,7 +213,6 @@ abstract class AbstractFunctionSelector<T extends Function> extends Selector {
       }
 
       size += TypeSizes.sizeof(isPartial);
-      int i;
       if(isPartial) {
          List<ByteBuffer> partialParameters = ((PartialScalarFunction)this.fun).getPartialArguments();
          size += TypeSizes.sizeofUnsignedVInt((long)this.computeBitSet(partialParameters));
@@ -258,7 +257,6 @@ abstract class AbstractFunctionSelector<T extends Function> extends Selector {
       if(isPartial) {
          List<ByteBuffer> partialParameters = ((PartialScalarFunction)this.fun).getPartialArguments();
          out.writeUnsignedVInt((long)this.computeBitSet(partialParameters));
-         int i = 0;
 
          for(i = partialParameters.size(); i < i; ++i) {
             ByteBuffer buffer = (ByteBuffer)partialParameters.get(i);

@@ -176,7 +176,7 @@ class SASIIndexBuilder extends SecondaryIndexBuilder {
          ColumnIndex index = (ColumnIndex)var4.next();
          File tmpIndex = new File(sstable.descriptor.filenameFor(index.getComponent()));
          if(tmpIndex.exists()) {
-            index.update(UnmodifiableArrayList.emptyList(), UnmodifiableArrayList.of((Object)sstable));
+            index.update(UnmodifiableArrayList.emptyList(), UnmodifiableArrayList.of(sstable));
          }
       }
 

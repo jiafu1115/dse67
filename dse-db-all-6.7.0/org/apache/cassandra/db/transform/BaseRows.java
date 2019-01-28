@@ -16,7 +16,7 @@ public abstract class BaseRows<R extends Unfiltered, I extends BaseRowIterator<?
    private DecoratedKey partitionKey;
 
    public BaseRows(I input) {
-      super((Iterator)input);
+      super((I)input);
       this.staticRow = input.staticRow();
       this.partitionKey = input.partitionKey();
    }
@@ -77,46 +77,32 @@ public abstract class BaseRows<R extends Unfiltered, I extends BaseRowIterator<?
    }
 
    public final boolean hasNext() {
-      label54:
-      while(this.next == null) {
+      while (this.next == null) {
          Transformation[] fs = this.stack;
          int len = this.length;
-
-         Object next;
-         do {
-            if(!((BaseRowIterator)this.input).hasNext()) {
-               if(this.hasMoreContents()) {
-                  continue label54;
-               }
-
-               return false;
-            }
-
-            Unfiltered next = (Unfiltered)((BaseRowIterator)this.input).next();
+         while (((BaseRowIterator) this.input).hasNext()) {
             int i;
-            if(next.isRow()) {
-               Row row = (Row)next;
-
-               for(i = 0; row != null && i < len; ++i) {
+            Unfiltered next = (Unfiltered) ((BaseRowIterator) this.input).next();
+            if (next.isRow()) {
+               Row row = (Row) next;
+               for (i = 0; row != null && i < len; ++i) {
                   row = fs[i].applyToRow(row);
                }
-
                next = row;
             } else {
-               RangeTombstoneMarker rtm = (RangeTombstoneMarker)next;
-
-               for(i = 0; rtm != null && i < len; ++i) {
+               RangeTombstoneMarker rtm = (RangeTombstoneMarker) next;
+               for (i = 0; rtm != null && i < len; ++i) {
                   rtm = fs[i].applyToMarker(rtm);
                }
-
                next = rtm;
             }
-         } while(next == null);
-
-         this.next = next;
-         return true;
+            if (next == null) continue;
+            this.next = next;
+            return true;
+         }
+         if (this.hasMoreContents()) continue;
+         return false;
       }
-
       return true;
    }
 }

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
+
 import org.apache.cassandra.concurrent.TPCTaskType;
 import org.apache.cassandra.cql3.ColumnIdentifier;
 import org.apache.cassandra.cql3.Operator;
@@ -29,301 +30,301 @@ import org.apache.cassandra.utils.SetsFactory;
 import org.apache.cassandra.utils.time.ApolloTime;
 
 public abstract class AbstractReadCommandBuilder<T extends ReadCommand> {
-   protected final ColumnFamilyStore cfs;
-   protected int nowInSeconds;
-   private int rowLimit = -1;
-   private int partitionLimit = -1;
-   private PageSize pagingLimit;
-   protected boolean reversed = false;
-   protected Set<ColumnIdentifier> columns;
-   protected final RowFilter filter = RowFilter.create();
-   private ClusteringBound lowerClusteringBound;
-   private ClusteringBound upperClusteringBound;
-   private NavigableSet<Clustering> clusterings;
-   protected boolean isInternal;
+    protected final ColumnFamilyStore cfs;
+    protected int nowInSeconds;
+    private int rowLimit = -1;
+    private int partitionLimit = -1;
+    private PageSize pagingLimit;
+    protected boolean reversed = false;
+    protected Set<ColumnIdentifier> columns;
+    protected final RowFilter filter = RowFilter.create();
+    private ClusteringBound lowerClusteringBound;
+    private ClusteringBound upperClusteringBound;
+    private NavigableSet<Clustering> clusterings;
+    protected boolean isInternal;
 
-   AbstractReadCommandBuilder(ColumnFamilyStore cfs) {
-      this.cfs = cfs;
-      this.nowInSeconds = ApolloTime.systemClockSecondsAsInt();
-   }
+    AbstractReadCommandBuilder(ColumnFamilyStore cfs) {
+        this.cfs = cfs;
+        this.nowInSeconds = ApolloTime.systemClockSecondsAsInt();
+    }
 
-   public AbstractReadCommandBuilder<T> internal() {
-      this.isInternal = true;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> internal() {
+        this.isInternal = true;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> withNowInSeconds(int nowInSec) {
-      this.nowInSeconds = nowInSec;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> withNowInSeconds(int nowInSec) {
+        this.nowInSeconds = nowInSec;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> fromIncl(Object... values) {
-      assert this.lowerClusteringBound == null && this.clusterings == null;
+    public AbstractReadCommandBuilder<T> fromIncl(Object... values) {
+        assert this.lowerClusteringBound == null && this.clusterings == null;
 
-      this.lowerClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, true, true, values);
-      return this;
-   }
+        this.lowerClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, true, true, values);
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> fromExcl(Object... values) {
-      assert this.lowerClusteringBound == null && this.clusterings == null;
+    public AbstractReadCommandBuilder<T> fromExcl(Object... values) {
+        assert this.lowerClusteringBound == null && this.clusterings == null;
 
-      this.lowerClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, true, false, values);
-      return this;
-   }
+        this.lowerClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, true, false, values);
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> toIncl(Object... values) {
-      assert this.upperClusteringBound == null && this.clusterings == null;
+    public AbstractReadCommandBuilder<T> toIncl(Object... values) {
+        assert this.upperClusteringBound == null && this.clusterings == null;
 
-      this.upperClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, false, true, values);
-      return this;
-   }
+        this.upperClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, false, true, values);
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> toExcl(Object... values) {
-      assert this.upperClusteringBound == null && this.clusterings == null;
+    public AbstractReadCommandBuilder<T> toExcl(Object... values) {
+        assert this.upperClusteringBound == null && this.clusterings == null;
 
-      this.upperClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, false, false, values);
-      return this;
-   }
+        this.upperClusteringBound = ClusteringBound.create(this.cfs.metadata().comparator, false, false, values);
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> includeRow(Object... values) {
-      assert this.lowerClusteringBound == null && this.upperClusteringBound == null;
+    public AbstractReadCommandBuilder<T> includeRow(Object... values) {
+        assert this.lowerClusteringBound == null && this.upperClusteringBound == null;
 
-      if(this.clusterings == null) {
-         this.clusterings = new TreeSet(this.cfs.metadata().comparator);
-      }
+        if (this.clusterings == null) {
+            this.clusterings = new TreeSet(this.cfs.metadata().comparator);
+        }
 
-      this.clusterings.add(this.cfs.metadata().comparator.make(values));
-      return this;
-   }
+        this.clusterings.add(this.cfs.metadata().comparator.make(values));
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> clusterings(NavigableSet<Clustering> clusterings) {
-      this.clusterings = clusterings;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> clusterings(NavigableSet<Clustering> clusterings) {
+        this.clusterings = clusterings;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> reverse() {
-      this.reversed = true;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> reverse() {
+        this.reversed = true;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> withLimit(int newLimit) {
-      this.rowLimit = newLimit;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> withLimit(int newLimit) {
+        this.rowLimit = newLimit;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> withPartitionLimit(int newLimit) {
-      this.partitionLimit = newLimit;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> withPartitionLimit(int newLimit) {
+        this.partitionLimit = newLimit;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> withPagingLimit(PageSize newLimit) {
-      this.pagingLimit = newLimit;
-      return this;
-   }
+    public AbstractReadCommandBuilder<T> withPagingLimit(PageSize newLimit) {
+        this.pagingLimit = newLimit;
+        return this;
+    }
 
-   public AbstractReadCommandBuilder<T> columns(String... columns) {
-      if(this.columns == null) {
-         this.columns = SetsFactory.newSetForSize(columns.length);
-      }
+    public AbstractReadCommandBuilder<T> columns(String... columns) {
+        if (this.columns == null) {
+            this.columns = SetsFactory.newSetForSize(columns.length);
+        }
 
-      String[] var2 = columns;
-      int var3 = columns.length;
+        String[] var2 = columns;
+        int var3 = columns.length;
 
-      for(int var4 = 0; var4 < var3; ++var4) {
-         String column = var2[var4];
-         this.columns.add(ColumnIdentifier.getInterned(column, true));
-      }
+        for (int var4 = 0; var4 < var3; ++var4) {
+            String column = var2[var4];
+            this.columns.add(ColumnIdentifier.getInterned(column, true));
+        }
 
-      return this;
-   }
+        return this;
+    }
 
-   private ByteBuffer bb(Object value, AbstractType<?> type) {
-      return value instanceof ByteBuffer?(ByteBuffer)value:type.decompose(value);
-   }
+    private ByteBuffer bb(Object value, AbstractType<?> type) {
+        return value instanceof ByteBuffer ? (ByteBuffer) value : ((AbstractType) type).decompose(value);
+    }
 
-   private AbstractType<?> forValues(AbstractType<?> collectionType) {
-      assert collectionType instanceof CollectionType;
+    private AbstractType<?> forValues(AbstractType<?> collectionType) {
+        assert (collectionType instanceof CollectionType);
+        CollectionType ct = (CollectionType) collectionType;
+        switch (ct.kind) {
+            case LIST:
+            case MAP: {
+                return ct.valueComparator();
+            }
+            case SET: {
+                return ct.nameComparator();
+            }
+        }
+        throw new AssertionError();
+    }
 
-      CollectionType ct = (CollectionType)collectionType;
-      switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[ct.kind.ordinal()]) {
-      case 1:
-      case 2:
-         return ct.valueComparator();
-      case 3:
-         return ct.nameComparator();
-      default:
-         throw new AssertionError();
-      }
-   }
+    private AbstractType<?> forKeys(AbstractType<?> collectionType) {
+        assert (collectionType instanceof CollectionType);
+        CollectionType ct = (CollectionType) collectionType;
+        switch (ct.kind) {
+            case LIST:
+            case MAP: {
+                return ct.nameComparator();
+            }
+        }
+        throw new AssertionError();
+    }
 
-   private AbstractType<?> forKeys(AbstractType<?> collectionType) {
-      assert collectionType instanceof CollectionType;
 
-      CollectionType ct = (CollectionType)collectionType;
-      switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[ct.kind.ordinal()]) {
-      case 1:
-      case 2:
-         return ct.nameComparator();
-      default:
-         throw new AssertionError();
-      }
-   }
+    public AbstractReadCommandBuilder<T> filterOn(String column, Operator op, Object value) {
+        ColumnMetadata def = this.cfs.metadata().getColumn(ColumnIdentifier.getInterned(column, true));
 
-   public AbstractReadCommandBuilder<T> filterOn(String column, Operator op, Object value) {
-      ColumnMetadata def = this.cfs.metadata().getColumn(ColumnIdentifier.getInterned(column, true));
+        assert def != null;
 
-      assert def != null;
+        AbstractType<?> type = def.type;
+        if (op == Operator.CONTAINS) {
+            type = this.forValues(type);
+        } else if (op == Operator.CONTAINS_KEY) {
+            type = this.forKeys(type);
+        }
 
-      AbstractType<?> type = def.type;
-      if(op == Operator.CONTAINS) {
-         type = this.forValues(type);
-      } else if(op == Operator.CONTAINS_KEY) {
-         type = this.forKeys(type);
-      }
+        this.filter.add(def, op, this.bb(value, type));
+        return this;
+    }
 
-      this.filter.add(def, op, this.bb(value, type));
-      return this;
-   }
+    protected ColumnFilter makeColumnFilter() {
+        if (this.columns != null && !this.columns.isEmpty()) {
+            ColumnFilter.Builder filter = ColumnFilter.selectionBuilder();
+            Iterator var2 = this.columns.iterator();
 
-   protected ColumnFilter makeColumnFilter() {
-      if(this.columns != null && !this.columns.isEmpty()) {
-         ColumnFilter.Builder filter = ColumnFilter.selectionBuilder();
-         Iterator var2 = this.columns.iterator();
+            while (var2.hasNext()) {
+                ColumnIdentifier column = (ColumnIdentifier) var2.next();
+                filter.add(this.cfs.metadata().getColumn(column));
+            }
 
-         while(var2.hasNext()) {
-            ColumnIdentifier column = (ColumnIdentifier)var2.next();
-            filter.add(this.cfs.metadata().getColumn(column));
-         }
+            return filter.build();
+        } else {
+            return ColumnFilter.all(this.cfs.metadata());
+        }
+    }
 
-         return filter.build();
-      } else {
-         return ColumnFilter.all(this.cfs.metadata());
-      }
-   }
+    protected ClusteringIndexFilter makeFilter() {
+        if (this.clusterings != null) {
+            return new ClusteringIndexNamesFilter(this.clusterings, this.reversed);
+        } else {
+            Slice slice = Slice.make(this.lowerClusteringBound == null ? ClusteringBound.BOTTOM : this.lowerClusteringBound, this.upperClusteringBound == null ? ClusteringBound.TOP : this.upperClusteringBound);
+            return new ClusteringIndexSliceFilter(Slices.with(this.cfs.metadata().comparator, slice), this.reversed);
+        }
+    }
 
-   protected ClusteringIndexFilter makeFilter() {
-      if(this.clusterings != null) {
-         return new ClusteringIndexNamesFilter(this.clusterings, this.reversed);
-      } else {
-         Slice slice = Slice.make(this.lowerClusteringBound == null?ClusteringBound.BOTTOM:this.lowerClusteringBound, this.upperClusteringBound == null?ClusteringBound.TOP:this.upperClusteringBound);
-         return new ClusteringIndexSliceFilter(Slices.with(this.cfs.metadata().comparator, slice), this.reversed);
-      }
-   }
+    protected DataLimits makeLimits() {
+        DataLimits limits = DataLimits.NONE;
+        if (this.rowLimit >= 0 && this.partitionLimit >= 0) {
+            limits = DataLimits.cqlLimits(this.rowLimit, this.partitionLimit);
+        } else if (this.rowLimit >= 0) {
+            limits = DataLimits.cqlLimits(this.rowLimit);
+        } else if (this.partitionLimit >= 0) {
+            limits = DataLimits.cqlLimits(2147483647, this.partitionLimit);
+        }
 
-   protected DataLimits makeLimits() {
-      DataLimits limits = DataLimits.NONE;
-      if(this.rowLimit >= 0 && this.partitionLimit >= 0) {
-         limits = DataLimits.cqlLimits(this.rowLimit, this.partitionLimit);
-      } else if(this.rowLimit >= 0) {
-         limits = DataLimits.cqlLimits(this.rowLimit);
-      } else if(this.partitionLimit >= 0) {
-         limits = DataLimits.cqlLimits(2147483647, this.partitionLimit);
-      }
+        if (this.pagingLimit != null) {
+            limits = limits.forPaging(this.pagingLimit);
+        }
 
-      if(this.pagingLimit != null) {
-         limits = limits.forPaging(this.pagingLimit);
-      }
+        return limits;
+    }
 
-      return limits;
-   }
+    public abstract T build();
 
-   public abstract T build();
+    public static class PartitionRangeBuilder extends AbstractReadCommandBuilder<PartitionRangeReadCommand> {
+        private DecoratedKey startKey;
+        private boolean startInclusive;
+        private DecoratedKey endKey;
+        private boolean endInclusive;
 
-   public static class PartitionRangeBuilder extends AbstractReadCommandBuilder<PartitionRangeReadCommand> {
-      private DecoratedKey startKey;
-      private boolean startInclusive;
-      private DecoratedKey endKey;
-      private boolean endInclusive;
+        public PartitionRangeBuilder(ColumnFamilyStore cfs) {
+            super(cfs);
+        }
 
-      public PartitionRangeBuilder(ColumnFamilyStore cfs) {
-         super(cfs);
-      }
+        public AbstractReadCommandBuilder.PartitionRangeBuilder fromKeyIncl(Object... values) {
+            assert this.startKey == null;
 
-      public AbstractReadCommandBuilder.PartitionRangeBuilder fromKeyIncl(Object... values) {
-         assert this.startKey == null;
+            this.startInclusive = true;
+            this.startKey = makeKey(this.cfs.metadata(), values);
+            return this;
+        }
 
-         this.startInclusive = true;
-         this.startKey = makeKey(this.cfs.metadata(), values);
-         return this;
-      }
+        public AbstractReadCommandBuilder.PartitionRangeBuilder fromKeyExcl(Object... values) {
+            assert this.startKey == null;
 
-      public AbstractReadCommandBuilder.PartitionRangeBuilder fromKeyExcl(Object... values) {
-         assert this.startKey == null;
-
-         this.startInclusive = false;
-         this.startKey = makeKey(this.cfs.metadata(), values);
-         return this;
-      }
-
-      public AbstractReadCommandBuilder.PartitionRangeBuilder toKeyIncl(Object... values) {
-         assert this.endKey == null;
-
-         this.endInclusive = true;
-         this.endKey = makeKey(this.cfs.metadata(), values);
-         return this;
-      }
-
-      public AbstractReadCommandBuilder.PartitionRangeBuilder toKeyExcl(Object... values) {
-         assert this.endKey == null;
-
-         this.endInclusive = false;
-         this.endKey = makeKey(this.cfs.metadata(), values);
-         return this;
-      }
-
-      public PartitionRangeReadCommand build() {
-         PartitionPosition start = this.startKey;
-         if(start == null) {
-            start = this.cfs.getPartitioner().getMinimumToken().maxKeyBound();
             this.startInclusive = false;
-         }
+            this.startKey = makeKey(this.cfs.metadata(), values);
+            return this;
+        }
 
-         PartitionPosition end = this.endKey;
-         if(end == null) {
-            end = this.cfs.getPartitioner().getMinimumToken().maxKeyBound();
+        public AbstractReadCommandBuilder.PartitionRangeBuilder toKeyIncl(Object... values) {
+            assert this.endKey == null;
+
             this.endInclusive = true;
-         }
+            this.endKey = makeKey(this.cfs.metadata(), values);
+            return this;
+        }
 
-         Object bounds;
-         if(((PartitionPosition)start).compareTo(end) > 0) {
-            bounds = start;
-            start = end;
-            end = bounds;
-         }
+        public AbstractReadCommandBuilder.PartitionRangeBuilder toKeyExcl(Object... values) {
+            assert this.endKey == null;
 
-         if(this.startInclusive && this.endInclusive) {
-            bounds = new Bounds((RingPosition)start, (RingPosition)end);
-         } else if(this.startInclusive && !this.endInclusive) {
-            bounds = new IncludingExcludingBounds((RingPosition)start, (RingPosition)end);
-         } else if(!this.startInclusive && this.endInclusive) {
-            bounds = new Range((RingPosition)start, (RingPosition)end);
-         } else {
-            bounds = new ExcludingBounds((RingPosition)start, (RingPosition)end);
-         }
+            this.endInclusive = false;
+            this.endKey = makeKey(this.cfs.metadata(), values);
+            return this;
+        }
 
-         return this.isInternal?PartitionRangeReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), new DataRange((AbstractBounds)bounds, this.makeFilter()), TPCTaskType.READ_RANGE_INTERNAL):PartitionRangeReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), new DataRange((AbstractBounds)bounds, this.makeFilter()));
-      }
+        public PartitionRangeReadCommand build() {
+            PartitionPosition start = this.startKey;
+            if (start == null) {
+                start = this.cfs.getPartitioner().getMinimumToken().maxKeyBound();
+                this.startInclusive = false;
+            }
 
-      static DecoratedKey makeKey(TableMetadata metadata, Object... partitionKey) {
-         if(partitionKey.length == 1 && partitionKey[0] instanceof DecoratedKey) {
-            return (DecoratedKey)partitionKey[0];
-         } else {
-            ByteBuffer key = metadata.partitionKeyAsClusteringComparator().make(partitionKey).serializeAsPartitionKey();
-            return metadata.partitioner.decorateKey(key);
-         }
-      }
-   }
+            PartitionPosition end = this.endKey;
+            if (end == null) {
+                end = this.cfs.getPartitioner().getMinimumToken().maxKeyBound();
+                this.endInclusive = true;
+            }
 
-   public static class SinglePartitionBuilder extends AbstractReadCommandBuilder<SinglePartitionReadCommand> {
-      private final DecoratedKey partitionKey;
+            Object bounds;
+            if (((PartitionPosition) start).compareTo(end) > 0) {
+                bounds = start;
+                start = end;
+                end = (PartitionPosition) bounds;
+            }
 
-      public SinglePartitionBuilder(ColumnFamilyStore cfs, DecoratedKey key) {
-         super(cfs);
-         this.partitionKey = key;
-      }
+            if (this.startInclusive && this.endInclusive) {
+                bounds = new Bounds((RingPosition) start, (RingPosition) end);
+            } else if (this.startInclusive && !this.endInclusive) {
+                bounds = new IncludingExcludingBounds((RingPosition) start, (RingPosition) end);
+            } else if (!this.startInclusive && this.endInclusive) {
+                bounds = new Range((RingPosition) start, (RingPosition) end);
+            } else {
+                bounds = new ExcludingBounds((RingPosition) start, (RingPosition) end);
+            }
 
-      public SinglePartitionReadCommand build() {
-         return this.isInternal?SinglePartitionReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), this.partitionKey, this.makeFilter(), TPCTaskType.READ_INTERNAL):SinglePartitionReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), this.partitionKey, this.makeFilter());
-      }
-   }
+            return this.isInternal ? PartitionRangeReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), new DataRange((AbstractBounds) bounds, this.makeFilter()), TPCTaskType.READ_RANGE_INTERNAL) : PartitionRangeReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), new DataRange((AbstractBounds) bounds, this.makeFilter()));
+        }
+
+        static DecoratedKey makeKey(TableMetadata metadata, Object... partitionKey) {
+            if (partitionKey.length == 1 && partitionKey[0] instanceof DecoratedKey) {
+                return (DecoratedKey) partitionKey[0];
+            } else {
+                ByteBuffer key = metadata.partitionKeyAsClusteringComparator().make(partitionKey).serializeAsPartitionKey();
+                return metadata.partitioner.decorateKey(key);
+            }
+        }
+    }
+
+    public static class SinglePartitionBuilder extends AbstractReadCommandBuilder<SinglePartitionReadCommand> {
+        private final DecoratedKey partitionKey;
+
+        public SinglePartitionBuilder(ColumnFamilyStore cfs, DecoratedKey key) {
+            super(cfs);
+            this.partitionKey = key;
+        }
+
+        public SinglePartitionReadCommand build() {
+            return this.isInternal ? SinglePartitionReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), this.partitionKey, this.makeFilter(), TPCTaskType.READ_INTERNAL) : SinglePartitionReadCommand.create(this.cfs.metadata(), this.nowInSeconds, this.makeColumnFilter(), this.filter, this.makeLimits(), this.partitionKey, this.makeFilter());
+        }
+    }
 }

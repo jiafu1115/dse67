@@ -99,14 +99,15 @@ public final class SpeculativeRetryParam {
    }
 
    public String toString() {
-      switch(null.$SwitchMap$org$apache$cassandra$schema$SpeculativeRetryParam$Kind[this.kind.ordinal()]) {
-      case 1:
-         return String.format("%sms", new Object[]{Double.valueOf(this.value)});
-      case 2:
-         return String.format("%sPERCENTILE", new Object[]{(new DecimalFormat("#.#####")).format(this.value)});
-      default:
-         return this.kind.toString();
+      switch (this.kind) {
+         case CUSTOM: {
+            return String.format("%sms", this.value);
+         }
+         case PERCENTILE: {
+            return String.format("%sPERCENTILE", new DecimalFormat("#.#####").format(this.value));
+         }
       }
+      return this.kind.toString();
    }
 
    public static enum Kind {

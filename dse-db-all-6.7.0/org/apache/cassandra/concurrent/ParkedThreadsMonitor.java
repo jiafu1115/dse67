@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ParkedThreadsMonitor {
-   public static final Supplier<ParkedThreadsMonitor> instance = Suppliers.memoize(ParkedThreadsMonitor::<init>);
+   public static final Supplier<ParkedThreadsMonitor> instance = Suppliers.memoize(ParkedThreadsMonitor::new);
    private static final Logger LOGGER = LoggerFactory.getLogger(ParkedThreadsMonitor.class);
    private static final long SLEEP_INTERVAL_NS = PropertyConfiguration.getLong("dse.thread_monitor_sleep_nanos", 50000L);
    private static final boolean AUTO_CALIBRATE;

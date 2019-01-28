@@ -8,13 +8,8 @@ import io.reactivex.internal.disposables.EmptyDisposable;
 import io.reactivex.internal.disposables.ListCompositeDisposable;
 import io.reactivex.internal.schedulers.ScheduledRunnable;
 import io.reactivex.plugins.RxJavaPlugins;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+
+import java.util.concurrent.*;
 
 class ExecutorBasedWorker extends Worker {
    static final ExecutorBasedWorker DISPOSED = disposed();
@@ -83,9 +78,9 @@ class ExecutorBasedWorker extends Worker {
          try {
             Object f;
             if(delayTime <= 0L) {
-               f = this.executor.submit(sr);
+               f = this.executor.submit((Callable<?>)sr);
             } else {
-               f = this.executor.schedule(sr, delayTime, unit);
+               f = this.executor.schedule((Callable<?>)sr, delayTime, unit);
             }
 
             sr.setFuture((Future)f);

@@ -1851,8 +1851,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt207 = true;
-            byte alt207;
+            int alt207 = 5;
             switch(this.input.LA(1)) {
             case 23:
                alt207 = 1;
@@ -2297,8 +2296,7 @@ public class Cql_Parser extends Parser {
                return expr;
             }
 
-            int alt131 = true;
-            byte alt131;
+            int alt131 = 5;
             switch(this.input.LA(1)) {
             case 27:
                alt131 = 2;
@@ -2758,8 +2756,7 @@ public class Cql_Parser extends Parser {
                return expr;
             }
 
-            int alt133 = true;
-            byte alt133;
+            int alt133 = 3;
             switch(this.input.LA(1)) {
             case 27:
                alt133 = 2;
@@ -3123,8 +3120,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt66 = true;
-            byte alt66;
+            int alt66 = 3;
             switch(this.input.LA(1)) {
             case 57:
                alt66 = 3;
@@ -3224,9 +3220,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            byte alt158;
-            int alt158 = true;
-            int nvaeMark;
+            int alt158 = 4;
             int nvaeMark;
             NoViableAltException nvae;
             label2059:
@@ -3390,7 +3384,7 @@ public class Cql_Parser extends Parser {
                   return (IResource)res;
                }
 
-               NoViableAltException nvae = new NoViableAltException("", 158, 0, this.input);
+               nvae = new NoViableAltException("", 158, 0, this.input);
                throw nvae;
             case 29:
                switch(this.input.LA(2)) {
@@ -3423,7 +3417,7 @@ public class Cql_Parser extends Parser {
 
                   try {
                      this.input.consume();
-                     NoViableAltException nvae = new NoViableAltException("", 158, 1, this.input);
+                     nvae = new NoViableAltException("", 158, 1, this.input);
                      throw nvae;
                   } finally {
                      this.input.rewind(nvaeMark);
@@ -3550,8 +3544,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt189 = true;
-            byte alt189;
+            int alt189 =4;
             switch(this.input.LA(1)) {
             case 23:
                alt189 = 1;
@@ -3787,9 +3780,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt98 = true;
+            int alt98 =2;
             int LA98_0 = this.input.LA(1);
-            byte alt98;
             if(LA98_0 != 23 && (LA98_0 < 28 || LA98_0 > 29) && LA98_0 != 34 && LA98_0 != 36 && (LA98_0 < 40 || LA98_0 > 42) && (LA98_0 < 44 || LA98_0 > 46) && (LA98_0 < 48 || LA98_0 > 51) && (LA98_0 < 53 || LA98_0 > 55) && (LA98_0 < 60 || LA98_0 > 62) && LA98_0 != 64 && (LA98_0 < 67 || LA98_0 > 70) && LA98_0 != 73 && (LA98_0 < 75 || LA98_0 > 76) && LA98_0 != 78 && (LA98_0 < 82 || LA98_0 > 84) && LA98_0 != 86 && (LA98_0 < 89 || LA98_0 > 91) && (LA98_0 < 93 || LA98_0 > 95) && (LA98_0 < 97 || LA98_0 > 99) && LA98_0 != 104 && LA98_0 != 107 && LA98_0 != 109 && LA98_0 != 114 && (LA98_0 < 117 || LA98_0 > 121) && LA98_0 != 127 && LA98_0 != 129 && (LA98_0 < 131 || LA98_0 > 132) && (LA98_0 < 135 || LA98_0 > 145) && LA98_0 != 148 && (LA98_0 < 150 || LA98_0 > 152) && (LA98_0 < 158 || LA98_0 > 159) && (LA98_0 < 161 || LA98_0 > 164) && LA98_0 != 168 && LA98_0 != 178) {
                if(LA98_0 != 124) {
                   if(this.state.backtracking > 0) {
@@ -3864,7 +3856,7 @@ public class Cql_Parser extends Parser {
                      }
 
                      if(this.state.backtracking == 0) {
-                        expr.addKeyAliases(UnmodifiableArrayList.of((Object)k));
+                        expr.addKeyAliases(UnmodifiableArrayList.of(k));
                      }
 
                      return;
@@ -4057,9 +4049,8 @@ public class Cql_Parser extends Parser {
                return;
             }
 
-            int alt103 = true;
+            int alt103 =2;
             int LA103_0 = this.input.LA(1);
-            byte alt103;
             if(LA103_0 == 35) {
                alt103 = 1;
             } else {
@@ -4110,11 +4101,10 @@ public class Cql_Parser extends Parser {
    public final void cfamProperty(CFProperties props) throws RecognitionException {
       try {
          try {
-            int alt102 = true;
+            int alt102 =3;
             int LA102_2;
             int LA101_0;
             NoViableAltException nvae;
-            byte alt102;
             switch(this.input.LA(1)) {
             case 23:
             case 28:
@@ -4278,7 +4268,7 @@ public class Cql_Parser extends Parser {
                   return;
                }
 
-               NoViableAltException nvae = new NoViableAltException("", 102, 0, this.input);
+               nvae = new NoViableAltException("", 102, 0, this.input);
                throw nvae;
             case 46:
                LA102_2 = this.input.LA(2);
@@ -4469,8 +4459,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt180 = true;
-            byte alt180;
+            int alt180 =4;
             switch(this.input.LA(1)) {
             case 14:
                alt180 = 1;
@@ -4746,9 +4735,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt199 = true;
+            int alt199 =3;
             int LA199_0 = this.input.LA(1);
-            byte alt199;
             if(LA199_0 == 210) {
                alt199 = 1;
             } else {
@@ -4863,9 +4851,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt21 = true;
+            int alt21 =2;
             int LA21_0 = this.input.LA(1);
-            byte alt21;
             if(LA21_0 != 6 && LA21_0 != 11 && LA21_0 != 17 && LA21_0 != 21 && (LA21_0 < 23 || LA21_0 > 24) && (LA21_0 < 28 || LA21_0 > 29) && LA21_0 != 34 && LA21_0 != 36 && (LA21_0 < 40 || LA21_0 > 42) && (LA21_0 < 44 || LA21_0 > 46) && (LA21_0 < 48 || LA21_0 > 51) && (LA21_0 < 53 || LA21_0 > 55) && (LA21_0 < 60 || LA21_0 > 62) && LA21_0 != 64 && (LA21_0 < 67 || LA21_0 > 70) && LA21_0 != 73 && (LA21_0 < 75 || LA21_0 > 76) && LA21_0 != 78 && (LA21_0 < 82 || LA21_0 > 84) && LA21_0 != 86 && (LA21_0 < 89 || LA21_0 > 91) && (LA21_0 < 93 || LA21_0 > 95) && (LA21_0 < 97 || LA21_0 > 99) && (LA21_0 < 104 || LA21_0 > 107) && LA21_0 != 109 && LA21_0 != 111 && LA21_0 != 114 && (LA21_0 < 117 || LA21_0 > 123) && LA21_0 != 127 && LA21_0 != 129 && (LA21_0 < 131 || LA21_0 > 132) && (LA21_0 < 135 || LA21_0 > 145) && (LA21_0 < 147 || LA21_0 > 148) && (LA21_0 < 150 || LA21_0 > 152) && (LA21_0 < 158 || LA21_0 > 159) && (LA21_0 < 161 || LA21_0 > 164) && LA21_0 != 168 && (LA21_0 < 177 || LA21_0 > 178) && LA21_0 != 182 && LA21_0 != 185 && LA21_0 != 194 && LA21_0 != 199 && LA21_0 != 203 && LA21_0 != 210 && LA21_0 != 214) {
                if(LA21_0 != 180) {
                   if(this.state.backtracking > 0) {
@@ -4967,8 +4954,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt243 = true;
-            byte alt243;
+            int alt243 =3;
             switch(this.input.LA(1)) {
             case 97:
                alt243 = 2;
@@ -5112,8 +5098,7 @@ public class Cql_Parser extends Parser {
                return;
             }
 
-            int alt222 = true;
-            byte alt222;
+            int alt222 =4;
             switch(this.input.LA(1)) {
             case 80:
                alt222 = 2;
@@ -5142,14 +5127,11 @@ public class Cql_Parser extends Parser {
                throw nvae;
             }
 
-            boolean alt219;
+            int alt219;
             int LA219_0;
             NoViableAltException nvae;
             int LA218_0;
-            NoViableAltException nvae;
-            byte alt219;
-            boolean alt218;
-            byte alt218;
+            int alt218;
             switch(alt222) {
             case 1:
                this.pushFollow(FOLLOW_relationType_in_columnCondition12401);
@@ -5176,7 +5158,7 @@ public class Cql_Parser extends Parser {
                   return;
                }
 
-               alt219 = true;
+               alt219 =2;
                LA219_0 = this.input.LA(1);
                if(LA219_0 == 194) {
                   alt219 = 1;
@@ -5242,7 +5224,7 @@ public class Cql_Parser extends Parser {
                   return;
                }
 
-               alt219 = true;
+               alt219 =2;
                LA219_0 = this.input.LA(1);
                if(LA219_0 == 192 || LA219_0 >= 205 && LA219_0 <= 209) {
                   alt219 = 1;
@@ -5287,7 +5269,7 @@ public class Cql_Parser extends Parser {
                      return;
                   }
 
-                  alt218 = true;
+                  alt218 =2;
                   LA218_0 = this.input.LA(1);
                   if(LA218_0 == 194) {
                      alt218 = 1;
@@ -5349,7 +5331,7 @@ public class Cql_Parser extends Parser {
                   return;
                }
 
-               alt219 = true;
+               alt219 =2;
                LA219_0 = this.input.LA(1);
                if(LA219_0 == 192 || LA219_0 >= 205 && LA219_0 <= 209) {
                   alt219 = 1;
@@ -5393,7 +5375,7 @@ public class Cql_Parser extends Parser {
                      return;
                   }
 
-                  alt218 = true;
+                  alt218 =2;
                   LA218_0 = this.input.LA(1);
                   if(LA218_0 == 194) {
                      alt218 = 1;
@@ -5454,7 +5436,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt186 = true;
             int alt186 = this.dfa186.predict(this.input);
             switch(alt186) {
             case 1:
@@ -5522,8 +5503,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt214 = true;
-            byte alt214;
+            int alt214 =4;
             switch(this.input.LA(1)) {
             case 197:
             case 200:
@@ -5640,9 +5620,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt240 = true;
+            int alt240 =2;
             int LA240_0 = this.input.LA(1);
-            byte alt240;
             if(LA240_0 != 23 && (LA240_0 < 28 || LA240_0 > 29) && LA240_0 != 34 && LA240_0 != 36 && (LA240_0 < 40 || LA240_0 > 42) && (LA240_0 < 44 || LA240_0 > 46) && (LA240_0 < 48 || LA240_0 > 51) && (LA240_0 < 53 || LA240_0 > 55) && (LA240_0 < 60 || LA240_0 > 62) && LA240_0 != 64 && (LA240_0 < 67 || LA240_0 > 70) && LA240_0 != 73 && (LA240_0 < 75 || LA240_0 > 76) && LA240_0 != 78 && (LA240_0 < 82 || LA240_0 > 84) && LA240_0 != 86 && (LA240_0 < 89 || LA240_0 > 91) && (LA240_0 < 93 || LA240_0 > 95) && (LA240_0 < 97 || LA240_0 > 99) && LA240_0 != 104 && LA240_0 != 107 && LA240_0 != 109 && LA240_0 != 114 && (LA240_0 < 117 || LA240_0 > 121) && LA240_0 != 127 && LA240_0 != 129 && (LA240_0 < 131 || LA240_0 > 132) && (LA240_0 < 134 || LA240_0 > 145) && LA240_0 != 148 && LA240_0 != 150 && LA240_0 != 152 && (LA240_0 < 158 || LA240_0 > 159) && (LA240_0 < 161 || LA240_0 > 164) && LA240_0 != 168 && LA240_0 != 178 && LA240_0 != 182) {
                if(LA240_0 != 151) {
                   if(this.state.backtracking > 0) {
@@ -5724,9 +5703,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt241 = true;
+            int alt241 =2;
             int LA241_0 = this.input.LA(1);
-            byte alt241;
             if(LA241_0 != 23 && (LA241_0 < 28 || LA241_0 > 29) && LA241_0 != 34 && LA241_0 != 36 && (LA241_0 < 40 || LA241_0 > 42) && (LA241_0 < 44 || LA241_0 > 46) && (LA241_0 < 48 || LA241_0 > 51) && (LA241_0 < 53 || LA241_0 > 55) && (LA241_0 < 60 || LA241_0 > 62) && LA241_0 != 64 && (LA241_0 < 67 || LA241_0 > 70) && LA241_0 != 73 && (LA241_0 < 75 || LA241_0 > 76) && LA241_0 != 78 && (LA241_0 < 82 || LA241_0 > 84) && LA241_0 != 86 && (LA241_0 < 89 || LA241_0 > 91) && (LA241_0 < 93 || LA241_0 > 95) && (LA241_0 < 97 || LA241_0 > 99) && LA241_0 != 104 && LA241_0 != 107 && LA241_0 != 109 && LA241_0 != 114 && (LA241_0 < 117 || LA241_0 > 121) && LA241_0 != 127 && LA241_0 != 129 && (LA241_0 < 131 || LA241_0 > 132) && (LA241_0 < 134 || LA241_0 > 145) && LA241_0 != 148 && LA241_0 != 150 && LA241_0 != 152 && (LA241_0 < 158 || LA241_0 > 159) && (LA241_0 < 161 || LA241_0 > 164) && LA241_0 != 168 && LA241_0 != 178 && LA241_0 != 182) {
                if(LA241_0 != 151) {
                   if(this.state.backtracking > 0) {
@@ -5811,7 +5789,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt239 = true;
             int alt239 = this.dfa239.predict(this.input);
             switch(alt239) {
             case 1:
@@ -5914,8 +5891,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt193 = true;
-            byte alt193;
+            int alt193 =8;
             switch(this.input.LA(1)) {
             case 6:
                alt193 = 4;
@@ -6026,8 +6002,7 @@ public class Cql_Parser extends Parser {
                }
                break;
             case 8:
-               int alt192 = true;
-               byte alt192;
+               int alt192 =3;
                switch(this.input.LA(1)) {
                case 105:
                   alt192 = 3;
@@ -6266,7 +6241,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt1 = true;
             int alt1 = this.dfa1.predict(this.input);
             switch(alt1) {
             case 1:
@@ -7197,7 +7171,7 @@ public class Cql_Parser extends Parser {
                   return expr;
                }
 
-               int alt82 = true;
+               int alt82 =4;
                LA80_0 = this.input.LA(1);
                if(LA80_0 == 129) {
                   alt80 = 1;
@@ -7776,7 +7750,7 @@ public class Cql_Parser extends Parser {
                      return expr;
                   }
 
-                  int alt120 = true;
+                  int alt120 =2;
                   int LA120_0 = this.input.LA(1);
                   if(LA120_0 != 194) {
                      if(this.state.backtracking > 0) {
@@ -7790,7 +7764,6 @@ public class Cql_Parser extends Parser {
 
                   int LA120_1 = this.input.LA(2);
                   int LA118_0;
-                  byte alt120;
                   if(LA120_1 == 194) {
                      alt120 = 1;
                   } else {
@@ -8575,8 +8548,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt160 = true;
-            byte alt160;
+            int alt160 =3;
             int nvaeMark;
             switch(this.input.LA(1)) {
             case 23:
@@ -8758,7 +8730,7 @@ public class Cql_Parser extends Parser {
 
                      try {
                         this.input.consume();
-                        NoViableAltException nvae = new NoViableAltException("", 160, 1, this.input);
+                        nvae = new NoViableAltException("", 160, 1, this.input);
                         throw nvae;
                      } finally {
                         this.input.rewind(nvaeMark);
@@ -8850,7 +8822,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt61 = true;
             int alt61 = this.dfa61.predict(this.input);
             switch(alt61) {
             case 1:
@@ -9078,9 +9049,8 @@ public class Cql_Parser extends Parser {
                   return expr;
                }
 
-               int alt58 = true;
+               int alt58 =2;
                int LA58_0 = this.input.LA(1);
-               byte alt58;
                if(LA58_0 == 67) {
                   int LA58_1 = this.input.LA(2);
                   if(LA58_1 != -1 && LA58_1 != 33 && LA58_1 != 57 && LA58_1 != 85 && LA58_1 != 156 && LA58_1 != 204) {
@@ -9954,8 +9924,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt183 = true;
-            byte alt183;
+            int alt183 =3;
             switch(this.input.LA(1)) {
             case 23:
                alt183 = 1;
@@ -10341,7 +10310,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt208 = true;
             int alt208 = this.dfa208.predict(this.input);
             switch(alt208) {
             case 1:
@@ -10469,7 +10437,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt206 = true;
             int alt206 = this.dfa206.predict(this.input);
             switch(alt206) {
             case 1:
@@ -10516,11 +10483,10 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt165 = true;
+            int alt165 =3;
             int LA165_0 = this.input.LA(1);
             int LA164_0;
             int LA163_0;
-            byte alt165;
             if(LA165_0 == 29) {
                int LA165_1 = this.input.LA(2);
                if(LA165_1 != 76) {
@@ -10783,9 +10749,8 @@ public class Cql_Parser extends Parser {
                return stmt;
             }
 
-            int alt142 = true;
+            int alt142 =2;
             int LA142_0 = this.input.LA(1);
-            byte alt142;
             if(LA142_0 == 127) {
                int LA142_1 = this.input.LA(2);
                if(LA142_1 == 194) {
@@ -10953,8 +10918,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt182 = true;
-            byte alt182;
+            int alt182 =4;
             switch(this.input.LA(1)) {
             case 23:
                alt182 = 1;
@@ -11177,8 +11141,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt190 = true;
-            byte alt190;
+            int alt190 =4;
             switch(this.input.LA(1)) {
             case 23:
                alt190 = 1;
@@ -11412,9 +11375,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt231 = true;
+            int alt231 =2;
             int LA231_0 = this.input.LA(1);
-            byte alt231;
             if(LA231_0 == 177) {
                alt231 = 1;
             } else {
@@ -11476,9 +11438,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt238 = true;
+            int alt238 =2;
             int LA238_0 = this.input.LA(1);
-            byte alt238;
             if(LA238_0 == 177) {
                alt238 = 1;
             } else {
@@ -11539,11 +11500,10 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt114 = true;
+            int alt114 =5;
             int LA114_2;
             int nvaeMark;
             NoViableAltException nvae;
-            byte alt114;
             switch(this.input.LA(1)) {
             case 14:
             case 23:
@@ -11714,7 +11674,7 @@ public class Cql_Parser extends Parser {
                   return;
                }
 
-               NoViableAltException nvae = new NoViableAltException("", 114, 0, this.input);
+               nvae = new NoViableAltException("", 114, 0, this.input);
                throw nvae;
             case 65:
                alt114 = 4;
@@ -11910,7 +11870,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt185 = true;
             int alt185 = this.dfa185.predict(this.input);
             switch(alt185) {
             case 1:
@@ -11969,9 +11928,8 @@ public class Cql_Parser extends Parser {
                return (ModificationStatement.Parsed)expr;
             }
 
-            int alt39 = true;
+            int alt39 =2;
             int LA39_0 = this.input.LA(1);
-            byte alt39;
             if(LA39_0 == 194) {
                alt39 = 1;
             } else {
@@ -12036,8 +11994,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt205 = true;
-            byte alt205;
+            int alt205 =3;
             switch(this.input.LA(1)) {
             case 24:
                alt205 = 1;
@@ -12114,8 +12071,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt161 = true;
-            byte alt161;
+            int alt161 =3;
             switch(this.input.LA(1)) {
             case 29:
                alt161 = 1;
@@ -12228,7 +12184,7 @@ public class Cql_Parser extends Parser {
                   return expr;
                }
 
-               int alt44 = true;
+               alt44 =2;
                LA44_0 = this.input.LA(1);
                if(LA44_0 == 111) {
                   alt44 = 1;
@@ -12330,8 +12286,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt48 = true;
-            byte alt48;
+            int alt48 =3;
             switch(this.input.LA(1)) {
             case 177:
                alt48 = 3;
@@ -12434,8 +12389,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt188 = true;
-            byte alt188;
+            int alt188 =4;
             switch(this.input.LA(1)) {
             case 23:
                alt188 = 1;
@@ -13033,9 +12987,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt236 = true;
+            int alt236 =2;
             int LA236_0 = this.input.LA(1);
-            byte alt236;
             if(LA236_0 == 177) {
                alt236 = 1;
             } else {
@@ -13119,8 +13072,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt242 = true;
-            byte alt242;
+            int alt242=21;
             switch(this.input.LA(1)) {
             case 36:
                alt242 = 1;
@@ -13455,8 +13407,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt246 = true;
-            byte alt246;
+            int alt246 =4;
             switch(this.input.LA(1)) {
             case 23:
                alt246 = 1;
@@ -13696,8 +13647,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt184 = true;
-            byte alt184;
+            int alt184 =3;
             switch(this.input.LA(1)) {
             case 23:
                alt184 = 1;
@@ -13922,7 +13872,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt216 = true;
             int alt216 = this.dfa216.predict(this.input);
             switch(alt216) {
             case 1:
@@ -14270,9 +14219,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt152 = true;
+            int alt152 =2;
             int LA152_0 = this.input.LA(1);
-            byte alt152;
             if(LA152_0 != 31 && LA152_0 != 37 && LA152_0 != 52 && LA152_0 != 59 && LA152_0 != 63 && LA152_0 != 66 && LA152_0 != 103 && LA152_0 != 133) {
                if(LA152_0 != 23 && (LA152_0 < 28 || LA152_0 > 29) && LA152_0 != 34 && LA152_0 != 36 && (LA152_0 < 40 || LA152_0 > 42) && (LA152_0 < 44 || LA152_0 > 46) && (LA152_0 < 48 || LA152_0 > 51) && (LA152_0 < 53 || LA152_0 > 55) && (LA152_0 < 60 || LA152_0 > 62) && LA152_0 != 64 && (LA152_0 < 67 || LA152_0 > 70) && LA152_0 != 73 && (LA152_0 < 75 || LA152_0 > 76) && LA152_0 != 78 && (LA152_0 < 82 || LA152_0 > 84) && LA152_0 != 86 && (LA152_0 < 89 || LA152_0 > 91) && (LA152_0 < 93 || LA152_0 > 95) && (LA152_0 < 97 || LA152_0 > 99) && LA152_0 != 104 && LA152_0 != 107 && LA152_0 != 109 && LA152_0 != 114 && (LA152_0 < 117 || LA152_0 > 121) && LA152_0 != 127 && LA152_0 != 129 && (LA152_0 < 131 || LA152_0 > 132) && (LA152_0 < 135 || LA152_0 > 145) && LA152_0 != 148 && (LA152_0 < 150 || LA152_0 > 152) && (LA152_0 < 158 || LA152_0 > 159) && (LA152_0 < 161 || LA152_0 > 164) && LA152_0 != 168 && LA152_0 != 178 && LA152_0 != 182) {
                   if(this.state.backtracking > 0) {
@@ -14343,8 +14291,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt150 = true;
-            byte alt150;
+            int alt150 =4;
             switch(this.input.LA(1)) {
             case 23:
                alt150 = 1;
@@ -14569,8 +14516,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt151 = true;
-            byte alt151;
+            int alt151 =5;
             switch(this.input.LA(1)) {
             case 23:
                alt151 = 1;
@@ -14806,11 +14752,10 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt157 = true;
+            int alt157 =3;
             int LA157_2;
             int nvaeMark;
             NoViableAltException nvae;
-            byte alt157;
             switch(this.input.LA(1)) {
             case 23:
             case 28:
@@ -14978,7 +14923,7 @@ public class Cql_Parser extends Parser {
                   return perms;
                }
 
-               NoViableAltException nvae = new NoViableAltException("", 157, 0, this.input);
+               nvae = new NoViableAltException("", 157, 0, this.input);
                throw nvae;
             case 29:
                LA157_2 = this.input.LA(2);
@@ -15156,9 +15101,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt100 = true;
+            int alt100 =2;
             int LA100_0 = this.input.LA(1);
-            byte alt100;
             if(LA100_0 != 23 && (LA100_0 < 28 || LA100_0 > 29) && LA100_0 != 34 && LA100_0 != 36 && (LA100_0 < 40 || LA100_0 > 42) && (LA100_0 < 44 || LA100_0 > 46) && (LA100_0 < 48 || LA100_0 > 51) && (LA100_0 < 53 || LA100_0 > 55) && (LA100_0 < 60 || LA100_0 > 62) && LA100_0 != 64 && (LA100_0 < 67 || LA100_0 > 70) && LA100_0 != 73 && (LA100_0 < 75 || LA100_0 > 76) && LA100_0 != 78 && (LA100_0 < 82 || LA100_0 > 84) && LA100_0 != 86 && (LA100_0 < 89 || LA100_0 > 91) && (LA100_0 < 93 || LA100_0 > 95) && (LA100_0 < 97 || LA100_0 > 99) && LA100_0 != 104 && LA100_0 != 107 && LA100_0 != 109 && LA100_0 != 114 && (LA100_0 < 117 || LA100_0 > 121) && LA100_0 != 127 && LA100_0 != 129 && (LA100_0 < 131 || LA100_0 > 132) && (LA100_0 < 135 || LA100_0 > 145) && LA100_0 != 148 && (LA100_0 < 150 || LA100_0 > 152) && (LA100_0 < 158 || LA100_0 > 159) && (LA100_0 < 161 || LA100_0 > 164) && LA100_0 != 168 && LA100_0 != 178) {
                if(LA100_0 != 194) {
                   if(this.state.backtracking > 0) {
@@ -15301,7 +15245,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt224 = true;
             int alt224 = this.dfa224.predict(this.input);
             switch(alt224) {
             case 1:
@@ -15377,9 +15320,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt225 = true;
+            int alt225 =2;
             int LA225_0 = this.input.LA(1);
-            byte alt225;
             if(LA225_0 != 6 && LA225_0 != 11 && LA225_0 != 17 && LA225_0 != 21 && LA225_0 != 24 && (LA225_0 < 105 || LA225_0 > 106) && (LA225_0 < 122 || LA225_0 > 123) && LA225_0 != 182 && LA225_0 != 185) {
                if((LA225_0 < 28 || LA225_0 > 29) && LA225_0 != 34 && LA225_0 != 36 && (LA225_0 < 40 || LA225_0 > 42) && (LA225_0 < 44 || LA225_0 > 46) && (LA225_0 < 48 || LA225_0 > 51) && (LA225_0 < 53 || LA225_0 > 55) && (LA225_0 < 60 || LA225_0 > 62) && LA225_0 != 64 && (LA225_0 < 67 || LA225_0 > 70) && LA225_0 != 73 && (LA225_0 < 75 || LA225_0 > 76) && LA225_0 != 78 && (LA225_0 < 82 || LA225_0 > 84) && LA225_0 != 86 && (LA225_0 < 89 || LA225_0 > 91) && (LA225_0 < 93 || LA225_0 > 95) && (LA225_0 < 97 || LA225_0 > 99) && LA225_0 != 104 && LA225_0 != 107 && LA225_0 != 109 && LA225_0 != 114 && (LA225_0 < 117 || LA225_0 > 121) && LA225_0 != 127 && LA225_0 != 129 && (LA225_0 < 131 || LA225_0 > 132) && (LA225_0 < 135 || LA225_0 > 145) && LA225_0 != 148 && (LA225_0 < 150 || LA225_0 > 152) && (LA225_0 < 158 || LA225_0 > 159) && (LA225_0 < 161 || LA225_0 > 164) && LA225_0 != 168) {
                   if(this.state.backtracking > 0) {
@@ -15457,7 +15399,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt229 = true;
             int alt229 = this.dfa229.predict(this.input);
             switch(alt229) {
             case 1:
@@ -15693,7 +15634,6 @@ public class Cql_Parser extends Parser {
                   return;
                }
 
-               int alt228 = true;
                int alt228 = this.dfa228.predict(this.input);
                switch(alt228) {
                case 1:
@@ -15702,9 +15642,8 @@ public class Cql_Parser extends Parser {
                      return;
                   }
 
-                  int alt227 = true;
+                  int alt227 =4;
                   int LA227_0 = this.input.LA(1);
-                  byte alt227;
                   if(LA227_0 == 194) {
                      switch(this.input.LA(2)) {
                      case 177:
@@ -15880,9 +15819,8 @@ public class Cql_Parser extends Parser {
    public final void relationOrExpression(WhereClause.Builder clause) throws RecognitionException {
       try {
          try {
-            int alt37 = true;
+            int alt37 =2;
             int LA37_0 = this.input.LA(1);
-            byte alt37;
             if(LA37_0 != 14 && LA37_0 != 23 && (LA37_0 < 28 || LA37_0 > 29) && LA37_0 != 34 && LA37_0 != 36 && (LA37_0 < 40 || LA37_0 > 42) && (LA37_0 < 44 || LA37_0 > 46) && (LA37_0 < 48 || LA37_0 > 51) && (LA37_0 < 53 || LA37_0 > 55) && (LA37_0 < 60 || LA37_0 > 62) && LA37_0 != 64 && (LA37_0 < 67 || LA37_0 > 70) && LA37_0 != 73 && (LA37_0 < 75 || LA37_0 > 76) && LA37_0 != 78 && (LA37_0 < 82 || LA37_0 > 84) && LA37_0 != 86 && (LA37_0 < 89 || LA37_0 > 91) && (LA37_0 < 93 || LA37_0 > 95) && (LA37_0 < 97 || LA37_0 > 99) && LA37_0 != 104 && LA37_0 != 107 && LA37_0 != 109 && LA37_0 != 114 && (LA37_0 < 117 || LA37_0 > 121) && LA37_0 != 127 && LA37_0 != 129 && (LA37_0 < 131 || LA37_0 > 132) && (LA37_0 < 135 || LA37_0 > 145) && (LA37_0 < 147 || LA37_0 > 148) && (LA37_0 < 150 || LA37_0 > 152) && (LA37_0 < 158 || LA37_0 > 159) && (LA37_0 < 161 || LA37_0 > 164) && LA37_0 != 168 && LA37_0 != 178 && LA37_0 != 194) {
                if(LA37_0 != 213) {
                   if(this.state.backtracking > 0) {
@@ -15931,8 +15869,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt226 = true;
-            byte alt226;
+            int alt226 =6;
             switch(this.input.LA(1)) {
             case 192:
                alt226 = 6;
@@ -16198,9 +16135,8 @@ public class Cql_Parser extends Parser {
                return stmt;
             }
 
-            int alt145 = true;
+            int alt145 =2;
             int LA145_0 = this.input.LA(1);
-            byte alt145;
             if(LA145_0 == 127) {
                int LA145_1 = this.input.LA(2);
                if(LA145_1 == 194) {
@@ -16345,9 +16281,8 @@ public class Cql_Parser extends Parser {
                return stmt;
             }
 
-            int alt144 = true;
+            int alt144 =2;
             int LA144_0 = this.input.LA(1);
-            byte alt144;
             if(LA144_0 == 127) {
                int LA144_1 = this.input.LA(2);
                if(LA144_1 == 194) {
@@ -16490,8 +16425,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt191 = true;
-            byte alt191;
+            int alt191 =5;
             switch(this.input.LA(1)) {
             case 23:
                alt191 = 1;
@@ -16742,8 +16676,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt179 = true;
-            byte alt179;
+            int alt179 =4;
             switch(this.input.LA(1)) {
             case 98:
                alt179 = 4;
@@ -16906,9 +16839,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt162 = true;
+            int alt162 =2;
             int LA162_0 = this.input.LA(1);
-            byte alt162;
             if(LA162_0 == 29) {
                alt162 = 1;
             } else {
@@ -16976,8 +16908,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt181 = true;
-            byte alt181;
+            int alt181 =3;
             switch(this.input.LA(1)) {
             case 23:
                alt181 = 1;
@@ -17202,7 +17133,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt11 = true;
             int alt11 = this.dfa11.predict(this.input);
             switch(alt11) {
             case 1:
@@ -17268,7 +17198,6 @@ public class Cql_Parser extends Parser {
                return expr;
             }
 
-            int alt2 = true;
             int alt2 = this.dfa2.predict(this.input);
             switch(alt2) {
             case 1:
@@ -17616,7 +17545,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt31 = true;
             int alt31 = this.dfa31.predict(this.input);
             switch(alt31) {
             case 1:
@@ -17867,7 +17795,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt17 = true;
             int alt17 = this.dfa17.predict(this.input);
             switch(alt17) {
             case 1:
@@ -17968,7 +17895,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt22 = true;
             int alt22 = this.dfa22.predict(this.input);
             switch(alt22) {
             case 1:
@@ -18136,8 +18062,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt32 = true;
-            byte alt32;
+            int alt32 =4;
             switch(this.input.LA(1)) {
             case 6:
             case 11:
@@ -18318,7 +18243,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt26 = true;
+            int alt26 =2;
             int LA26_0 = this.input.LA(1);
             if(LA26_0 != 214) {
                if(this.state.backtracking > 0) {
@@ -18333,7 +18258,6 @@ public class Cql_Parser extends Parser {
             int LA26_1 = this.input.LA(2);
             int LA25_0;
             NoViableAltException nvae;
-            byte alt26;
             if(LA26_1 == 215) {
                alt26 = 2;
             } else {
@@ -18371,9 +18295,8 @@ public class Cql_Parser extends Parser {
                   return (Selectable.Raw)s;
                }
 
-               int alt25 = true;
+               int alt25 =2;
                LA25_0 = this.input.LA(1);
-               byte alt25;
                if(LA25_0 == 203) {
                   alt25 = 1;
                } else {
@@ -18768,8 +18691,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt18 = true;
-            byte alt18;
+            int alt18 =3;
             switch(this.input.LA(1)) {
             case -1:
             case 30:
@@ -18878,9 +18800,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt13 = true;
+            int alt13 =2;
             int LA13_0 = this.input.LA(1);
-            byte alt13;
             if(LA13_0 != 6 && LA13_0 != 11 && LA13_0 != 14 && LA13_0 != 17 && LA13_0 != 21 && (LA13_0 < 23 || LA13_0 > 24) && (LA13_0 < 28 || LA13_0 > 29) && LA13_0 != 34 && LA13_0 != 36 && (LA13_0 < 40 || LA13_0 > 42) && (LA13_0 < 44 || LA13_0 > 46) && (LA13_0 < 48 || LA13_0 > 51) && (LA13_0 < 53 || LA13_0 > 55) && (LA13_0 < 60 || LA13_0 > 62) && LA13_0 != 64 && (LA13_0 < 67 || LA13_0 > 70) && LA13_0 != 73 && (LA13_0 < 75 || LA13_0 > 76) && LA13_0 != 78 && (LA13_0 < 82 || LA13_0 > 84) && LA13_0 != 86 && (LA13_0 < 89 || LA13_0 > 91) && (LA13_0 < 93 || LA13_0 > 95) && (LA13_0 < 97 || LA13_0 > 99) && (LA13_0 < 104 || LA13_0 > 107) && LA13_0 != 109 && LA13_0 != 111 && LA13_0 != 114 && (LA13_0 < 117 || LA13_0 > 123) && LA13_0 != 127 && LA13_0 != 129 && (LA13_0 < 131 || LA13_0 > 132) && (LA13_0 < 135 || LA13_0 > 145) && (LA13_0 < 147 || LA13_0 > 148) && (LA13_0 < 150 || LA13_0 > 152) && (LA13_0 < 158 || LA13_0 > 159) && (LA13_0 < 161 || LA13_0 > 164) && LA13_0 != 168 && (LA13_0 < 177 || LA13_0 > 178) && LA13_0 != 182 && LA13_0 != 185 && LA13_0 != 194 && LA13_0 != 199 && LA13_0 != 203 && LA13_0 != 210 && LA13_0 != 214) {
                if(LA13_0 != 211) {
                   if(this.state.backtracking > 0) {
@@ -19017,9 +18938,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt196 = true;
+            int alt196 =2;
             int LA196_0 = this.input.LA(1);
-            byte alt196;
             if(LA196_0 == 203) {
                alt196 = 1;
             } else {
@@ -19119,8 +19039,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt35 = true;
-            byte alt35;
+            int alt35 =4;
             switch(this.input.LA(1)) {
             case 14:
                alt35 = 4;
@@ -19368,7 +19287,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt213 = true;
             int alt213 = this.dfa213.predict(this.input);
             switch(alt213) {
             case 1:
@@ -19482,7 +19400,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt30 = true;
             int alt30 = this.dfa30.predict(this.input);
             switch(alt30) {
             case 1:
@@ -19766,7 +19683,6 @@ public class Cql_Parser extends Parser {
 
             while(true) {
                while(true) {
-                  int alt210 = true;
                   int alt210 = this.dfa210.predict(this.input);
                   switch(alt210) {
                   case 1:
@@ -19824,9 +19740,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt212 = true;
+            int alt212 =2;
             int LA212_0 = this.input.LA(1);
-            byte alt212;
             if(LA212_0 != 6 && LA212_0 != 11 && LA212_0 != 17 && LA212_0 != 21 && (LA212_0 < 23 || LA212_0 > 24) && (LA212_0 < 28 || LA212_0 > 29) && LA212_0 != 34 && LA212_0 != 36 && (LA212_0 < 40 || LA212_0 > 42) && (LA212_0 < 44 || LA212_0 > 46) && (LA212_0 < 48 || LA212_0 > 51) && (LA212_0 < 53 || LA212_0 > 55) && (LA212_0 < 60 || LA212_0 > 62) && LA212_0 != 64 && (LA212_0 < 67 || LA212_0 > 70) && LA212_0 != 73 && (LA212_0 < 75 || LA212_0 > 76) && LA212_0 != 78 && (LA212_0 < 82 || LA212_0 > 84) && LA212_0 != 86 && (LA212_0 < 89 || LA212_0 > 91) && (LA212_0 < 93 || LA212_0 > 95) && (LA212_0 < 97 || LA212_0 > 99) && (LA212_0 < 104 || LA212_0 > 107) && LA212_0 != 109 && LA212_0 != 111 && LA212_0 != 114 && (LA212_0 < 117 || LA212_0 > 123) && LA212_0 != 127 && LA212_0 != 129 && (LA212_0 < 131 || LA212_0 > 132) && (LA212_0 < 135 || LA212_0 > 145) && (LA212_0 < 147 || LA212_0 > 148) && (LA212_0 < 150 || LA212_0 > 152) && (LA212_0 < 158 || LA212_0 > 159) && (LA212_0 < 161 || LA212_0 > 164) && LA212_0 != 168 && (LA212_0 < 177 || LA212_0 > 178) && LA212_0 != 182 && LA212_0 != 185 && LA212_0 != 194 && LA212_0 != 203 && LA212_0 != 210 && LA212_0 != 214) {
                if(LA212_0 != 199) {
                   if(this.state.backtracking > 0) {
@@ -20461,9 +20376,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt248 = true;
+            int alt248 =2;
             int LA248_0 = this.input.LA(1);
-            byte alt248;
             if((LA248_0 < 28 || LA248_0 > 29) && LA248_0 != 34 && LA248_0 != 44 && LA248_0 != 46 && (LA248_0 < 48 || LA248_0 > 49) && LA248_0 != 53 && LA248_0 != 60 && (LA248_0 < 67 || LA248_0 > 69) && LA248_0 != 73 && (LA248_0 < 75 || LA248_0 > 76) && LA248_0 != 78 && (LA248_0 < 83 || LA248_0 > 84) && LA248_0 != 91 && (LA248_0 < 93 || LA248_0 > 95) && (LA248_0 < 97 || LA248_0 > 99) && LA248_0 != 104 && LA248_0 != 107 && LA248_0 != 109 && LA248_0 != 114 && (LA248_0 < 117 || LA248_0 > 121) && LA248_0 != 127 && LA248_0 != 129 && (LA248_0 < 131 || LA248_0 > 132) && LA248_0 != 135 && (LA248_0 < 137 || LA248_0 > 140) && LA248_0 != 148 && (LA248_0 < 151 || LA248_0 > 152) && (LA248_0 < 158 || LA248_0 > 159) && LA248_0 != 162) {
                if(LA248_0 != 36 && (LA248_0 < 40 || LA248_0 > 42) && LA248_0 != 51 && (LA248_0 < 54 || LA248_0 > 55) && LA248_0 != 62 && LA248_0 != 64 && LA248_0 != 70 && LA248_0 != 82 && LA248_0 != 86 && LA248_0 != 136 && (LA248_0 < 141 || LA248_0 > 145) && LA248_0 != 161 && (LA248_0 < 163 || LA248_0 > 164)) {
                   if(this.state.backtracking > 0) {
@@ -20523,9 +20437,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt247 = true;
+            int alt247 =2;
             int LA247_0 = this.input.LA(1);
-            byte alt247;
             if((LA247_0 < 28 || LA247_0 > 29) && LA247_0 != 34 && LA247_0 != 36 && (LA247_0 < 40 || LA247_0 > 42) && LA247_0 != 44 && LA247_0 != 46 && (LA247_0 < 48 || LA247_0 > 49) && LA247_0 != 51 && (LA247_0 < 53 || LA247_0 > 55) && LA247_0 != 60 && LA247_0 != 62 && LA247_0 != 64 && (LA247_0 < 67 || LA247_0 > 70) && LA247_0 != 73 && (LA247_0 < 75 || LA247_0 > 76) && LA247_0 != 78 && (LA247_0 < 82 || LA247_0 > 84) && LA247_0 != 86 && LA247_0 != 91 && (LA247_0 < 93 || LA247_0 > 95) && (LA247_0 < 97 || LA247_0 > 99) && LA247_0 != 104 && LA247_0 != 107 && LA247_0 != 109 && LA247_0 != 114 && (LA247_0 < 117 || LA247_0 > 121) && LA247_0 != 127 && LA247_0 != 129 && (LA247_0 < 131 || LA247_0 > 132) && (LA247_0 < 135 || LA247_0 > 145) && LA247_0 != 148 && (LA247_0 < 151 || LA247_0 > 152) && (LA247_0 < 158 || LA247_0 > 159) && (LA247_0 < 161 || LA247_0 > 164)) {
                if(LA247_0 != 45 && LA247_0 != 50 && LA247_0 != 61 && (LA247_0 < 89 || LA247_0 > 90) && LA247_0 != 150 && LA247_0 != 168) {
                   if(this.state.backtracking > 0) {
@@ -20612,9 +20525,8 @@ public class Cql_Parser extends Parser {
                return stmt;
             }
 
-            int alt146 = true;
+            int alt146 =2;
             int LA146_0 = this.input.LA(1);
-            byte alt146;
             if(LA146_0 == 127) {
                int LA146_1 = this.input.LA(2);
                if(LA146_1 == 194) {
@@ -20843,9 +20755,8 @@ public class Cql_Parser extends Parser {
                                     return expr;
                                  }
 
-                                 int alt53 = true;
+                                 int alt53 =2;
                                  int LA53_0 = this.input.LA(1);
-                                 byte alt53;
                                  if(LA53_0 != 67) {
                                     if(LA53_0 != 14 && LA53_0 != 23 && (LA53_0 < 28 || LA53_0 > 29) && LA53_0 != 34 && LA53_0 != 36 && (LA53_0 < 40 || LA53_0 > 42) && (LA53_0 < 44 || LA53_0 > 46) && (LA53_0 < 48 || LA53_0 > 51) && (LA53_0 < 53 || LA53_0 > 55) && (LA53_0 < 60 || LA53_0 > 62) && LA53_0 != 64 && (LA53_0 < 68 || LA53_0 > 70) && LA53_0 != 73 && (LA53_0 < 75 || LA53_0 > 76) && LA53_0 != 78 && (LA53_0 < 82 || LA53_0 > 84) && LA53_0 != 86 && (LA53_0 < 89 || LA53_0 > 91) && (LA53_0 < 93 || LA53_0 > 95) && (LA53_0 < 97 || LA53_0 > 99) && LA53_0 != 104 && LA53_0 != 107 && LA53_0 != 109 && LA53_0 != 114 && (LA53_0 < 117 || LA53_0 > 121) && LA53_0 != 127 && LA53_0 != 129 && (LA53_0 < 131 || LA53_0 > 132) && (LA53_0 < 135 || LA53_0 > 145) && LA53_0 != 148 && (LA53_0 < 150 || LA53_0 > 152) && (LA53_0 < 158 || LA53_0 > 159) && (LA53_0 < 161 || LA53_0 > 164) && LA53_0 != 168 && LA53_0 != 178) {
                                        if(this.state.backtracking > 0) {
@@ -21245,8 +21156,7 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt245 = true;
-            byte alt245;
+            int alt245 =2;
             switch(this.input.LA(1)) {
             case 23:
                alt245 = 1;
@@ -21483,9 +21393,8 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt50 = true;
+            int alt50 =2;
             int LA50_0 = this.input.LA(1);
-            byte alt50;
             if(LA50_0 == 143) {
                alt50 = 1;
             } else {
@@ -21561,7 +21470,6 @@ public class Cql_Parser extends Parser {
 
       try {
          try {
-            int alt204 = true;
             int alt204 = this.dfa204.predict(this.input);
             switch(alt204) {
             case 1:
@@ -23433,7 +23341,7 @@ public class Cql_Parser extends Parser {
             int LA22_45 = input.LA(1);
             int index22_45 = input.index();
             input.rewind();
-            int sx = true;
+            boolean sx = true;
             if(Cql_Parser.this.synpred4_Parser()) {
                s = 48;
             } else {
@@ -24266,7 +24174,7 @@ public class Cql_Parser extends Parser {
             int LA11_1 = input.LA(1);
             int index11_1 = input.index();
             input.rewind();
-            int sx = true;
+            boolean sx = true;
             if(Cql_Parser.this.synpred2_Parser()) {
                s = 51;
             } else {
@@ -24314,7 +24222,7 @@ public class Cql_Parser extends Parser {
             int LA2_1 = input.LA(1);
             int index2_1 = input.index();
             input.rewind();
-            int sx = true;
+            boolean sx = true;
             if(Cql_Parser.this.synpred1_Parser()) {
                s = 52;
             } else {

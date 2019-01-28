@@ -90,7 +90,7 @@ public class TraceStateImpl extends TraceState {
 
    static void mutateWithCatch(Mutation mutation) {
       try {
-         StorageProxy.mutate(UnmodifiableArrayList.of((Object)mutation), ConsistencyLevel.ANY, ApolloTime.approximateNanoTime()).blockingGet();
+         StorageProxy.mutate(UnmodifiableArrayList.of(mutation), ConsistencyLevel.ANY, ApolloTime.approximateNanoTime()).blockingGet();
       } catch (OverloadedException var2) {
          Tracing.logger.warn("Too many nodes are overloaded to save trace events");
       } catch (Throwable var3) {

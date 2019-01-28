@@ -106,7 +106,7 @@ public abstract class TokenRestriction implements PartitionKeyRestrictions {
       }
 
       public List<ByteBuffer> bounds(Bound b, QueryOptions options) throws InvalidRequestException {
-         return UnmodifiableArrayList.of((Object)this.slice.bound(b).bindAndGet(options));
+         return UnmodifiableArrayList.of(this.slice.bound(b).bindAndGet(options));
       }
 
       public void addFunctionsTo(List<Function> functions) {
@@ -179,7 +179,7 @@ public abstract class TokenRestriction implements PartitionKeyRestrictions {
       }
 
       public List<ByteBuffer> values(QueryOptions options) throws InvalidRequestException {
-         return UnmodifiableArrayList.of((Object)this.value.bindAndGet(options));
+         return UnmodifiableArrayList.of(this.value.bindAndGet(options));
       }
    }
 }

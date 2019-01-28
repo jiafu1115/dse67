@@ -214,7 +214,7 @@ public class FlowablePartitions {
             }
 
             public void onKeyChange() {
-               Arrays.fill(this.toMerge, (Object)null);
+               Arrays.fill(this.toMerge, null);
             }
 
             public boolean trivialReduceIsTrivial() {

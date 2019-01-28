@@ -99,7 +99,7 @@ public interface Row extends Unfiltered, Collection<ColumnData> {
       }
 
       public void clear() {
-         Arrays.fill(this.rows, (Object)null);
+         Arrays.fill(this.rows, null);
          this.columnDataIterators.clear();
          this.rowsToMerge = 0;
          this.lastRowSet = -1;
@@ -326,11 +326,11 @@ public interface Row extends Unfiltered, Collection<ColumnData> {
    }
 
    public interface Builder {
-      static default Row.Builder sorted() {
+      static Row.Builder sorted() {
          return ArrayBackedRow.sortedBuilder();
       }
 
-      static default Row.Builder unsorted(int nowInSec) {
+      static Row.Builder unsorted(int nowInSec) {
          return ArrayBackedRow.unsortedBuilder(nowInSec);
       }
 

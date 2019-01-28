@@ -38,9 +38,9 @@ final class NodeBuilder {
    }
 
    void clearSelf() {
-      this.reset((Object[])null, (Object)null, (UpdateFunction)null, (Comparator)null);
-      Arrays.fill(this.buildKeys, 0, this.maxBuildKeyPosition, (Object)null);
-      Arrays.fill(this.buildChildren, 0, this.maxBuildKeyPosition + 1, (Object)null);
+      this.reset((Object[])null, null, (UpdateFunction)null, (Comparator)null);
+      Arrays.fill(this.buildKeys, 0, this.maxBuildKeyPosition, null);
+      Arrays.fill(this.buildChildren, 0, this.maxBuildKeyPosition + 1, null);
       this.maxBuildKeyPosition = 0;
    }
 
@@ -147,7 +147,7 @@ final class NodeBuilder {
    }
 
    private static <V> int compareUpperBound(Comparator<V> comparator, Object value, Object upperBound) {
-      return upperBound == BTree.POSITIVE_INFINITY?-1:comparator.compare(value, upperBound);
+      return upperBound == BTree.POSITIVE_INFINITY?-1:comparator.compare((V)value, (V)upperBound);
    }
 
    boolean isRoot() {

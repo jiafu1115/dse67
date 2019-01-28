@@ -255,7 +255,7 @@ public class CompositeType extends AbstractCompositeType {
 
       ByteBuffer out = ByteBuffer.allocate(totalLength);
       if(isStatic) {
-         out.putShort(-1);
+         out.putShort((short)-1);
       }
 
       ByteBuffer[] var10 = buffers;
@@ -267,7 +267,7 @@ public class CompositeType extends AbstractCompositeType {
          int toCopy = bb.remaining();
          ByteBufferUtil.arrayCopy(bb, bb.position(), out, out.position(), toCopy);
          out.position(out.position() + toCopy);
-         out.put(0);
+         out.put((byte)0);
       }
 
       out.flip();

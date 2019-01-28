@@ -2,6 +2,8 @@ package org.apache.cassandra.utils;
 
 import java.nio.ByteBuffer;
 
+import static org.apache.cassandra.utils.UnsafeByteBufferAccess.BYTE_ARRAY_BASE_OFFSET;
+
 public abstract class UnsafeCopy {
    private static final long UNSAFE_COPY_THRESHOLD = 1048576L;
    private static final long MIN_COPY_THRESHOLD = 6L;
@@ -18,7 +20,7 @@ public abstract class UnsafeCopy {
    }
 
    public static void copyMemoryToArray(long srcAddress, byte[] dstArray, int dstOffset, int length) {
-      copy0((Object)null, srcAddress, dstArray, UnsafeByteBufferAccess.BYTE_ARRAY_BASE_OFFSET + (long)dstOffset, (long)length);
+      copy0(null, srcAddress, dstArray, BYTE_ARRAY_BASE_OFFSET + (long) dstOffset, (long) length);
    }
 
    public static void copyBufferToArray(ByteBuffer srcBuf, byte[] dstArray, int dstOffset) {
@@ -38,22 +40,22 @@ public abstract class UnsafeCopy {
    public static void copyBufferToMemory(ByteBuffer srcBuf, int srcPosition, long dstAddress, int length) {
       Object src = UnsafeByteBufferAccess.getArray(srcBuf);
       long srcOffset = UnsafeByteBufferAccess.bufferOffset(srcBuf, src) + (long)srcPosition;
-      copy0(src, srcOffset, (Object)null, dstAddress, (long)length);
+      copy0(src, srcOffset, null, dstAddress, (long)length);
    }
 
    public static void copyMemoryToBuffer(long srcAddress, ByteBuffer dstBuf, int dstPosition, int length) {
       Object dst = UnsafeByteBufferAccess.getArray(dstBuf);
       long dstOffset = UnsafeByteBufferAccess.bufferOffset(dstBuf, dst) + (long)dstPosition;
-      copy0((Object)null, srcAddress, dst, dstOffset, (long)length);
+      copy0(null, srcAddress, dst, dstOffset, (long) length);
    }
 
    public static void copyArrayToMemory(byte[] src, int srcPosition, long dstAddress, int length) {
       long srcOffset = UnsafeByteBufferAccess.BYTE_ARRAY_BASE_OFFSET + (long)srcPosition;
-      copy0(src, srcOffset, (Object)null, dstAddress, (long)length);
+      copy0(src, srcOffset, null, dstAddress, (long)length);
    }
 
    public static void copyMemoryToMemory(long srcAddress, long dstAddress, long length) {
-      copy0((Object)null, srcAddress, (Object)null, dstAddress, length);
+      copy0(null, srcAddress, null, dstAddress, length);
    }
 
    public static void copy0(Object src, long srcOffset, Object dst, long dstOffset, long length) {

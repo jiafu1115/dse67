@@ -30,20 +30,24 @@ public class IndexTarget {
       }
 
       public String toString() {
-         switch(null.$SwitchMap$org$apache$cassandra$cql3$statements$IndexTarget$Type[this.ordinal()]) {
-         case 1:
-            return "keys";
-         case 2:
-            return "entries";
-         case 3:
-            return "full";
-         case 4:
-            return "values";
-         case 5:
-            return "";
-         default:
-            return "";
+         switch (this) {
+            case KEYS: {
+               return "keys";
+            }
+            case KEYS_AND_VALUES: {
+               return "entries";
+            }
+            case FULL: {
+               return "full";
+            }
+            case VALUES: {
+               return "values";
+            }
+            case SIMPLE: {
+               return "";
+            }
          }
+         return "";
       }
 
       public static IndexTarget.Type fromString(String s) {

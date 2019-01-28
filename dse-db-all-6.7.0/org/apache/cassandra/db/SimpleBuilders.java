@@ -63,7 +63,7 @@ public abstract class SimpleBuilders {
       private boolean noPrimaryKeyLivenessInfo;
 
       public RowBuilder(TableMetadata metadata, Object... clusteringColumns) {
-         super(null);
+         super();
          this.metadata = metadata;
          this.builder = Row.Builder.unsorted(ApolloTime.systemClockSecondsAsInt());
          this.builder.newRow(SimpleBuilders.makeClustering(metadata, clusteringColumns));
@@ -94,71 +94,55 @@ public abstract class SimpleBuilders {
       private Row.SimpleBuilder add(String columnName, Object value, boolean overwriteForCollection) {
          this.maybeInit();
          ColumnMetadata column = this.getColumn(columnName);
-         if(overwriteForCollection || column.type.isMultiCell() && column.type.isCollection()) {
-            this.columns.add(column);
-            if(!column.type.isMultiCell()) {
-               this.builder.addCell(this.cell(column, this.toByteBuffer(value, column.type), (CellPath)null));
-               return this;
-            } else {
-               assert column.type instanceof CollectionType : "Collection are the only multi-cell types supported so far";
-
-               if(value == null) {
-                  this.builder.addComplexDeletion(column, new DeletionTime(this.timestamp, this.nowInSec));
-                  return this;
-               } else {
-                  if(overwriteForCollection) {
-                     this.builder.addComplexDeletion(column, new DeletionTime(this.timestamp - 1L, this.nowInSec));
-                  }
-
-                  switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[((CollectionType)column.type).kind.ordinal()]) {
-                  case 1:
-                     ListType lt = (ListType)column.type;
-
-                     assert value instanceof List;
-
-                     Iterator var10 = ((List)value).iterator();
-
-                     while(var10.hasNext()) {
-                        Object elt = var10.next();
-                        this.builder.addCell(this.cell(column, this.toByteBuffer(elt, lt.getElementsType()), CellPath.create(ByteBuffer.wrap(UUIDGen.getTimeUUIDBytes()))));
-                     }
-
-                     return this;
-                  case 2:
-                     SetType st = (SetType)column.type;
-
-                     assert value instanceof Set;
-
-                     Iterator var11 = ((Set)value).iterator();
-
-                     while(var11.hasNext()) {
-                        Object elt = var11.next();
-                        this.builder.addCell(this.cell(column, ByteBufferUtil.EMPTY_BYTE_BUFFER, CellPath.create(this.toByteBuffer(elt, st.getElementsType()))));
-                     }
-
-                     return this;
-                  case 3:
-                     MapType mt = (MapType)column.type;
-
-                     assert value instanceof Map;
-
-                     Iterator var8 = ((Map)value).entrySet().iterator();
-
-                     while(var8.hasNext()) {
-                        Entry entry = (Entry)var8.next();
-                        this.builder.addCell(this.cell(column, this.toByteBuffer(entry.getValue(), mt.getValuesType()), CellPath.create(this.toByteBuffer(entry.getKey(), mt.getKeysType()))));
-                     }
-
-                     return this;
-                  default:
-                     throw new AssertionError();
-                  }
-               }
-            }
-         } else {
+         if (!(overwriteForCollection || column.type.isMultiCell() && column.type.isCollection())) {
             throw new IllegalArgumentException("appendAll() can only be called on non-frozen colletions");
          }
+         this.columns.add(column);
+         if (!column.type.isMultiCell()) {
+            this.builder.addCell(this.cell(column, this.toByteBuffer(value, column.type), null));
+            return this;
+         }
+         assert (column.type instanceof CollectionType);
+         if (value == null) {
+            this.builder.addComplexDeletion(column, new DeletionTime(this.timestamp, this.nowInSec));
+            return this;
+         }
+         if (overwriteForCollection) {
+            this.builder.addComplexDeletion(column, new DeletionTime(this.timestamp - 1L, this.nowInSec));
+         }
+         switch (((CollectionType)column.type).kind) {
+            case LIST: {
+               ListType lt = (ListType)column.type;
+               assert (value instanceof List);
+               for (Object elt : (List)value) {
+                  this.builder.addCell(this.cell(column, this.toByteBuffer(elt, lt.getElementsType()), CellPath.create(ByteBuffer.wrap(UUIDGen.getTimeUUIDBytes()))));
+               }
+               break;
+            }
+            case SET: {
+               SetType st = (SetType)column.type;
+               assert (value instanceof Set);
+               for (Object elt : (Set)value) {
+                  this.builder.addCell(this.cell(column, ByteBufferUtil.EMPTY_BYTE_BUFFER, CellPath.create(this.toByteBuffer(elt, st.getElementsType()))));
+               }
+               break;
+            }
+            case MAP: {
+               MapType mt = (MapType) column.type;
+               assert value instanceof Map;
+               Iterator var8 = ((Map) value).entrySet().iterator();
+               while (var8.hasNext()) {
+                  Entry entry = (Entry) var8.next();
+                  this.builder.addCell(this.cell(column, this.toByteBuffer(entry.getValue(), mt.getValuesType()), CellPath.create(this.toByteBuffer(entry.getKey(), mt.getKeysType()))));
+               }
+            }
+            default: {
+               throw new AssertionError();
+            }
+         }
+         return this;
       }
+
 
       public Row.SimpleBuilder delete() {
          assert !this.initiated : "If called, delete() should be called before any other column value addition";
@@ -168,7 +152,7 @@ public abstract class SimpleBuilders {
       }
 
       public Row.SimpleBuilder delete(String columnName) {
-         return this.add(columnName, (Object)null);
+         return this.add(columnName, null);
       }
 
       public Row.SimpleBuilder noPrimaryKeyLivenessInfo() {
@@ -207,7 +191,7 @@ public abstract class SimpleBuilders {
 
             return CounterContext.instance().createGlobal(CounterId.getLocalId(), 1L, ((Long)value).longValue());
          } else {
-            return type.decompose(value);
+            return ((AbstractType)type).decompose(value);
          }
       }
    }
@@ -220,7 +204,7 @@ public abstract class SimpleBuilders {
       private DeletionTime partitionDeletion;
 
       public PartitionUpdateBuilder(TableMetadata metadata, Object... partitionKeyValues) {
-         super(null);
+         super();
          this.partitionDeletion = DeletionTime.LIVE;
          this.metadata = metadata;
          this.key = SimpleBuilders.makePartitonKey(metadata, partitionKeyValues);
@@ -252,7 +236,7 @@ public abstract class SimpleBuilders {
             this.rangeBuilders = new ArrayList();
          }
 
-         SimpleBuilders.PartitionUpdateBuilder.RTBuilder builder = new SimpleBuilders.PartitionUpdateBuilder.RTBuilder(this.metadata.comparator, new DeletionTime(this.timestamp, this.nowInSec), null);
+         SimpleBuilders.PartitionUpdateBuilder.RTBuilder builder = new SimpleBuilders.PartitionUpdateBuilder.RTBuilder(this.metadata.comparator, new DeletionTime(this.timestamp, this.nowInSec));
          this.rangeBuilders.add(builder);
          return builder;
       }
@@ -351,7 +335,7 @@ public abstract class SimpleBuilders {
       private final Map<TableId, SimpleBuilders.PartitionUpdateBuilder> updateBuilders = new HashMap();
 
       public MutationBuilder(String keyspaceName, DecoratedKey key) {
-         super(null);
+         super();
          this.keyspaceName = keyspaceName;
          this.key = key;
       }
@@ -415,17 +399,17 @@ public abstract class SimpleBuilders {
 
       public T timestamp(long timestamp) {
          this.timestamp = timestamp;
-         return this;
+         return (T)this;
       }
 
       public T ttl(int ttl) {
          this.ttl = ttl;
-         return this;
+         return (T)this;
       }
 
       public T nowInSec(int nowInSec) {
          this.nowInSec = nowInSec;
-         return this;
+         return (T)this;
       }
    }
 }

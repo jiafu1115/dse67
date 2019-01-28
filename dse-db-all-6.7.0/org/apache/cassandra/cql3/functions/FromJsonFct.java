@@ -42,7 +42,7 @@ public class FromJsonFct extends NativeScalarFunction {
             Object object = Json.JSON_OBJECT_MAPPER.readValue(jsonArg, Object.class);
             return object == null?null:this.returnType.fromJSONObject(object).bindAndGet(QueryOptions.forProtocolVersion(arguments.getProtocolVersion()));
          } catch (IOException var4) {
-            throw new FunctionExecutionException(NAME, UnmodifiableArrayList.of((Object)"text"), String.format("Could not decode JSON string '%s': %s", new Object[]{jsonArg, var4.toString()}));
+            throw new FunctionExecutionException(NAME, UnmodifiableArrayList.of("text"), String.format("Could not decode JSON string '%s': %s", new Object[]{jsonArg, var4.toString()}));
          } catch (MarshalException var5) {
             throw FunctionExecutionException.create(this, var5);
          }

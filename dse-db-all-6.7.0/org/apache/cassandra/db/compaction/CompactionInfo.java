@@ -97,8 +97,8 @@ public final class CompactionInfo implements Serializable {
    public Map<String, String> asMap() {
       Map<String, String> ret = new HashMap();
       ret.put("id", this.metadata != null?this.metadata.id.toString():"");
-      ret.put("keyspace", this.getKeyspace().orElse((Object)null));
-      ret.put("columnfamily", this.getTable().orElse((Object)null));
+      ret.put("keyspace", this.getKeyspace().orElse(null));
+      ret.put("columnfamily", this.getTable().orElse(null));
       ret.put("completed", Long.toString(this.completed));
       ret.put("total", Long.toString(this.total));
       ret.put("taskType", this.tasktype.toString());

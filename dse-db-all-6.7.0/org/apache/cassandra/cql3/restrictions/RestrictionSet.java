@@ -157,7 +157,7 @@ public abstract class RestrictionSet implements Restrictions {
             }
 
             restrictionForBitmap |= 1 << col.kind.ordinal();
-            sortedRestrictions.add((Object)singleRestriction);
+            sortedRestrictions.add(singleRestriction);
             if(singleRestriction.isSlice()) {
                bitmap |= 2;
                if(singleRestriction.isMultiColumn()) {

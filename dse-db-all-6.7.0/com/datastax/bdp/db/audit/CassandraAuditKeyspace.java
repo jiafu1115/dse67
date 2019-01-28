@@ -31,7 +31,7 @@ public class CassandraAuditKeyspace {
    }
 
    public static List<TableMetadata> tablesIfNotExist() {
-      return UnmodifiableArrayList.of((Object)AuditLog);
+      return UnmodifiableArrayList.of(AuditLog);
    }
 
    public static void maybeConfigure() {

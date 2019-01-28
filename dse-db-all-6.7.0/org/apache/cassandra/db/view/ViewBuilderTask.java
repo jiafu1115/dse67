@@ -132,7 +132,7 @@ public class ViewBuilderTask extends CompactionInfo.Holder implements Callable<L
 
                         key = (DecoratedKey)iter.next();
                         token = key.getToken();
-                     } while(!this.range.contains((RingPosition)token));
+                     } while(!this.range.contains(token));
                   } while(this.prevToken != null && token.compareTo(this.prevToken) <= 0);
 
                   this.buildKey(key);

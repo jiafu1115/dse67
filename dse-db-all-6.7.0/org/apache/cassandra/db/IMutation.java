@@ -28,7 +28,7 @@ public interface IMutation {
 
    IMutation add(PartitionUpdate var1);
 
-   static default long dataSize(Collection<? extends IMutation> mutations) {
+   static long dataSize(Collection<? extends IMutation> mutations) {
       long size = 0L;
       Iterator var3 = mutations.iterator();
 

@@ -28,7 +28,7 @@ class SSTableSimpleUnsortedWriter extends AbstractSSTableSimpleWriter {
    private long currentSize;
    private final SerializationHeader header;
    private final BlockingQueue<SSTableSimpleUnsortedWriter.Buffer> writeQueue = new SynchronousQueue();
-   private final SSTableSimpleUnsortedWriter.DiskWriter diskWriter = new SSTableSimpleUnsortedWriter.DiskWriter(null);
+   private final SSTableSimpleUnsortedWriter.DiskWriter diskWriter = new SSTableSimpleUnsortedWriter.DiskWriter();
 
    SSTableSimpleUnsortedWriter(File directory, TableMetadataRef metadata, RegularAndStaticColumns columns, long bufferSizeInMB) {
       super(directory, metadata, columns);

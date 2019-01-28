@@ -69,7 +69,7 @@ class ClusterBuilder {
          builder.withSSL();
       }
 
-      List<InetSocketAddress> whitelist = UnmodifiableArrayList.of((Object)(new InetSocketAddress(this.contactPoint, this.port)));
+      List<InetSocketAddress> whitelist = UnmodifiableArrayList.of((new InetSocketAddress(this.contactPoint, this.port)));
       LoadBalancingPolicy policy = builder.getConfiguration().getPolicies().getLoadBalancingPolicy();
       builder.withLoadBalancingPolicy(new WhiteListPolicy(policy, whitelist));
       if(this.authProvider != null) {

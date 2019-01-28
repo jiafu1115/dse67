@@ -53,10 +53,8 @@ public class BootStrapper extends ProgressEventNotifierSupport {
       StreamingOptions options = StreamingOptions.forBootStrap(this.tokenMetadata.cloneOnlyTokenMap());
       logger.info("Bootstrapping with streaming options:{}", options);
       RangeStreamer streamer = this.getStreamer(stateStore, useStrictConsistency, options);
-      Iterator var5 = Schema.instance.getNonLocalStrategyKeyspaces().iterator();
 
-      while(var5.hasNext()) {
-         String keyspaceName = (String)var5.next();
+      for(String keyspaceName:Schema.instance.getNonLocalStrategyKeyspaces()){
          if(!options.acceptKeyspace(keyspaceName)) {
             logger.warn("Keyspace '{}' is explicitly excluded from bootstrap on user request. Make sure to rebuild the keyspace!");
          } else {
@@ -65,7 +63,7 @@ public class BootStrapper extends ProgressEventNotifierSupport {
          }
       }
 
-      final BootStrapper.BootstrapStreamEventHandler handler = new BootStrapper.BootstrapStreamEventHandler(null);
+      final BootStrapper.BootstrapStreamEventHandler handler = new BootStrapper.BootstrapStreamEventHandler();
       ListenableFuture<StreamState> bootstrapStreamResult = streamer.fetchAsync(handler);
       Futures.addCallback(bootstrapStreamResult, new FutureCallback<StreamState>() {
          public void onSuccess(StreamState streamState) {
@@ -136,10 +134,8 @@ public class BootStrapper extends ProgressEventNotifierSupport {
    private static Collection<Token> getSpecifiedTokens(TokenMetadata metadata, Collection<String> initialTokens) {
       logger.info("tokens manually specified as {}", initialTokens);
       List<Token> tokens = new ArrayList(initialTokens.size());
-      Iterator var3 = initialTokens.iterator();
 
-      while(var3.hasNext()) {
-         String tokenString = (String)var3.next();
+      for(String tokenString:initialTokens) {
          Token token = metadata.partitioner.getTokenFactory().fromString(tokenString);
          if(metadata.getEndpoint(token) != null) {
             throw new ConfigurationException("Bootstrapping to existing token " + tokenString + " is not allowed (decommission/removenode the old node first).");
@@ -216,28 +212,28 @@ public class BootStrapper extends ProgressEventNotifierSupport {
       }
 
       public void handleStreamEvent(StreamEvent event) {
-         ProgressEvent currentProgress;
-         switch(null.$SwitchMap$org$apache$cassandra$streaming$StreamEvent$Type[event.eventType.ordinal()]) {
-         case 1:
-            StreamEvent.SessionPreparedEvent prepared = (StreamEvent.SessionPreparedEvent)event;
-            int currentTotal = this.totalFilesToReceive.addAndGet((int)prepared.session.getTotalFilesToReceive());
-            ProgressEvent prepareProgress = new ProgressEvent(ProgressEventType.PROGRESS, this.receivedFiles.get(), currentTotal, "prepare with " + prepared.session.peer + " complete");
-            BootStrapper.this.fireProgressEvent("bootstrap", prepareProgress);
-            break;
-         case 2:
-            StreamEvent.ProgressEvent progress = (StreamEvent.ProgressEvent)event;
-            if(progress.progress.isCompleted()) {
-               int received = this.receivedFiles.incrementAndGet();
-               currentProgress = new ProgressEvent(ProgressEventType.PROGRESS, received, this.totalFilesToReceive.get(), "received file " + progress.progress.fileName);
-               BootStrapper.this.fireProgressEvent("bootstrap", currentProgress);
+         switch (event.eventType) {
+            case STREAM_PREPARED: {
+               StreamEvent.SessionPreparedEvent prepared = (StreamEvent.SessionPreparedEvent)event;
+               int currentTotal = this.totalFilesToReceive.addAndGet((int)prepared.session.getTotalFilesToReceive());
+               ProgressEvent prepareProgress = new ProgressEvent(ProgressEventType.PROGRESS, this.receivedFiles.get(), currentTotal, "prepare with " + prepared.session.peer + " complete");
+               BootStrapper.this.fireProgressEvent("bootstrap", prepareProgress);
+               break;
             }
-            break;
-         case 3:
-            StreamEvent.SessionCompleteEvent completeEvent = (StreamEvent.SessionCompleteEvent)event;
-            currentProgress = new ProgressEvent(ProgressEventType.PROGRESS, this.receivedFiles.get(), this.totalFilesToReceive.get(), "session with " + completeEvent.peer + " complete");
-            BootStrapper.this.fireProgressEvent("bootstrap", currentProgress);
+            case FILE_PROGRESS: {
+               StreamEvent.ProgressEvent progress = (StreamEvent.ProgressEvent)event;
+               if (!progress.progress.isCompleted()) break;
+               int received = this.receivedFiles.incrementAndGet();
+               ProgressEvent currentProgress = new ProgressEvent(ProgressEventType.PROGRESS, received, this.totalFilesToReceive.get(), "received file " + progress.progress.fileName);
+               BootStrapper.this.fireProgressEvent("bootstrap", currentProgress);
+               break;
+            }
+            case STREAM_COMPLETE: {
+               StreamEvent.SessionCompleteEvent completeEvent = (StreamEvent.SessionCompleteEvent)event;
+               ProgressEvent completeProgress = new ProgressEvent(ProgressEventType.PROGRESS, this.receivedFiles.get(), this.totalFilesToReceive.get(), "session with " + completeEvent.peer + " complete");
+               BootStrapper.this.fireProgressEvent("bootstrap", completeProgress);
+            }
          }
-
       }
 
       public void onSuccess(@Nullable StreamState streamState) {

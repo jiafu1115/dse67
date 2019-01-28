@@ -125,7 +125,7 @@ public class TWCSMultiWriter implements SSTableMultiWriter {
          }
       } finally {
          if(var13) {
-            int i = 0;
+            i = 0;
 
             while(true) {
                if(i >= iterators.length) {

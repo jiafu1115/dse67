@@ -18,7 +18,7 @@ public final class LightweightRecycler<T> extends FastThreadLocal<ArrayDeque<T>>
    }
 
    public T reuse() {
-      return ((ArrayDeque)this.get()).pollFirst();
+      return (T)((ArrayDeque)this.get()).pollFirst();
    }
 
    public T reuseOrAllocate(Supplier<T> supplier) {

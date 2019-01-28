@@ -23,7 +23,7 @@ public final class SchemaConstants {
    public static final int NAME_LENGTH = 222;
    public static final UUID emptyVersion;
    public static final List<String> LEGACY_AUTH_TABLES = UnmodifiableArrayList.of("credentials", "users", "permissions");
-   public static final List<String> OBSOLETE_AUTH_TABLES = UnmodifiableArrayList.of((Object)"resource_role_permissons_index");
+   public static final List<String> OBSOLETE_AUTH_TABLES = UnmodifiableArrayList.of("resource_role_permissons_index");
 
    public SchemaConstants() {
    }

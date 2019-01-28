@@ -28,12 +28,7 @@ import org.apache.cassandra.io.sstable.format.SSTableReader;
 import org.apache.cassandra.schema.TableMetadata;
 import org.apache.cassandra.schema.TableMetadataRef;
 import org.apache.cassandra.utils.SetsFactory;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 
 public class SSTableExport {
    private static final String KEY_OPTION = "k";
@@ -48,108 +43,80 @@ public class SSTableExport {
    public SSTableExport() {
    }
 
-   public static void main(String[] args) throws ConfigurationException {
-      PosixParser parser = new PosixParser();
-
+   public static void main(final String[] args) throws ConfigurationException {
+      final CommandLineParser parser = (CommandLineParser)new PosixParser();
       try {
-         cmd = parser.parse(options, args);
-      } catch (ParseException var20) {
-         System.err.println(var20.getMessage());
+         SSTableExport.cmd = parser.parse(SSTableExport.options, args);
+      }
+      catch (ParseException e1) {
+         System.err.println(e1.getMessage());
          printUsage();
          System.exit(1);
       }
-
-      if(cmd.getArgs().length != 1) {
+      if (SSTableExport.cmd.getArgs().length != 1) {
          System.err.println("You must supply exactly one sstable");
          printUsage();
          System.exit(1);
       }
-
-      String[] keys = cmd.getOptionValues("k");
-      Set<String> excludes = SetsFactory.setFromArray(cmd.getOptionValues("x") == null?new String[0]:cmd.getOptionValues("x"));
-      String ssTableFileName = (new File(cmd.getArgs()[0])).getAbsolutePath();
-      if(!(new File(ssTableFileName)).exists()) {
+      final String[] keys = SSTableExport.cmd.getOptionValues("k");
+      final Set<String> excludes = SetsFactory.setFromArray((SSTableExport.cmd.getOptionValues("x") == null) ? new String[0] : SSTableExport.cmd.getOptionValues("x"));
+      final String ssTableFileName = new File(SSTableExport.cmd.getArgs()[0]).getAbsolutePath();
+      if (!new File(ssTableFileName).exists()) {
          System.err.println("Cannot find file " + ssTableFileName);
          System.exit(1);
       }
-
-      Descriptor desc = Descriptor.fromFilename(ssTableFileName);
-
+      final Descriptor desc = Descriptor.fromFilename(ssTableFileName);
       try {
-         TableMetadata metadata = Util.metadataFromSSTable(desc);
-         if(cmd.hasOption("e")) {
-            PartitionIndexIterator iter = desc.getFormat().getReaderFactory().keyIterator(desc, metadata);
-            Throwable var8 = null;
-
-            try {
-               JsonTransformer.keysToJson((ISSTableScanner)null, Util.iterToStream(iter), cmd.hasOption("t"), metadata, System.out);
-            } catch (Throwable var19) {
-               var8 = var19;
-               throw var19;
-            } finally {
-               if(iter != null) {
-                  if(var8 != null) {
-                     try {
-                        iter.close();
-                     } catch (Throwable var18) {
-                        var8.addSuppressed(var18);
-                     }
-                  } else {
-                     iter.close();
-                  }
-               }
-
+         final TableMetadata metadata = Util.metadataFromSSTable(desc);
+         if (SSTableExport.cmd.hasOption("e")) {
+            try (final PartitionIndexIterator iter = desc.getFormat().getReaderFactory().keyIterator(desc, metadata)) {
+               JsonTransformer.keysToJson(null, Util.iterToStream(iter), SSTableExport.cmd.hasOption("t"), metadata, System.out);
             }
-         } else {
-            SSTableReader sstable = SSTableReader.openNoValidation(desc, TableMetadataRef.forOfflineTools(metadata));
-            IPartitioner partitioner = sstable.getPartitioner();
+         }
+         else {
+            final SSTableReader sstable = SSTableReader.openNoValidation(desc, TableMetadataRef.forOfflineTools(metadata));
+            final IPartitioner partitioner = sstable.getPartitioner();
             ISSTableScanner currentScanner;
-            if(keys != null && keys.length > 0) {
-               Stream var10000 = Arrays.stream(keys).filter((key) -> {
-                  return !excludes.contains(key);
-               });
-               AbstractType var10001 = metadata.partitionKeyType;
-               metadata.partitionKeyType.getClass();
-               var10000 = var10000.map(var10001::fromString);
-               partitioner.getClass();
-               List<AbstractBounds<PartitionPosition>> bounds = (List)var10000.map(partitioner::decorateKey).sorted().map(PartitionPosition::getToken).map((token) -> {
-                  return new Bounds(token.minKeyBound(), token.maxKeyBound());
-               }).collect(Collectors.toList());
+            if (keys != null && keys.length > 0) {
+                List<AbstractBounds<PartitionPosition>> bounds = Arrays.stream(keys).filter(key -> !excludes.contains(key)).
+                        map(metadata.partitionKeyType::fromString).
+                        map(partitioner::decorateKey).sorted().
+                        map(PartitionPosition::getToken).
+                        map(token -> new Bounds<>(token.minKeyBound(), token.maxKeyBound())).
+                        collect(Collectors.toList());
                currentScanner = sstable.getScanner(bounds.iterator());
-            } else {
+            }
+            else {
                currentScanner = sstable.getScanner();
             }
-
-            Stream<UnfilteredRowIterator> partitions = Util.iterToStream((Iterator)currentScanner).filter((i) -> {
-               return excludes.isEmpty() || !excludes.contains(metadata.partitionKeyType.getString(i.partitionKey().getKey()));
-            });
-            if(cmd.hasOption("d")) {
+            final Stream<UnfilteredRowIterator> partitions = Util.iterToStream(currentScanner).filter(i -> excludes.isEmpty() || !excludes.contains(metadata.partitionKeyType.getString(i.partitionKey().getKey())));
+            if (SSTableExport.cmd.hasOption("d")) {
                AtomicLong position = new AtomicLong();
-               partitions.forEach((partition) -> {
+               partitions.forEach(partition -> {
                   position.set(currentScanner.getCurrentPosition());
-                  if(!partition.partitionLevelDeletion().isLive()) {
+                  if (!partition.partitionLevelDeletion().isLive()) {
                      System.out.println("[" + metadata.partitionKeyType.getString(partition.partitionKey().getKey()) + "]@" + position.get() + " " + partition.partitionLevelDeletion());
                   }
-
-                  if(!partition.staticRow().isEmpty()) {
+                  if (!partition.staticRow().isEmpty()) {
                      System.out.println("[" + metadata.partitionKeyType.getString(partition.partitionKey().getKey()) + "]@" + position.get() + " " + partition.staticRow().toString(metadata, true));
                   }
-
-                  partition.forEachRemaining((row) -> {
+                  partition.forEachRemaining(row -> {
                      System.out.println("[" + metadata.partitionKeyType.getString(partition.partitionKey().getKey()) + "]@" + position.get() + " " + row.toString(metadata, false, true));
                      position.set(currentScanner.getCurrentPosition());
                   });
                });
-            } else if(cmd.hasOption("l")) {
-               JsonTransformer.toJsonLines(currentScanner, partitions, cmd.hasOption("t"), metadata, System.out);
-            } else {
-               JsonTransformer.toJson(currentScanner, partitions, cmd.hasOption("t"), metadata, System.out);
+            }
+            else if (SSTableExport.cmd.hasOption("l")) {
+               JsonTransformer.toJsonLines(currentScanner, partitions, SSTableExport.cmd.hasOption("t"), metadata, System.out);
+            }
+            else {
+               JsonTransformer.toJson(currentScanner, partitions, SSTableExport.cmd.hasOption("t"), metadata, System.out);
             }
          }
-      } catch (IOException var22) {
-         var22.printStackTrace(System.err);
       }
-
+      catch (IOException e2) {
+         e2.printStackTrace(System.err);
+      }
       System.exit(0);
    }
 

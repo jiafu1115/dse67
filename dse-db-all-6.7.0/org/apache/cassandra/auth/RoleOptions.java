@@ -49,33 +49,32 @@ public class RoleOptions {
    }
 
    public void validate() {
-      Iterator var1 = this.options.entrySet().iterator();
-
-      while(var1.hasNext()) {
-         Entry<IRoleManager.Option, Object> option = (Entry)var1.next();
-         if(!DatabaseDescriptor.getRoleManager().supportedOptions().contains(option.getKey())) {
-            throw new InvalidRequestException(String.format("%s doesn't support %s", new Object[]{DatabaseDescriptor.getRoleManager().implementation().getClass().getName(), option.getKey()}));
+      for (final Map.Entry<IRoleManager.Option, Object> option : this.options.entrySet()) {
+         if (!DatabaseDescriptor.getRoleManager().supportedOptions().contains(option.getKey())) {
+            throw new InvalidRequestException(String.format("%s doesn't support %s", DatabaseDescriptor.getRoleManager().implementation().getClass().getName(), option.getKey()));
          }
-
-         switch(null.$SwitchMap$org$apache$cassandra$auth$IRoleManager$Option[((IRoleManager.Option)option.getKey()).ordinal()]) {
-         case 1:
-         case 2:
-            if(!(option.getValue() instanceof Boolean)) {
-               throw new InvalidRequestException(String.format("Invalid value for property '%s'. It must be a boolean", new Object[]{option.getKey()}));
+         switch (option.getKey()) {
+            case LOGIN:
+            case SUPERUSER: {
+               if (!(option.getValue() instanceof Boolean)) {
+                  throw new InvalidRequestException(String.format("Invalid value for property '%s'. It must be a boolean", option.getKey()));
+               }
+               break;
             }
-            break;
-         case 3:
-            if(!(option.getValue() instanceof String)) {
-               throw new InvalidRequestException(String.format("Invalid value for property '%s'. It must be a string", new Object[]{option.getKey()}));
+            case PASSWORD: {
+               if (!(option.getValue() instanceof String)) {
+                  throw new InvalidRequestException(String.format("Invalid value for property '%s'. It must be a string", option.getKey()));
+               }
+               break;
             }
-            break;
-         case 4:
-            if(!(option.getValue() instanceof Map)) {
-               throw new InvalidRequestException(String.format("Invalid value for property '%s'. It must be a map", new Object[]{option.getKey()}));
+            case OPTIONS: {
+               if (!(option.getValue() instanceof Map)) {
+                  throw new InvalidRequestException(String.format("Invalid value for property '%s'. It must be a map", option.getKey()));
+               }
+               break;
             }
          }
       }
-
    }
 
    public String toString() {

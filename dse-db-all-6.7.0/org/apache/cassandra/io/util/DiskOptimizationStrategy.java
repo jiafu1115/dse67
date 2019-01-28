@@ -43,15 +43,18 @@ public abstract class DiskOptimizationStrategy {
             }
 
             Object ret;
-            switch(null.$SwitchMap$org$apache$cassandra$config$Config$DiskOptimizationStrategy[conf.disk_optimization_strategy.ordinal()]) {
-            case 1:
-               ret = new SsdDiskOptimizationStrategy(minBufferSize, maxBufferSize, conf.disk_optimization_page_cross_chance);
-               break;
-            case 2:
-               ret = new SpinningDiskOptimizationStrategy(minBufferSize, maxBufferSize);
-               break;
-            default:
-               throw new ConfigurationException("Unknown disk optimization strategy: " + conf.disk_optimization_strategy);
+            switch (conf.disk_optimization_strategy) {
+               case ssd: {
+                  ret = new SsdDiskOptimizationStrategy(minBufferSize, maxBufferSize, conf.disk_optimization_page_cross_chance);
+                  break;
+               }
+               case spinning: {
+                  ret = new SpinningDiskOptimizationStrategy(minBufferSize, maxBufferSize);
+                  break;
+               }
+               default: {
+                  throw new ConfigurationException("Unknown disk optimization strategy: " + (Object)((Object)conf.disk_optimization_strategy));
+               }
             }
 
             return (DiskOptimizationStrategy)ret;

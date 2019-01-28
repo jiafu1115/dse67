@@ -225,25 +225,31 @@ public class LocalSessionsResolver implements Callable<Boolean> {
       private Resolution() {
       }
 
-      public static ConsistentSession.State from(LocalSessionsResolver.Resolution from) {
-         switch(null.$SwitchMap$org$apache$cassandra$repair$consistent$LocalSessionsResolver$Resolution[from.ordinal()]) {
-         case 1:
-            return ConsistentSession.State.FINALIZED;
-         case 2:
-            return ConsistentSession.State.FAILED;
-         default:
-            throw new IllegalStateException(String.format("Cannot convert from %s", new Object[]{from}));
+      public static ConsistentSession.State from(final Resolution from) {
+         switch (from) {
+            case FINALIZED: {
+               return ConsistentSession.State.FINALIZED;
+            }
+            case FAILED: {
+               return ConsistentSession.State.FAILED;
+            }
+            default: {
+               throw new IllegalStateException(String.format("Cannot convert from %s", from));
+            }
          }
       }
 
-      public static LocalSessionsResolver.Resolution from(ConsistentSession.State from) {
-         switch(null.$SwitchMap$org$apache$cassandra$repair$consistent$ConsistentSession$State[from.ordinal()]) {
-         case 1:
-            return FINALIZED;
-         case 2:
-            return FAILED;
-         default:
-            throw new IllegalStateException(String.format("Cannot convert from %s", new Object[]{from}));
+      public static Resolution from(final ConsistentSession.State from) {
+         switch (from) {
+            case FINALIZED: {
+               return Resolution.FINALIZED;
+            }
+            case FAILED: {
+               return Resolution.FAILED;
+            }
+            default: {
+               throw new IllegalStateException(String.format("Cannot convert from %s", from));
+            }
          }
       }
    }

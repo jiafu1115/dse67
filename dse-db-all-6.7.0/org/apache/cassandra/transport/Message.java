@@ -117,7 +117,7 @@ public abstract class Message {
 
    static {
       noSpamLogger = NoSpamLogger.getLogger(logger, 10L, TimeUnit.SECONDS);
-      ioExceptionsAtDebugLevel = ImmutableSet.builder().add("Connection reset by peer").add("Broken pipe").add("Connection timed out").build();
+      ioExceptionsAtDebugLevel = ImmutableSet.<String>builder().add("Connection reset by peer").add("Broken pipe").add("Connection timed out").build();
    }
 
    static final class UnexpectedChannelExceptionHandler implements Predicate<Throwable> {
@@ -145,11 +145,8 @@ public abstract class Message {
 
          if(!this.alwaysLogAtError && exception instanceof IOException) {
             if(exception.getMessage() != null) {
-               Stream var10000 = Message.ioExceptionsAtDebugLevel.stream();
-               String var10001 = exception.getMessage();
-               var10001.getClass();
-               if(var10000.anyMatch(var10001::contains)) {
-                  Message.logger.trace(message, channelInfo, exception);
+               if (ioExceptionsAtDebugLevel.stream().anyMatch(exception.getMessage()::contains)) {
+                  Message.logger.trace(message, (Object)channelInfo, (Object)exception);
                   return true;
                }
             }
@@ -319,7 +316,7 @@ public abstract class Message {
             boolean doneWork;
             Message.Dispatcher.FlushItem item;
             for(doneWork = false; null != (item = (Message.Dispatcher.FlushItem)this.queued.poll()); doneWork = true) {
-               ((Message.Dispatcher.ChannelFlusher)this.channels.computeIfAbsent(item.ctx, Message.Dispatcher.ChannelFlusher::<init>)).add(item);
+               ((Message.Dispatcher.ChannelFlusher)this.channels.computeIfAbsent(item.ctx, Message.Dispatcher.ChannelFlusher::new)).add(item);
             }
 
             Iterator var3 = this.channels.entrySet().iterator();
@@ -416,7 +413,7 @@ public abstract class Message {
       public void encode(ChannelHandlerContext ctx, Message message, List results) {
          Connection connection = (Connection)ctx.channel().attr(Connection.attributeKey).get();
          ProtocolVersion version = connection == null?ProtocolVersion.CURRENT:connection.getVersion();
-         Message.Codec<Message> codec = message.type.codec;
+         Message.Codec<Message> codec = (Codec<Message>)message.type.codec;
          Frame frame = null;
          int messageSize = codec.encodedSize(message, version);
 

@@ -11,16 +11,15 @@ public class BTreeRemoval {
       if(BTree.isEmpty(btree)) {
          return btree;
       } else {
-         int index = true;
          V elemToSwap = null;
          int lb = 0;
          Object[] node = btree;
 
          while(true) {
             int keyEnd = BTree.getKeyEnd(node);
-            int i = Arrays.binarySearch((Object[])node, 0, keyEnd, elem, comparator);
+            int i = Arrays.binarySearch((V[])node, 0, keyEnd, elem, comparator);
             if(i >= 0) {
-               int index;
+               int index=-1;
                if(BTree.isLeaf(node)) {
                   index = lb + i;
                } else {
@@ -259,9 +258,8 @@ public class BTreeRemoval {
       } else {
          result = new Object[left.length + right.length];
       }
-
-      int offset = 0;
-      int offset = copyKeys(left, result, offset);
+      int offset=0;
+      offset = copyKeys(left, result, offset);
       result[offset++] = nodeKey;
       offset = copyKeys(right, result, offset);
       if(!leaves) {

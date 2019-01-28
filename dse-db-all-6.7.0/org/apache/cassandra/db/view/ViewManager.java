@@ -236,9 +236,15 @@ public class ViewManager {
       }, (v1, v2) -> {
          return v1;
       }, () -> {
-         return new TreeMap((k1, k2) -> {
-            return k1.compareTo(k2);
-         });
+             return new TreeMap(
+                     //(k1, k2) -> { return k1.compareTo(k2); }
+                     new Comparator<Long>(){
+                         @Override
+                         public int compare(Long o1, Long o2) {
+                             return o1.compareTo(o2);
+                         }
+                     }
+         );
       }));
       return locks;
    }

@@ -340,11 +340,9 @@ public class DateTieredCompactionStrategy extends AbstractCompactionStrategy {
 
    public Collection<Collection<SSTableReader>> groupSSTablesForAntiCompaction(Collection<SSTableReader> sstablesToGroup) {
       Collection<Collection<SSTableReader>> groups = new ArrayList(sstablesToGroup.size());
-      Iterator var3 = sstablesToGroup.iterator();
 
-      while(var3.hasNext()) {
-         SSTableReader sstable = (SSTableReader)var3.next();
-         groups.add(UnmodifiableArrayList.of((Object)sstable));
+      for (SSTableReader ssTableReader : sstablesToGroup) {
+         groups.add(UnmodifiableArrayList.of(ssTableReader));
       }
 
       return groups;

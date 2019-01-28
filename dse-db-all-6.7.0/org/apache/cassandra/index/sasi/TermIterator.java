@@ -55,62 +55,56 @@ public class TermIterator extends RangeIterator<Long, Token> {
    }
 
    public static TermIterator build(Expression e, Set<SSTableIndex> perSSTableIndexes) {
-      List<RangeIterator<Long, Token>> tokens = new CopyOnWriteArrayList();
+      CopyOnWriteArrayList tokens = new CopyOnWriteArrayList();
       AtomicLong tokenCount = new AtomicLong(0L);
       RangeIterator<Long, Token> memtableIterator = e.index.searchMemtable(e);
-      if(memtableIterator != null) {
+      if (memtableIterator != null) {
          tokens.add(memtableIterator);
          tokenCount.addAndGet(memtableIterator.getCount());
       }
-
-      CopyOnWriteArraySet referencedIndexes = new CopyOnWriteArraySet();
-
+      CopyOnWriteArraySet<SSTableIndex> referencedIndexes = new CopyOnWriteArraySet<SSTableIndex>();
       try {
          CountDownLatch latch = new CountDownLatch(perSSTableIndexes.size());
          ExecutorService searchExecutor = (ExecutorService)SEARCH_EXECUTOR.get();
-         Iterator var8 = perSSTableIndexes.iterator();
-
-         while(var8.hasNext()) {
-            SSTableIndex index = (SSTableIndex)var8.next();
-            if(e.getOp() == Expression.Op.PREFIX && index.mode() == OnDiskIndexBuilder.Mode.CONTAINS && !index.hasMarkedPartials()) {
-               throw new UnsupportedOperationException(String.format("The index %s has not yet been upgraded to support prefix queries in CONTAINS mode. Wait for compaction or rebuild the index.", new Object[]{index.getPath()}));
+         for (SSTableIndex index : perSSTableIndexes) {
+            if (e.getOp() == Expression.Op.PREFIX && index.mode() == OnDiskIndexBuilder.Mode.CONTAINS && !index.hasMarkedPartials()) {
+               throw new UnsupportedOperationException(String.format("The index %s has not yet been upgraded to support prefix queries in CONTAINS mode. Wait for compaction or rebuild the index.", index.getPath()));
             }
-
-            if(!index.reference()) {
+            if (!index.reference()) {
                latch.countDown();
-            } else {
-               referencedIndexes.add(index);
-               searchExecutor.submit(() -> {
-                  try {
-                     e.checkpoint();
-                     RangeIterator<Long, Token> keyIterator = index.search(e);
-                     if(keyIterator == null) {
-                        releaseIndex(referencedIndexes, index);
-                        return;
-                     }
-
-                     tokens.add(keyIterator);
-                     tokenCount.getAndAdd(keyIterator.getCount());
-                  } catch (Throwable var10) {
-                     releaseIndex(referencedIndexes, index);
-                     if(logger.isDebugEnabled()) {
-                        logger.debug(String.format("Failed search an index %s, skipping.", new Object[]{index.getPath()}), var10);
-                     }
-                  } finally {
-                     latch.countDown();
-                  }
-
-               });
+               continue;
             }
+            referencedIndexes.add(index);
+            searchExecutor.submit(() -> {
+               try {
+                  e.checkpoint();
+                  RangeIterator<Long, Token> keyIterator = index.search(e);
+                  if (keyIterator == null) {
+                     TermIterator.releaseIndex(referencedIndexes, index);
+                     return;
+                  }
+                  tokens.add(keyIterator);
+                  tokenCount.getAndAdd(keyIterator.getCount());
+               }
+               catch (Throwable e1) {
+                  TermIterator.releaseIndex(referencedIndexes, index);
+                  if (logger.isDebugEnabled()) {
+                     logger.debug(String.format("Failed search an index %s, skipping.", index.getPath()), e1);
+                  }
+               }
+               finally {
+                  latch.countDown();
+               }
+            });
          }
-
-         Uninterruptibles.awaitUninterruptibly(latch);
+         Uninterruptibles.awaitUninterruptibly((CountDownLatch)latch);
          e.checkpoint();
          RangeIterator<Long, Token> ranges = RangeUnionIterator.build(tokens);
          return new TermIterator(e, ranges, referencedIndexes);
-      } catch (Throwable var10) {
+      }
+      catch (Throwable ex) {
          referencedIndexes.forEach(TermIterator::releaseQuietly);
-         throw var10;
+         throw ex;
       }
    }
 

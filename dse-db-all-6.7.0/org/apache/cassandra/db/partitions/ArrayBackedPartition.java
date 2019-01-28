@@ -248,7 +248,7 @@ public class ArrayBackedPartition implements Partition {
          DeletionTime partitionDeletion = this.holder.deletionInfo.getPartitionDeletion();
          return UnfilteredRowIterators.noRowsIterator(this.metadata(), this.partitionKey(), staticRow, partitionDeletion, reversed);
       } else {
-         return (UnfilteredRowIterator)(slices.size() == 1?this.sliceIterator(selection, slices.get(0), reversed, staticRow):new ArrayBackedPartition.SlicesIterator(selection, slices, reversed, staticRow, null));
+         return (UnfilteredRowIterator)(slices.size() == 1?this.sliceIterator(selection, slices.get(0), reversed, staticRow):new ArrayBackedPartition.SlicesIterator(selection, slices, reversed, staticRow));
       }
    }
 
@@ -272,22 +272,24 @@ public class ArrayBackedPartition implements Partition {
       if(this.holder.length == 0) {
          return Collections.emptyIterator();
       } else {
-         final int startAt = start == null?0:this.indexOf(start);
+         int startAt = start == null?0:this.indexOf(start);
          if(startAt < 0) {
             startAt = -startAt - 1;
          }
 
-         final int endAt = end == null?this.holder.length - 1:this.indexOf(end);
+         int endAt = end == null?this.holder.length - 1:this.indexOf(end);
          if(endAt < 0) {
             endAt = -endAt - 2;
          }
 
+         final int startAtIdx = startAt;
+         final int endAtIdx = endAt;
          if(endAt >= 0 && endAt >= startAt) {
             assert endAt >= startAt;
 
             return new AbstractIndexedListIterator<Row>(endAt + 1, startAt) {
                protected Row get(int index) {
-                  int idx = reversed?endAt - (index - startAt):index;
+                  int idx = reversed?endAtIdx - (index - startAtIdx):index;
                   return ArrayBackedPartition.this.holder.rows[idx];
                }
             };

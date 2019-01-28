@@ -40,7 +40,7 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
       int var5 = var4.length;
 
       for(int var6 = 0; var6 < var5; ++var6) {
-         V v = var4[var6];
+         V v = (V)var4[var6];
          this.versionedSerializers.put(v, new VersionSerializers(id.name(), (Version)v));
       }
 
@@ -94,7 +94,7 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
    private static <T> Serializer<T> maybeGetSerializer(Class<T> klass) {
       try {
          Field field = klass.getField("serializer");
-         return field.getType().equals(Serializer.class) && Modifier.isStatic(field.getModifiers())?(Serializer)field.get((Object)null):null;
+         return field.getType().equals(Serializer.class) && Modifier.isStatic(field.getModifiers())?(Serializer)field.get(null):null;
       } catch (NoSuchFieldException var2) {
          return null;
       } catch (Exception var3) {
@@ -107,9 +107,9 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
       try {
          Field field = klass.getField("serializers");
          if(field.getType().equals(Versioned.class) && Modifier.isStatic(field.getModifiers())) {
-            Versioned<V, Serializer<T>> versioned = (Versioned)field.get((Object)null);
+            Versioned<V, Serializer<T>> versioned = (Versioned)field.get(null);
             return (x$0) -> {
-               return (Serializer)versioned.get((Enum)x$0);
+               return (Serializer)versioned.get((V)x$0);
             };
          } else {
             return null;
@@ -169,8 +169,8 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
       }
 
       public class MonitoredRequestResponseBuilder<P extends Monitorable, Q> extends VerbGroup<V>.RegistrationHelper.VerbBuilder<P, Q, VerbGroup<V>.RegistrationHelper.MonitoredRequestResponseBuilder<P, Q>> {
-         private MonitoredRequestResponseBuilder(String this$1, int name, Class<P> groupIdx, Class<Q> requestClass) {
-            super(name, groupIdx, false, requestClass, responseClass, null);
+         private MonitoredRequestResponseBuilder(String name, int groupIdx, Class<P> requestClass, Class<Q> responseClass) {
+            super(name, groupIdx, false, requestClass, responseClass);
          }
 
          public Verb.RequestResponse<P, Q> handler(VerbHandlers.MonitoredRequestResponse<P, Q> handler) {
@@ -183,8 +183,8 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
       }
 
       public class RequestResponseBuilder<P, Q> extends VerbGroup<V>.RegistrationHelper.VerbBuilder<P, Q, VerbGroup<V>.RegistrationHelper.RequestResponseBuilder<P, Q>> {
-         private RequestResponseBuilder(String this$1, int name, Class<P> groupIdx, Class<Q> requestClass, boolean responseClass) {
-            super(name, groupIdx, false, requestClass, responseClass, null);
+         private RequestResponseBuilder(String name, int groupIdx, Class<P> requestClass, Class<Q> responseClass, boolean ish) {
+            super(name, groupIdx, false, requestClass, responseClass);
          }
 
          public Verb.RequestResponse<P, Q> handler(VerbHandlers.RequestResponse<P, Q> handler) {
@@ -197,8 +197,8 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
       }
 
       public class AckedRequestBuilder<P> extends VerbGroup<V>.RegistrationHelper.VerbBuilder<P, EmptyPayload, VerbGroup<V>.RegistrationHelper.AckedRequestBuilder<P>> {
-         private AckedRequestBuilder(String this$1, int name, Class<P> groupIdx) {
-            super(name, groupIdx, false, requestClass, EmptyPayload.class, null);
+         private AckedRequestBuilder(String name, int groupIdx, Class<P> requestClass) {
+            super(name, groupIdx, false, requestClass, EmptyPayload.class);
          }
 
          public Verb.AckedRequest<P> handler(VerbHandlers.AckedRequest<P> handler) {
@@ -211,8 +211,8 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
       }
 
       public class OneWayBuilder<P> extends VerbGroup<V>.RegistrationHelper.VerbBuilder<P, NoResponse, VerbGroup<V>.RegistrationHelper.OneWayBuilder<P>> {
-         private OneWayBuilder(String this$1, int name, Class<P> groupIdx) {
-            super(name, groupIdx, true, requestClass, NoResponse.class, null);
+         private OneWayBuilder(String name, int groupIdx, Class<P> requestClass) {
+            super(name, groupIdx, true, requestClass, NoResponse.class);
          }
 
          public Verb.OneWay<P> handler(VerbHandler<P, NoResponse> handler) {
@@ -241,7 +241,7 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
          private V untilVersion;
          private boolean supportsBackPressure;
 
-         private VerbBuilder(String this$1, int name, boolean groupIdx, Class<P> isOneWay, Class<Q> requestClass) {
+         private VerbBuilder(String name, int groupIdx, boolean isOneWay, Class<P> requestClass, Class<Q> responseClass) {
             this.errorHandler = ErrorHandler.DEFAULT;
             this.name = name;
             this.groupIdx = groupIdx;
@@ -255,8 +255,9 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
             this.droppedGroup = RegistrationHelper.this.defaultDroppedGroup;
          }
 
-         private T us() {
-            return this;
+         private T us()
+         {
+            return (T)this;
          }
 
          public T timeout(TimeoutSupplier<P> supplier) {
@@ -382,7 +383,7 @@ public abstract class VerbGroup<V extends Enum<V> & Version<V>> implements Itera
             int var3 = var2.length;
 
             for(int var4 = 0; var4 < var3; ++var4) {
-               V v = var2[var4];
+               V v = (V)var2[var4];
                if(this.sinceVersion == null || v.compareTo(this.sinceVersion) >= 0) {
                   if(this.untilVersion != null && v.compareTo(this.untilVersion) > 0) {
                      break;

@@ -244,10 +244,7 @@ public final class HintsService implements HintsServiceMBean {
       }
 
       this.resumeDispatch();
-      Stream var10000 = this.catalog.stores();
-      HintsDispatchExecutor var10001 = this.dispatchExecutor;
-      this.dispatchExecutor.getClass();
-      var10000.forEach(var10001::completeDispatchBlockingly);
+      this.catalog.stores().forEach(this.dispatchExecutor::completeDispatchBlockingly);
       return this.dispatchExecutor.transfer(this.catalog, hostIdSupplier);
    }
 

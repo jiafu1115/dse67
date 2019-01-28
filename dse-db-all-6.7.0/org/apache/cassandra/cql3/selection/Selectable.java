@@ -54,7 +54,7 @@ public interface Selectable extends AssignmentTestable {
 
    boolean selectColumns(Predicate<ColumnMetadata> var1);
 
-   static default boolean selectColumns(List<Selectable> selectables, Predicate<ColumnMetadata> predicate) {
+   static boolean selectColumns(List<Selectable> selectables, Predicate<ColumnMetadata> predicate) {
       Iterator var2 = selectables.iterator();
 
       Selectable selectable;
@@ -96,16 +96,18 @@ public interface Selectable extends AssignmentTestable {
    }
 
    default ColumnSpecification specForElementOrSlice(Selectable selected, ColumnSpecification receiver, String selectionType) {
-      switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[((CollectionType)receiver.type).kind.ordinal()]) {
-      case 1:
-         throw new InvalidRequestException(String.format("%s selection is only allowed on sets and maps, but %s is a list", new Object[]{selectionType, selected}));
-      case 2:
-         return Sets.valueSpecOf(receiver);
-      case 3:
-         return Maps.keySpecOf(receiver);
-      default:
-         throw new AssertionError();
+      switch (((CollectionType)receiver.type).kind) {
+         case LIST: {
+            throw new InvalidRequestException(String.format("%s selection is only allowed on sets and maps, but %s is a list", selectionType, selected));
+         }
+         case SET: {
+            return Sets.valueSpecOf(receiver);
+         }
+         case MAP: {
+            return Maps.keySpecOf(receiver);
+         }
       }
+      throw new AssertionError();
    }
 
    public static class WithSliceSelection implements Selectable {
@@ -734,7 +736,7 @@ public interface Selectable extends AssignmentTestable {
       }
 
       public Selector.Factory newSelectorFactory(TableMetadata table, AbstractType<?> expectedType, List<ColumnMetadata> defs, VariableSpecifications boundNames) {
-         List<Selectable> args = UnmodifiableArrayList.of((Object)this.arg);
+         List<Selectable> args = UnmodifiableArrayList.of(this.arg);
          SelectorFactories factories = SelectorFactories.createFactoriesAndCollectColumnDefinitions(args, (List)null, table, defs, boundNames);
          Selector.Factory factory = factories.get(0);
          if(this.type.getType().equals(factory.getReturnType())) {
@@ -851,7 +853,7 @@ public interface Selectable extends AssignmentTestable {
          }
 
          public static Selectable.WithFunction.Raw newNegation(Selectable.Raw arg) {
-            return new Selectable.WithFunction.Raw(FunctionName.nativeFunction("_negate"), UnmodifiableArrayList.of((Object)arg));
+            return new Selectable.WithFunction.Raw(FunctionName.nativeFunction("_negate"), UnmodifiableArrayList.of(arg));
          }
 
          public Selectable prepare(TableMetadata table) {
@@ -865,7 +867,7 @@ public interface Selectable extends AssignmentTestable {
 
             FunctionName name = this.functionName;
             if(this.functionName.equalsNativeFunction(ToJsonFct.NAME)) {
-               return new Selectable.WithToJSonFunction((List)preparedArgs, null);
+               return new Selectable.WithToJSonFunction((List)preparedArgs);
             } else {
                if(this.functionName.equalsNativeFunction(FunctionName.nativeFunction("count")) && ((List)preparedArgs).size() == 1 && ((List)preparedArgs).get(0) instanceof Selectable.WithTerm && ((Selectable.WithTerm)((List)preparedArgs).get(0)).rawTerm instanceof Constants.Literal) {
                   name = AggregateFcts.countRowsFunction.name();

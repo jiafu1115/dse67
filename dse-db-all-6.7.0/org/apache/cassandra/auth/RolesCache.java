@@ -58,22 +58,17 @@ public class RolesCache extends AuthCache<RoleResource, Role> implements RolesCa
       }
    }
 
-   private void handleCollectRoles(Set<RoleResource> needToVisit, Map<RoleResource, Role> workMap, Map<RoleResource, Role> result) {
-      Entry entry;
-      for(Iterator var4 = result.entrySet().iterator(); var4.hasNext(); needToVisit.remove(entry.getKey())) {
-         entry = (Entry)var4.next();
-         Role role = (Role)entry.getValue();
-         if(workMap.put(entry.getKey(), role) == null) {
-            UnmodifiableIterator var7 = role.memberOf.iterator();
-
-            while(var7.hasNext()) {
-               RoleResource memberOf = (RoleResource)var7.next();
-               if(!workMap.containsKey(memberOf)) {
+   private void handleCollectRoles(final Set<RoleResource> needToVisit, final Map<RoleResource, Role> workMap, final Map<RoleResource, Role> result) {
+      for (final Map.Entry<RoleResource, Role> entry : result.entrySet()) {
+         final Role role = entry.getValue();
+         if (workMap.put(entry.getKey(), role) == null) {
+            for (final RoleResource memberOf : role.memberOf) {
+               if (!workMap.containsKey(memberOf)) {
                   needToVisit.add(memberOf);
                }
             }
          }
+         needToVisit.remove(entry.getKey());
       }
-
    }
 }

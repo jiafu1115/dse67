@@ -81,8 +81,8 @@ public abstract class CompressedChunkReader extends AbstractReaderFileProxy impl
                TPC.ioScheduler().execute(() -> {
                   try {
                      future.complete(this.doReadChunk(position, uncompressed));
-                  } catch (Throwable var6) {
-                     future.completeExceptionally(var6);
+                  } catch (Throwable tt) {
+                     future.completeExceptionally(tt);
                   }
 
                }, TPCTaskType.READ_DISK_ASYNC);
@@ -174,8 +174,8 @@ public abstract class CompressedChunkReader extends AbstractReaderFileProxy impl
                TPC.ioScheduler().execute(() -> {
                   try {
                      this.doReadChunk(position, uncompressed, ret, bufferHandle);
-                  } catch (Throwable var7) {
-                     this.error(var7, uncompressed, ret, bufferHandle);
+                  } catch (Throwable v) {
+                     this.error(v, uncompressed, ret, bufferHandle);
                   }
 
                }, TPCTaskType.READ_DISK_ASYNC);

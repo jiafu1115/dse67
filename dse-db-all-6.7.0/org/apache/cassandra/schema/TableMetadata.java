@@ -137,7 +137,7 @@ public final class TableMetadata {
    }
 
    public static TableMetadata.Builder builder(String keyspace, String table, TableId id) {
-      return new TableMetadata.Builder(keyspace, table, id, null);
+      return new TableMetadata.Builder(keyspace, table, id);
    }
 
    public TableMetadata.Builder unbuild() {
@@ -540,7 +540,7 @@ public final class TableMetadata {
          }
 
          Collections.sort(this.regularAndStaticColumns);
-         return new TableMetadata(this, null);
+         return new TableMetadata(this);
       }
 
       public TableMetadata.Builder id(TableId val) {
@@ -725,35 +725,29 @@ public final class TableMetadata {
       }
 
       public TableMetadata.Builder addColumn(ColumnMetadata column) {
-         if(this.columns.containsKey(column.name.bytes)) {
-            if(column.isHidden()) {
-               throw new ConfigurationException(String.format("Invalid hidden column name %s because it conflicts with an existing column", new Object[]{column.name.toString()}));
-            } else {
-               throw new IllegalArgumentException();
-            }
-         } else {
-            switch(null.$SwitchMap$org$apache$cassandra$schema$ColumnMetadata$Kind[column.kind.ordinal()]) {
-            case 1:
+         if (this.columns.containsKey(column.name.bytes)) {
+            throw new IllegalArgumentException();
+         }
+         switch (column.kind) {
+            case PARTITION_KEY: {
                this.partitionKeyColumns.add(column);
                Collections.sort(this.partitionKeyColumns);
                break;
-            case 2:
+            }
+            case CLUSTERING: {
                column.type.checkComparable();
                this.clusteringColumns.add(column);
                Collections.sort(this.clusteringColumns);
                break;
-            default:
+            }
+            default: {
                this.regularAndStaticColumns.add(column);
             }
-
-            if(column.isRequiredForLiveness) {
-               ++this.requiredColumnsForLiveness;
-            }
-
-            this.columns.put(column.name.bytes, column);
-            return this;
          }
+         this.columns.put(column.name.bytes, column);
+         return this;
       }
+
 
       public TableMetadata.Builder addColumns(Iterable<ColumnMetadata> columns) {
          columns.forEach(this::addColumn);
@@ -834,27 +828,29 @@ public final class TableMetadata {
       }
 
       public TableMetadata.Builder alterColumnType(ColumnIdentifier name, AbstractType<?> type) {
-         ColumnMetadata column = (ColumnMetadata)this.columns.get(name.bytes);
-         if(column == null) {
+
+         ColumnMetadata column = this.columns.get(name.bytes);
+         if (column == null) {
             throw new IllegalArgumentException();
-         } else {
-            ColumnMetadata newColumn = column.withNewType(type);
-            switch(null.$SwitchMap$org$apache$cassandra$schema$ColumnMetadata$Kind[column.kind.ordinal()]) {
-            case 1:
+         }
+         ColumnMetadata newColumn = column.withNewType(type);
+         switch (column.kind) {
+            case PARTITION_KEY: {
                this.partitionKeyColumns.set(column.position(), newColumn);
                break;
-            case 2:
+            }
+            case CLUSTERING: {
                this.clusteringColumns.set(column.position(), newColumn);
                break;
-            case 3:
-            case 4:
+            }
+            case REGULAR:
+            case STATIC: {
                this.regularAndStaticColumns.remove(column);
                this.regularAndStaticColumns.add(newColumn);
             }
-
-            this.columns.put(column.name.bytes, newColumn);
-            return this;
          }
+         this.columns.put(column.name.bytes, newColumn);
+         return this;
       }
    }
 

@@ -30,43 +30,19 @@ public class IncrementalTrieWriterSimple<Value> extends IncrementalTrieWriterBas
    }
 
    public IncrementalTrieWriter.PartialTail makePartialRoot() throws IOException {
-      DataOutputBuffer buf = new DataOutputBuffer();
-      Throwable var2 = null;
-
-      try {
+      try (DataOutputBuffer buf = new DataOutputBuffer();){
          IncrementalTrieWriterBase.PTail tail = new IncrementalTrieWriterBase.PTail();
          tail.cutoff = this.position;
          tail.count = this.count;
          long nodePos = this.position;
-         Deque var10000 = this.stack;
-         this.stack.getClass();
-
-         IncrementalTrieWriterSimple.Node node;
-         for(Iterator var6 = (var10000::descendingIterator).iterator(); var6.hasNext(); nodePos += this.write(node, buf, nodePos)) {
-            node = (IncrementalTrieWriterSimple.Node)var6.next();
+         for (Node node : this.stack) {
             node.filePos = nodePos;
+            nodePos += this.write(node, buf, nodePos);
          }
-
          tail.tail = buf.trimmedBuffer();
-         tail.root = ((IncrementalTrieWriterSimple.Node)this.stack.getFirst()).filePos;
-         IncrementalTrieWriterBase.PTail var17 = tail;
-         return var17;
-      } catch (Throwable var15) {
-         var2 = var15;
-         throw var15;
-      } finally {
-         if(buf != null) {
-            if(var2 != null) {
-               try {
-                  buf.close();
-               } catch (Throwable var14) {
-                  var2.addSuppressed(var14);
-               }
-            } else {
-               buf.close();
-            }
-         }
-
+         tail.root = ((Node)this.stack.getFirst()).filePos;
+         IncrementalTrieWriterBase.PTail pTail = tail;
+         return pTail;
       }
    }
 

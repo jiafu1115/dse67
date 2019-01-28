@@ -28,7 +28,7 @@ class DeferredFlowImpl<T> extends DeferredFlow<T> implements FlowSubscriptionRec
    DeferredFlowImpl(long deadlineNanos, Supplier<StagedScheduler> schedulerSupplier, Supplier<Flow<T>> timeoutSupplier, Supplier<Consumer<Flow<T>>> notification) {
       assert schedulerSupplier != null;
 
-      this.source = new AtomicReference((Object)null);
+      this.source = new AtomicReference(null);
       this.deadlineNanos = deadlineNanos;
       this.timeoutSupplier = timeoutSupplier;
       this.schedulerSupplier = schedulerSupplier;
@@ -52,7 +52,7 @@ class DeferredFlowImpl<T> extends DeferredFlow<T> implements FlowSubscriptionRec
    }
 
    public boolean onSource(Flow<T> value) {
-      if(this.source.compareAndSet((Object)null, value)) {
+      if(this.source.compareAndSet(null, value)) {
          if(logger.isTraceEnabled()) {
             logger.trace("{} - got source", Integer.valueOf(this.hashCode()));
          }

@@ -66,7 +66,7 @@ public abstract class QueryOptions {
 
    public Term getJsonColumnValue(int bindIndex, ColumnIdentifier columnName, Collection<ColumnMetadata> expectedReceivers) throws InvalidRequestException {
       if(this.jsonValuesCache == null) {
-         this.jsonValuesCache = new ArrayList(Collections.nCopies(this.getValues().size(), (Object)null));
+         this.jsonValuesCache = new ArrayList(Collections.nCopies(this.getValues().size(), null));
       }
 
       Map<ColumnIdentifier, Term> jsonValue = (Map)this.jsonValuesCache.get(bindIndex);
@@ -253,7 +253,7 @@ public abstract class QueryOptions {
       public int encodedSize(QueryOptions options, ProtocolVersion version) {
          QueryOptions.PagingOptions pagingOptions = options.getPagingOptions();
          int size = 0;
-         int size = size + CBUtil.sizeOfConsistencyLevel(options.getConsistency());
+         size = size + CBUtil.sizeOfConsistencyLevel(options.getConsistency());
          int flags = this.gatherFlags(options);
          size += version.isGreaterOrEqualTo(ProtocolVersion.V5)?4:1;
          if(Flags.contains(flags, 1)) {

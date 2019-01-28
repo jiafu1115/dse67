@@ -39,7 +39,7 @@ public interface Terms {
 
    List<ByteBuffer> bindAndGet(QueryOptions var1);
 
-   static default Terms ofListMarker(final Lists.Marker marker, final AbstractType<?> type) {
+   static Terms ofListMarker(final Lists.Marker marker, final AbstractType<?> type) {
       return new Terms() {
          public void addFunctionsTo(List<Function> functions) {
          }
@@ -80,22 +80,21 @@ public interface Terms {
 
          public java.util.function.Function<ByteBuffer, Term.Terminal> deserializer(ProtocolVersion version) {
             if(type.isCollection()) {
-               switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[((CollectionType)type).kind.ordinal()]) {
-               case 1:
-                  return (e) -> {
-                     return Lists.Value.fromSerialized(e, (ListType)type, version);
-                  };
-               case 2:
-                  return (e) -> {
-                     return Sets.Value.fromSerialized(e, (SetType)type, version);
-                  };
-               case 3:
-                  return (e) -> {
-                     return Maps.Value.fromSerialized(e, (MapType)type, version);
-                  };
-               default:
-                  throw new AssertionError();
+               switch (((CollectionType)type).kind) {
+                  case LIST: {
+                     return (java.util.function.Function<ByteBuffer, Term.Terminal>)(e -> Lists.Value.fromSerialized(e, (ListType)type, version));
+                  }
+                  case SET: {
+                     return (java.util.function.Function<ByteBuffer, Term.Terminal>)(e -> Sets.Value.fromSerialized(e, (SetType)type, version));
+                  }
+                  case MAP: {
+                     return (java.util.function.Function<ByteBuffer, Term.Terminal>)(e -> Maps.Value.fromSerialized(e, (MapType)type, version));
+                  }
+                  default: {
+                     throw new AssertionError();
+                  }
                }
+
             } else {
                return (e) -> {
                   return new Constants.Value(e);
@@ -105,7 +104,7 @@ public interface Terms {
       };
    }
 
-   static default Terms of(final Term term) {
+   static Terms of(final Term term) {
       return new Terms() {
          public void addFunctionsTo(List<Function> functions) {
             term.addFunctionsTo(functions);
@@ -120,16 +119,16 @@ public interface Terms {
          }
 
          public List<ByteBuffer> bindAndGet(QueryOptions options) {
-            return UnmodifiableArrayList.of((Object)term.bindAndGet(options));
+            return UnmodifiableArrayList.of(term.bindAndGet(options));
          }
 
          public List<Term.Terminal> bind(QueryOptions options) {
-            return UnmodifiableArrayList.of((Object)term.bind(options));
+            return UnmodifiableArrayList.of(term.bind(options));
          }
       };
    }
 
-   static default Terms of(final List<Term> terms) {
+   static Terms of(final List<Term> terms) {
       return new Terms() {
          public void addFunctionsTo(List<Function> functions) {
             Terms.addFunctions(terms, functions);
@@ -175,7 +174,7 @@ public interface Terms {
       };
    }
 
-   static default void addFunctions(Iterable<Term> terms, List<Function> functions) {
+   static void addFunctions(Iterable<Term> terms, List<Function> functions) {
       Iterator var2 = terms.iterator();
 
       while(var2.hasNext()) {
@@ -187,7 +186,7 @@ public interface Terms {
 
    }
 
-   static default void forEachFunction(List<Term> terms, Consumer<Function> consumer) {
+   static void forEachFunction(List<Term> terms, Consumer<Function> consumer) {
       for(int i = 0; i < terms.size(); ++i) {
          Term term = (Term)terms.get(i);
          if(term != null) {
@@ -197,7 +196,7 @@ public interface Terms {
 
    }
 
-   static default void forEachFunction(Set<Term> terms, Consumer<Function> consumer) {
+   static void forEachFunction(Set<Term> terms, Consumer<Function> consumer) {
       Iterator var2 = terms.iterator();
 
       while(var2.hasNext()) {
@@ -209,7 +208,7 @@ public interface Terms {
 
    }
 
-   static default void forEachFunction(Map<? extends Term, ? extends Term> terms, Consumer<Function> consumer) {
+   static void forEachFunction(Map<? extends Term, ? extends Term> terms, Consumer<Function> consumer) {
       terms.forEach((k, v) -> {
          if(k != null) {
             k.forEachFunction(consumer);
@@ -222,7 +221,7 @@ public interface Terms {
       });
    }
 
-   static default ByteBuffer asBytes(String keyspace, String term, AbstractType type) {
+   static ByteBuffer asBytes(String keyspace, String term, AbstractType type) {
       ColumnSpecification receiver = new ColumnSpecification(keyspace, "--dummy--", new ColumnIdentifier("(dummy)", true), type);
       Term.Raw rawTerm = (Term.Raw)CQLFragmentParser.parseAny(CqlParser::term, term, "CQL term");
       return rawTerm.prepare(keyspace, receiver).bindAndGet(QueryOptions.DEFAULT);

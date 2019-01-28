@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class DataLimits {
    private static final Logger logger = LoggerFactory.getLogger(DataLimits.class);
-   public static final Versioned<ReadVerbs.ReadVersion, DataLimits.Serializer> serializers = ReadVerbs.ReadVersion.versioned((x$0) -> {
-      return new DataLimits.Serializer(x$0, null);
+   public static final Versioned<ReadVerbs.ReadVersion, DataLimits.Serializer> serializers = ReadVerbs.ReadVersion.versioned((x) -> {
+      return new DataLimits.Serializer(x);
    });
    public static final int NO_ROWS_LIMIT = 2147483647;
    public static final int NO_BYTES_LIMIT = 2147483647;
@@ -48,21 +48,21 @@ public abstract class DataLimits {
          return false;
       }
    };
-   public static final DataLimits DISTINCT_NONE = new DataLimits.CQLLimits(2147483647, 1, true, null);
+   public static final DataLimits DISTINCT_NONE = new DataLimits.CQLLimits(2147483647, 1, true);
 
    public DataLimits() {
    }
 
    public static DataLimits cqlLimits(int cqlRowLimit) {
-      return (DataLimits)(cqlRowLimit == 2147483647?NONE:new DataLimits.CQLLimits(cqlRowLimit, null));
+      return (DataLimits)(cqlRowLimit == 2147483647?NONE:new DataLimits.CQLLimits(cqlRowLimit));
    }
 
    public static DataLimits cqlLimits(int cqlRowLimit, int perPartitionLimit) {
-      return (DataLimits)(cqlRowLimit == 2147483647 && perPartitionLimit == 2147483647?NONE:new DataLimits.CQLLimits(cqlRowLimit, perPartitionLimit, null));
+      return (DataLimits)(cqlRowLimit == 2147483647 && perPartitionLimit == 2147483647?NONE:new DataLimits.CQLLimits(cqlRowLimit, perPartitionLimit));
    }
 
    private static DataLimits cqlLimits(int bytesLimit, int cqlRowLimit, int perPartitionLimit, boolean isDistinct) {
-      return (DataLimits)(bytesLimit == 2147483647 && cqlRowLimit == 2147483647 && perPartitionLimit == 2147483647 && !isDistinct?NONE:new DataLimits.CQLLimits(bytesLimit, cqlRowLimit, perPartitionLimit, isDistinct, null));
+      return (DataLimits)(bytesLimit == 2147483647 && cqlRowLimit == 2147483647 && perPartitionLimit == 2147483647 && !isDistinct?NONE:new DataLimits.CQLLimits(bytesLimit, cqlRowLimit, perPartitionLimit, isDistinct));
    }
 
    public static DataLimits groupByLimits(int groupLimit, int groupPerPartitionLimit, int rowLimit, AggregationSpecification groupBySpec) {
@@ -403,126 +403,117 @@ public abstract class DataLimits {
 
       public void serialize(DataLimits limits, DataOutputPlus out, ClusteringComparator comparator) throws IOException {
          out.writeByte(limits.kind().ordinal());
-         switch(null.$SwitchMap$org$apache$cassandra$db$filter$DataLimits$Kind[limits.kind().ordinal()]) {
-         case 1:
-         case 2:
-            DataLimits.CQLLimits cqlLimits = (DataLimits.CQLLimits)limits;
-            out.writeUnsignedVInt((long)cqlLimits.rowLimit);
-            out.writeUnsignedVInt((long)cqlLimits.perPartitionLimit);
-            if(((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
-               out.writeUnsignedVInt((long)cqlLimits.bytesLimit);
-            }
-
-            out.writeBoolean(cqlLimits.isDistinct);
-            if(limits.kind() == DataLimits.Kind.CQL_PAGING_LIMIT) {
-               DataLimits.CQLPagingLimits pagingLimits = (DataLimits.CQLPagingLimits)cqlLimits;
+         switch (limits.kind()) {
+            case CQL_LIMIT:
+            case CQL_PAGING_LIMIT: {
+               CQLLimits cqlLimits = (CQLLimits)limits;
+               out.writeUnsignedVInt(cqlLimits.rowLimit);
+               out.writeUnsignedVInt(cqlLimits.perPartitionLimit);
+               if (((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
+                  out.writeUnsignedVInt(cqlLimits.bytesLimit);
+               }
+               out.writeBoolean(cqlLimits.isDistinct);
+               if (limits.kind() != Kind.CQL_PAGING_LIMIT) break;
+               CQLPagingLimits pagingLimits = (CQLPagingLimits)cqlLimits;
                ByteBufferUtil.writeWithVIntLength(pagingLimits.lastReturnedKey, out);
-               out.writeUnsignedVInt((long)pagingLimits.lastReturnedKeyRemaining);
+               out.writeUnsignedVInt(pagingLimits.lastReturnedKeyRemaining);
+               break;
             }
-            break;
-         case 3:
-         case 4:
-            DataLimits.CQLGroupByLimits groupByLimits = (DataLimits.CQLGroupByLimits)limits;
-            out.writeUnsignedVInt((long)groupByLimits.groupLimit);
-            out.writeUnsignedVInt((long)groupByLimits.groupPerPartitionLimit);
-            out.writeUnsignedVInt((long)groupByLimits.rowLimit);
-            if(((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
-               out.writeUnsignedVInt((long)groupByLimits.bytesLimit);
-            }
-
-            AggregationSpecification groupBySpec = groupByLimits.groupBySpec;
-            this.aggregationSpecificationSerializer.serialize(groupBySpec, out);
-            this.groupingStateSerializer.serialize(groupByLimits.state, out, comparator);
-            if(limits.kind() == DataLimits.Kind.CQL_GROUP_BY_PAGING_LIMIT) {
-               DataLimits.CQLGroupByPagingLimits pagingLimits = (DataLimits.CQLGroupByPagingLimits)groupByLimits;
+            case CQL_GROUP_BY_LIMIT:
+            case CQL_GROUP_BY_PAGING_LIMIT: {
+               CQLGroupByLimits groupByLimits = (CQLGroupByLimits)limits;
+               out.writeUnsignedVInt(groupByLimits.groupLimit);
+               out.writeUnsignedVInt(groupByLimits.groupPerPartitionLimit);
+               out.writeUnsignedVInt(groupByLimits.rowLimit);
+               if (((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
+                  out.writeUnsignedVInt(groupByLimits.bytesLimit);
+               }
+               AggregationSpecification groupBySpec = groupByLimits.groupBySpec;
+               AggregationSpecification.serializers.get((ReadVerbs.ReadVersion)this.version).serialize(groupBySpec, out);
+               GroupingState.serializers.get((ReadVerbs.ReadVersion)this.version).serialize(groupByLimits.state, out, comparator);
+               if (limits.kind() != Kind.CQL_GROUP_BY_PAGING_LIMIT) break;
+               CQLGroupByPagingLimits pagingLimits = (CQLGroupByPagingLimits)groupByLimits;
                ByteBufferUtil.writeWithVIntLength(pagingLimits.lastReturnedKey, out);
-               out.writeUnsignedVInt((long)pagingLimits.lastReturnedKeyRemaining);
+               out.writeUnsignedVInt(pagingLimits.lastReturnedKeyRemaining);
             }
          }
-
       }
 
       public DataLimits deserialize(DataInputPlus in, TableMetadata metadata) throws IOException {
-         DataLimits.Kind kind = DataLimits.Kind.values()[in.readUnsignedByte()];
-         int groupLimit;
-         int groupPerPartitionLimit;
-         int rowLimit;
-         switch(null.$SwitchMap$org$apache$cassandra$db$filter$DataLimits$Kind[kind.ordinal()]) {
-         case 1:
-         case 2:
-            groupLimit = (int)in.readUnsignedVInt();
-            groupPerPartitionLimit = (int)in.readUnsignedVInt();
-            rowLimit = ((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0?(int)in.readUnsignedVInt():2147483647;
-            boolean isDistinct = in.readBoolean();
-            if(kind == DataLimits.Kind.CQL_LIMIT) {
-               return DataLimits.cqlLimits(rowLimit, groupLimit, groupPerPartitionLimit, isDistinct);
+         Kind kind = Kind.values()[in.readUnsignedByte()];
+         switch (kind) {
+            case CQL_LIMIT:
+            case CQL_PAGING_LIMIT: {
+               int rowLimit = (int)in.readUnsignedVInt();
+               int perPartitionLimit = (int)in.readUnsignedVInt();
+               int bytesLimit = ((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0 ? (int)in.readUnsignedVInt() : Integer.MAX_VALUE;
+               boolean isDistinct = in.readBoolean();
+               if (kind == Kind.CQL_LIMIT) {
+                  return DataLimits.cqlLimits(bytesLimit, rowLimit, perPartitionLimit, isDistinct);
+               }
+               ByteBuffer lastKey = ByteBufferUtil.readWithVIntLength(in);
+               int lastRemaining = (int)in.readUnsignedVInt();
+               return new CQLPagingLimits(bytesLimit, rowLimit, perPartitionLimit, isDistinct, lastKey, lastRemaining);
             }
-
-            ByteBuffer lastKey = ByteBufferUtil.readWithVIntLength(in);
-            int lastRemaining = (int)in.readUnsignedVInt();
-            return new DataLimits.CQLPagingLimits(rowLimit, groupLimit, groupPerPartitionLimit, isDistinct, lastKey, lastRemaining);
-         case 3:
-         case 4:
-            groupLimit = (int)in.readUnsignedVInt();
-            groupPerPartitionLimit = (int)in.readUnsignedVInt();
-            rowLimit = (int)in.readUnsignedVInt();
-            int bytesLimit = ((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0?(int)in.readUnsignedVInt():2147483647;
-            AggregationSpecification groupBySpec = this.aggregationSpecificationSerializer.deserialize(in, metadata);
-            GroupingState state = this.groupingStateSerializer.deserialize(in, metadata.comparator);
-            if(kind == DataLimits.Kind.CQL_GROUP_BY_LIMIT) {
-               return new DataLimits.CQLGroupByLimits(groupLimit, groupPerPartitionLimit, bytesLimit, rowLimit, groupBySpec, state, null);
+            case CQL_GROUP_BY_LIMIT:
+            case CQL_GROUP_BY_PAGING_LIMIT: {
+               int groupLimit = (int)in.readUnsignedVInt();
+               int groupPerPartitionLimit = (int)in.readUnsignedVInt();
+               int rowLimit = (int)in.readUnsignedVInt();
+               int bytesLimit = ((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0 ? (int)in.readUnsignedVInt() : Integer.MAX_VALUE;
+               AggregationSpecification groupBySpec = AggregationSpecification.serializers.get((ReadVerbs.ReadVersion)this.version).deserialize(in, metadata);
+               GroupingState state = GroupingState.serializers.get((ReadVerbs.ReadVersion)this.version).deserialize(in, metadata.comparator);
+               if (kind == Kind.CQL_GROUP_BY_LIMIT) {
+                  return new CQLGroupByLimits(groupLimit, groupPerPartitionLimit, bytesLimit, rowLimit, groupBySpec, state);
+               }
+               ByteBuffer lastKey = ByteBufferUtil.readWithVIntLength(in);
+               int lastRemaining = (int)in.readUnsignedVInt();
+               return new CQLGroupByPagingLimits(groupLimit, groupPerPartitionLimit, bytesLimit, rowLimit, groupBySpec, state, lastKey, lastRemaining);
             }
-
-            ByteBuffer lastKey = ByteBufferUtil.readWithVIntLength(in);
-            int lastRemaining = (int)in.readUnsignedVInt();
-            return new DataLimits.CQLGroupByPagingLimits(groupLimit, groupPerPartitionLimit, bytesLimit, rowLimit, groupBySpec, state, lastKey, lastRemaining);
-         default:
-            throw new AssertionError();
          }
+         throw new AssertionError();
       }
 
       public long serializedSize(DataLimits limits, ClusteringComparator comparator) {
-         long size = (long)TypeSizes.sizeof((byte)limits.kind().ordinal());
-         switch(null.$SwitchMap$org$apache$cassandra$db$filter$DataLimits$Kind[limits.kind().ordinal()]) {
-         case 1:
-         case 2:
-            DataLimits.CQLLimits cqlLimits = (DataLimits.CQLLimits)limits;
-            size += (long)TypeSizes.sizeofUnsignedVInt((long)cqlLimits.rowLimit);
-            size += (long)TypeSizes.sizeofUnsignedVInt((long)cqlLimits.perPartitionLimit);
-            if(((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
-               size += (long)TypeSizes.sizeofUnsignedVInt((long)cqlLimits.bytesLimit);
-            }
-
-            size += (long)TypeSizes.sizeof(cqlLimits.isDistinct);
-            if(limits.kind() == DataLimits.Kind.CQL_PAGING_LIMIT) {
-               DataLimits.CQLPagingLimits pagingLimits = (DataLimits.CQLPagingLimits)cqlLimits;
+         long size = TypeSizes.sizeof((byte)limits.kind().ordinal());
+         switch (limits.kind()) {
+            case CQL_LIMIT:
+            case CQL_PAGING_LIMIT: {
+               CQLLimits cqlLimits = (CQLLimits)limits;
+               size += (long)TypeSizes.sizeofUnsignedVInt(cqlLimits.rowLimit);
+               size += (long)TypeSizes.sizeofUnsignedVInt(cqlLimits.perPartitionLimit);
+               if (((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
+                  size += (long)TypeSizes.sizeofUnsignedVInt(cqlLimits.bytesLimit);
+               }
+               size += (long)TypeSizes.sizeof(cqlLimits.isDistinct);
+               if (limits.kind() != Kind.CQL_PAGING_LIMIT) break;
+               CQLPagingLimits pagingLimits = (CQLPagingLimits)cqlLimits;
                size += (long)ByteBufferUtil.serializedSizeWithVIntLength(pagingLimits.lastReturnedKey);
-               size += (long)TypeSizes.sizeofUnsignedVInt((long)pagingLimits.lastReturnedKeyRemaining);
+               size += (long)TypeSizes.sizeofUnsignedVInt(pagingLimits.lastReturnedKeyRemaining);
+               break;
             }
-            break;
-         case 3:
-         case 4:
-            DataLimits.CQLGroupByLimits groupByLimits = (DataLimits.CQLGroupByLimits)limits;
-            size += (long)TypeSizes.sizeofUnsignedVInt((long)groupByLimits.groupLimit);
-            size += (long)TypeSizes.sizeofUnsignedVInt((long)groupByLimits.groupPerPartitionLimit);
-            size += (long)TypeSizes.sizeofUnsignedVInt((long)groupByLimits.rowLimit);
-            if(((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
-               size += (long)TypeSizes.sizeofUnsignedVInt((long)groupByLimits.bytesLimit);
-            }
-
-            AggregationSpecification groupBySpec = groupByLimits.groupBySpec;
-            size += this.aggregationSpecificationSerializer.serializedSize(groupBySpec);
-            size += this.groupingStateSerializer.serializedSize(groupByLimits.state, comparator);
-            if(limits.kind() == DataLimits.Kind.CQL_GROUP_BY_PAGING_LIMIT) {
-               DataLimits.CQLGroupByPagingLimits pagingLimits = (DataLimits.CQLGroupByPagingLimits)groupByLimits;
+            case CQL_GROUP_BY_LIMIT:
+            case CQL_GROUP_BY_PAGING_LIMIT: {
+               CQLGroupByLimits groupByLimits = (CQLGroupByLimits)limits;
+               size += (long)TypeSizes.sizeofUnsignedVInt(groupByLimits.groupLimit);
+               size += (long)TypeSizes.sizeofUnsignedVInt(groupByLimits.groupPerPartitionLimit);
+               size += (long)TypeSizes.sizeofUnsignedVInt(groupByLimits.rowLimit);
+               if (((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.DSE_60) >= 0) {
+                  size += (long)TypeSizes.sizeofUnsignedVInt(groupByLimits.bytesLimit);
+               }
+               AggregationSpecification groupBySpec = groupByLimits.groupBySpec;
+               size += AggregationSpecification.serializers.get((ReadVerbs.ReadVersion)this.version).serializedSize(groupBySpec);
+               size += GroupingState.serializers.get((ReadVerbs.ReadVersion)this.version).serializedSize(groupByLimits.state, comparator);
+               if (limits.kind() != Kind.CQL_GROUP_BY_PAGING_LIMIT) break;
+               CQLGroupByPagingLimits pagingLimits = (CQLGroupByPagingLimits)groupByLimits;
                size += (long)ByteBufferUtil.serializedSizeWithVIntLength(pagingLimits.lastReturnedKey);
-               size += (long)TypeSizes.sizeofUnsignedVInt((long)pagingLimits.lastReturnedKeyRemaining);
+               size += (long)TypeSizes.sizeofUnsignedVInt(pagingLimits.lastReturnedKeyRemaining);
+               break;
             }
-            break;
-         default:
-            throw new AssertionError();
+            default: {
+               throw new AssertionError();
+            }
          }
-
          return size;
       }
    }
@@ -532,7 +523,7 @@ public abstract class DataLimits {
       private final int lastReturnedKeyRemaining;
 
       public CQLGroupByPagingLimits(int groupLimit, int groupPerPartitionLimit, int bytesLimit, int rowLimit, AggregationSpecification groupBySpec, GroupingState state, ByteBuffer lastReturnedKey, int lastReturnedKeyRemaining) {
-         super(groupLimit, groupPerPartitionLimit, bytesLimit, rowLimit, groupBySpec, state, null);
+         super(groupLimit, groupPerPartitionLimit, bytesLimit, rowLimit, groupBySpec, state);
          this.lastReturnedKey = lastReturnedKey;
          this.lastReturnedKeyRemaining = lastReturnedKeyRemaining;
       }
@@ -556,7 +547,7 @@ public abstract class DataLimits {
       public DataLimits.Counter newCounter(int nowInSec, boolean assumeLiveData, boolean countPartitionsWithOnlyStaticData, RowPurger rowPurger) {
          assert this.state == GroupingState.EMPTY_STATE || this.lastReturnedKey.equals(this.state.partitionKey());
 
-         return new DataLimits.CQLGroupByPagingLimits.PagingGroupByAwareCounter(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger, null);
+         return new DataLimits.CQLGroupByPagingLimits.PagingGroupByAwareCounter(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger);
       }
 
       public DataLimits withoutState() {
@@ -582,7 +573,7 @@ public abstract class DataLimits {
 
       private class PagingGroupByAwareCounter extends DataLimits.CQLGroupByLimits.GroupByAwareCounter {
          private PagingGroupByAwareCounter(int nowInSec, boolean assumeLiveData, boolean countPartitionsWithOnlyStaticData, RowPurger rowPurger) {
-            super(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger, null);
+            super(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger);
          }
 
          public void newPartition(DecoratedKey partitionKey, Row staticRow) {
@@ -616,7 +607,7 @@ public abstract class DataLimits {
       }
 
       private CQLGroupByLimits(int groupLimit, int groupPerPartitionLimit, int bytesLimit, int rowLimit, AggregationSpecification groupBySpec, GroupingState state) {
-         super(bytesLimit, rowLimit, 2147483647, false, null);
+         super(bytesLimit, rowLimit, 2147483647, false);
          this.groupLimit = groupLimit;
          this.groupPerPartitionLimit = groupPerPartitionLimit;
          this.groupBySpec = groupBySpec;
@@ -636,7 +627,7 @@ public abstract class DataLimits {
       }
 
       public DataLimits forShortReadRetry(int toFetch) {
-         return new DataLimits.CQLLimits(toFetch, null);
+         return new DataLimits.CQLLimits(toFetch);
       }
 
       public float estimateTotalResults(ColumnFamilyStore cfs) {
@@ -664,7 +655,7 @@ public abstract class DataLimits {
       }
 
       public DataLimits.Counter newCounter(int nowInSec, boolean assumeLiveData, boolean countPartitionsWithOnlyStaticData, RowPurger rowPurger) {
-         return new DataLimits.CQLGroupByLimits.GroupByAwareCounter(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger, null);
+         return new DataLimits.CQLGroupByLimits.GroupByAwareCounter(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger);
       }
 
       public int count() {
@@ -903,7 +894,7 @@ public abstract class DataLimits {
       private final int lastReturnedKeyRemaining;
 
       public CQLPagingLimits(int bytesLimit, int rowLimit, int perPartitionLimit, boolean isDistinct, ByteBuffer lastReturnedKey, int lastReturnedKeyRemaining) {
-         super(bytesLimit, rowLimit, perPartitionLimit, isDistinct, null);
+         super(bytesLimit, rowLimit, perPartitionLimit, isDistinct);
          this.lastReturnedKey = lastReturnedKey;
          this.lastReturnedKeyRemaining = lastReturnedKeyRemaining;
       }
@@ -921,7 +912,7 @@ public abstract class DataLimits {
       }
 
       public DataLimits withoutState() {
-         return new DataLimits.CQLLimits(this.bytesLimit, this.rowLimit, this.perPartitionLimit, this.isDistinct, null);
+         return new DataLimits.CQLLimits(this.bytesLimit, this.rowLimit, this.perPartitionLimit, this.isDistinct);
       }
 
       public DataLimits withCount(int count) {
@@ -933,7 +924,7 @@ public abstract class DataLimits {
       }
 
       public DataLimits.Counter newCounter(int nowInSec, boolean assumeLiveData, boolean countPartitionsWithOnlyStaticData, RowPurger rowPurger) {
-         return new DataLimits.CQLPagingLimits.PagingAwareCounter(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger, null);
+         return new DataLimits.CQLPagingLimits.PagingAwareCounter(nowInSec, assumeLiveData, countPartitionsWithOnlyStaticData, rowPurger);
       }
 
       public boolean equals(Object other) {

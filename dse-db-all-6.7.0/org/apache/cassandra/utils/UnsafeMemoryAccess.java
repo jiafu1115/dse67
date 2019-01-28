@@ -45,15 +45,15 @@ public class UnsafeMemoryAccess {
    }
 
    public static int getUnsignedShort(long address) {
-      return (Architecture.IS_UNALIGNED?UnsafeAccess.UNSAFE.getShort(address):getShortByByte((Object)null, address, BIG_ENDIAN)) & '\uffff';
+      return (Architecture.IS_UNALIGNED?UnsafeAccess.UNSAFE.getShort(address):getShortByByte(null, address, BIG_ENDIAN)) & '\uffff';
    }
 
    public static int getInt(long address) {
-      return Architecture.IS_UNALIGNED?UnsafeAccess.UNSAFE.getInt((Object)null, address):getIntByByte((Object)null, address, BIG_ENDIAN);
+      return Architecture.IS_UNALIGNED?UnsafeAccess.UNSAFE.getInt(null, address):getIntByByte(null, address, BIG_ENDIAN);
    }
 
    public static long getLong(long address) {
-      return Architecture.IS_UNALIGNED?UnsafeAccess.UNSAFE.getLong(address):getLongByByte((Object)null, address, BIG_ENDIAN);
+      return Architecture.IS_UNALIGNED?UnsafeAccess.UNSAFE.getLong(address):getLongByByte(null, address, BIG_ENDIAN);
    }
 
    public static long getLongByByte(Object o, long address, boolean bigEndian) {

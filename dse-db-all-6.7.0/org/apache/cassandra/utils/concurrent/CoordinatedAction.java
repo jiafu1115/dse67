@@ -52,7 +52,7 @@ public class CoordinatedAction<T> implements Supplier<CompletableFuture<T>> {
                   if(this.futures.stream().noneMatch((f) -> {
                      return f.isCompletedExceptionally();
                   })) {
-                     ((CompletableFuture)this.action.get()).whenComplete((r, e) -> {
+                     this.action.get().whenComplete((r, e) -> {
                         if(e == null) {
                            this.futures.stream().forEach((f) -> {
                               f.complete(r);

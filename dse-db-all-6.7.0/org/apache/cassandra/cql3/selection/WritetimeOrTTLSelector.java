@@ -24,7 +24,7 @@ final class WritetimeOrTTLSelector extends Selector {
          int columnIndex = in.readInt();
          boolean isWritetime = in.readBoolean();
          boolean isMultiCell = in.readBoolean();
-         return new WritetimeOrTTLSelector(selected, columnIndex, isWritetime, isMultiCell, null);
+         return new WritetimeOrTTLSelector(selected, columnIndex, isWritetime, isMultiCell);
       }
    };
    private final Selector selected;
@@ -50,7 +50,7 @@ final class WritetimeOrTTLSelector extends Selector {
          }
 
          public Selector newInstance(QueryOptions options) {
-            return new WritetimeOrTTLSelector(factory.newInstance(options), columnIndex, isWritetime, isMultiCell, null);
+            return new WritetimeOrTTLSelector(factory.newInstance(options), columnIndex, isWritetime, isMultiCell);
          }
 
          public boolean isWritetimeSelectorFactory() {

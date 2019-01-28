@@ -150,14 +150,14 @@ abstract class AbstractDataSet implements DataSet {
 
    private Completable executeAddRow(Object partitionKey) {
       AbstractDataSet.DefaultPartition partition = this.createPartitionIfAbsent(partitionKey);
-      partition.add(new AbstractDataSet.DefaultRow(this.metadata, Clustering.EMPTY, ImmutableMap.of(), null));
+      partition.add(new AbstractDataSet.DefaultRow(this.metadata, Clustering.EMPTY, ImmutableMap.of()));
       return Completable.complete();
    }
 
    private AbstractDataSet.DefaultPartition createPartitionIfAbsent(Object partitionKey) {
       DecoratedKey dk = this.makeDecoratedKey(new Object[]{partitionKey});
       return (AbstractDataSet.DefaultPartition)this.partitions.computeIfAbsent(dk, (key) -> {
-         return new AbstractDataSet.DefaultPartition(dk, this.newNavigableMap(this.metadata.comparator), null);
+         return new AbstractDataSet.DefaultPartition(dk, this.newNavigableMap(this.metadata.comparator));
       });
    }
 
@@ -199,11 +199,11 @@ abstract class AbstractDataSet implements DataSet {
    }
 
    private static <T> ByteBuffer decompose(AbstractType<?> type, T value) {
-      return type.decompose(value);
+      return ((AbstractType<T>)type).decompose(value);
    }
 
    private static <T> T compose(AbstractType<?> type, ByteBuffer bytes) {
-      return type.compose(bytes);
+      return (T)type.compose(bytes);
    }
 
    public int getAverageColumnSize() {
@@ -230,18 +230,17 @@ abstract class AbstractDataSet implements DataSet {
       }
 
       public Cell getCell(long now) {
-         return BufferCell.live(this.column(), now, this.column().type.decompose(this.supplier.get()));
+         return BufferCell.live(this.column(), now, AbstractDataSet.decompose(this.column().type, this.supplier.get()));
       }
 
       public void setCell(Cell cell) {
-         assert this.consumer != null;
-
-         this.consumer.accept(this.column().type.compose(cell.value()));
+         assert (this.consumer != null);
+         this.consumer.accept(AbstractDataSet.compose(this.column().type, cell.value()));
       }
 
       public long sizeInBytes() {
-         int fixedLength = this.metadata.type.valueLengthIfFixed();
-         return fixedLength > 0?(long)fixedLength:(long)this.column().type.decompose(this.supplier.get()).remaining();
+         final int fixedLength = this.metadata.type.valueLengthIfFixed();
+         return (fixedLength > 0) ? fixedLength : ((long)decompose(this.column().type, this.supplier.get()).remaining());
       }
    }
 
@@ -262,7 +261,7 @@ abstract class AbstractDataSet implements DataSet {
       public DataSet.RowBuilder addColumn(String columnName, Supplier<?> supplier, Consumer<?> consumer) {
          ColumnMetadata column = this.metadata.getColumn(ByteBufferUtil.bytes(columnName));
          if(null != column && column.isRegular()) {
-            this.builder.put(column, new AbstractDataSet.DataWrapper(column, supplier, consumer, null));
+            this.builder.put(column, new AbstractDataSet.DataWrapper(column, supplier, consumer));
             return this;
          } else {
             throw new IllegalArgumentException();
@@ -270,7 +269,7 @@ abstract class AbstractDataSet implements DataSet {
       }
 
       public AbstractDataSet.DefaultRow build() {
-         return new AbstractDataSet.DefaultRow(this.metadata, this.clustering, this.builder.build(), null);
+         return new AbstractDataSet.DefaultRow(this.metadata, this.clustering, this.builder.build());
       }
    }
 

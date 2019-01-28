@@ -25,7 +25,7 @@ public class ExecutableLock {
    public <T> CompletableFuture<T> execute(Supplier<CompletableFuture<T>> action, Executor executor) {
       CompletableFuture<T> initiator = new CompletableFuture();
       this.tryExecute(initiator, executor);
-      return initiator.thenCompose((f) -> {
+      return initiator.<T>thenCompose((f) -> {
          return (CompletableFuture)action.get();
       }).whenComplete((result, error) -> {
          this.unlockAndTryNext();
@@ -42,7 +42,7 @@ public class ExecutableLock {
          this.unlockAndTryNext();
       }
 
-      return var2;
+      return (T)var2;
    }
 
    private <T> void tryExecute(CompletableFuture<T> future, Executor executor) {
@@ -50,7 +50,7 @@ public class ExecutableLock {
       if(this.lock.tryAcquire()) {
          try {
             if(!future.isDone()) {
-               future.complete((Object)null);
+               future.complete(null);
             } else {
                this.unlockAndTryNext();
             }
@@ -80,7 +80,7 @@ public class ExecutableLock {
       private final CompletableFuture<T> future;
       private final Executor executor;
 
-      AsyncAction(CompletableFuture<T> var1, Executor future) {
+      AsyncAction(CompletableFuture<T> future, Executor executor) {
          this.future = future;
          this.executor = executor;
       }

@@ -176,7 +176,7 @@ public class MetadataSerializer implements IMetadataSerializer {
       MetadataType[] allMetadataTypes = MetadataType.values();
       Map<MetadataType, MetadataComponent> components = new EnumMap(MetadataType.class);
 
-      for(int i = 0; i < count; ++i) {
+      for(i = 0; i < count; ++i) {
          MetadataType type = allMetadataTypes[ordinals[i]];
          if(!selectedTypes.contains(type)) {
             in.skipBytes(lengths[i]);

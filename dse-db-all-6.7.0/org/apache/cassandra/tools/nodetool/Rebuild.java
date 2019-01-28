@@ -83,7 +83,7 @@ public class Rebuild extends NodeTool.NodeToolCmd {
             System.out.printf("No keyspaces explicitly specified, will use the keyspaces %s%n", new Object[]{String.join(", ", probe.getLocallyReplicatedKeyspaces())});
          }
 
-         List<String> whitelistDCs = this.sourceDataCenterName != null?UnmodifiableArrayList.of((Object)this.sourceDataCenterName):commaSeparatedList(this.sourceDCs);
+         List<String> whitelistDCs = this.sourceDataCenterName != null?UnmodifiableArrayList.of(this.sourceDataCenterName):commaSeparatedList(this.sourceDCs);
          List<String> blacklistDcs = commaSeparatedList(this.excludeDCs);
          List<String> whitelistSources = commaSeparatedList(this.specificSources);
          List blacklistSources = commaSeparatedList(this.excludeSources);

@@ -567,7 +567,7 @@ public class StorageProxy implements StorageProxyMBean {
             assert batchlogCompletable != null;
 
             AsyncLatch cleanupLatch = new AsyncLatch((long)latchCount, () -> {
-               asyncRemoveFromBatchlog(UnmodifiableArrayList.of((Object)FBUtilities.getBroadcastAddress()), batchUUID);
+               asyncRemoveFromBatchlog(UnmodifiableArrayList.of(FBUtilities.getBroadcastAddress()), batchUUID);
             });
             java.util.function.Consumer<Response<EmptyPayload>> onReplicaResponse = (r) -> {
                viewWriteMetrics.viewReplicasSuccess.inc();
@@ -600,72 +600,64 @@ public class StorageProxy implements StorageProxyMBean {
       long size = IMutation.dataSize(mutations);
       writeMetrics.mutationSize.update(size);
       ((ClientWriteRequestMetrics)writeMetricsMap.get(consistencyLevel)).mutationSize.update(size);
-      return augmented != null?mutateAtomically(augmented, consistencyLevel, updatesView, queryStartNanoTime).toSingleDefault(new ResultMessage.Void()):(!mutateAtomically && !updatesView?mutate(mutations, consistencyLevel, queryStartNanoTime):mutateAtomically(mutations, consistencyLevel, updatesView, queryStartNanoTime).toSingleDefault(new ResultMessage.Void()));
+      return augmented != null?mutateAtomically(augmented, consistencyLevel, updatesView, queryStartNanoTime).
+              toSingleDefault(new ResultMessage.Void()):
+              (!mutateAtomically && !updatesView?
+                      mutate(mutations, consistencyLevel, queryStartNanoTime):
+                      mutateAtomically((Collection<Mutation>)mutations, consistencyLevel, updatesView, queryStartNanoTime).toSingleDefault(new ResultMessage.Void()));
    }
 
    private static Completable mutateAtomically(Collection<Mutation> mutations, ConsistencyLevel consistencyLevel, boolean requireQuorumForRemove, long queryStartNanoTime) throws UnavailableException, OverloadedException, WriteTimeoutException {
       Tracing.trace("Determining replicas for atomic batch");
       long startTime = ApolloTime.approximateNanoTime();
-      ArrayList mutationsAndEndpoints = new ArrayList(mutations.size());
-
+      ArrayList<MutationAndEndpoints> mutationsAndEndpoints = new ArrayList<MutationAndEndpoints>(mutations.size());
       try {
-         Iterator var8 = mutations.iterator();
-
-         while(var8.hasNext()) {
-            Mutation mutation = (Mutation)var8.next();
-            WriteEndpoints endpoints = WriteEndpoints.compute((IMutation)mutation);
+         for (Mutation mutation : mutations) {
+            WriteEndpoints endpoints = WriteEndpoints.compute(mutation);
             endpoints.checkAvailability(consistencyLevel);
-            mutationsAndEndpoints.add(new StorageProxy.MutationAndEndpoints(mutation, endpoints));
+            mutationsAndEndpoints.add(new MutationAndEndpoints(mutation, endpoints));
          }
-      } catch (UnavailableException var15) {
-         writeMetrics.unavailables.mark();
-         ((ClientWriteRequestMetrics)writeMetricsMap.get(consistencyLevel)).unavailables.mark();
-         Tracing.trace("Unavailable");
-         return Completable.error(var15);
       }
-
-      ConsistencyLevel batchConsistencyLevel = requireQuorumForRemove && !consistencyLevel.isAtLeastQuorum()?ConsistencyLevel.QUORUM:consistencyLevel;
-      WriteEndpoints batchlogEndpoints = getBatchlogEndpoints(batchConsistencyLevel);
+      catch (UnavailableException e2) {
+         StorageProxy.writeMetrics.unavailables.mark();
+         StorageProxy.writeMetricsMap.get((Object)consistencyLevel).unavailables.mark();
+         Tracing.trace("Unavailable");
+         return Completable.error((Throwable)e2);
+      }
+      ConsistencyLevel batchConsistencyLevel = requireQuorumForRemove && !consistencyLevel.isAtLeastQuorum() ? ConsistencyLevel.QUORUM : consistencyLevel;
+      WriteEndpoints batchlogEndpoints = StorageProxy.getBatchlogEndpoints(batchConsistencyLevel);
       UUID batchUUID = UUIDGen.getTimeUUID();
-      Completable batchlogCompletable = writeToBatchlog(mutations, batchlogEndpoints, batchUUID, queryStartNanoTime).toObservable();
-      AsyncLatch cleanupLatch = new AsyncLatch((long)mutations.size(), () -> {
-         asyncRemoveFromBatchlog(batchlogEndpoints.live(), batchUUID);
-      });
-      List<WriteHandler> handlers = UnmodifiableArrayList.transformOf(mutationsAndEndpoints, (mae) -> {
+      Completable batchlogCompletable = StorageProxy.writeToBatchlog(mutations, batchlogEndpoints, batchUUID, queryStartNanoTime).toObservable();
+      AsyncLatch cleanupLatch = new AsyncLatch(mutations.size(), () -> StorageProxy.asyncRemoveFromBatchlog(batchlogEndpoints.live(), batchUUID));
+      List<WriteHandler> handlers = UnmodifiableArrayList.transformOf(mutationsAndEndpoints, mae -> {
          Keyspace keyspace = mae.endpoints.keyspace();
-         long var10002 = (long)batchConsistencyLevel.blockFor(keyspace);
-         cleanupLatch.getClass();
-         AsyncLatch toCleanupLatch = new AsyncLatch(var10002, cleanupLatch::countDown);
-         return WriteHandler.builder(mae.endpoints, consistencyLevel, WriteType.BATCH, queryStartNanoTime, TPC.bestTPCTimer()).withIdealConsistencyLevel(DatabaseDescriptor.getIdealConsistencyLevel()).onResponse((r) -> {
-            toCleanupLatch.countDown();
-         }).build();
+         AsyncLatch toCleanupLatch = new AsyncLatch(batchConsistencyLevel.blockFor(keyspace), cleanupLatch::countDown);
+         return WriteHandler.builder(mae.endpoints, consistencyLevel, WriteType.BATCH, queryStartNanoTime, TPC.bestTPCTimer()).withIdealConsistencyLevel(DatabaseDescriptor.getIdealConsistencyLevel()).onResponse(r -> toCleanupLatch.countDown()).build();
       });
-      Completable ret = batchlogCompletable.andThen(Completable.defer(() -> {
-         writeBatchedMutations(mutationsAndEndpoints, handlers, Verbs.WRITES.WRITE);
+      Completable ret = batchlogCompletable.andThen((CompletableSource)Completable.defer(() -> {
+         StorageProxy.writeBatchedMutations(mutationsAndEndpoints, handlers, Verbs.WRITES.WRITE);
          return Completable.concat((Iterable)handlers.stream().map(WriteHandler::toObservable).collect(Collectors.toList()));
       }));
-      return ret.onErrorResumeNext((e) -> {
-         if(e instanceof UnavailableException) {
-            writeMetrics.unavailables.mark();
-            ((ClientWriteRequestMetrics)writeMetricsMap.get(consistencyLevel)).unavailables.mark();
+      return ret.onErrorResumeNext(e -> {
+         if (e instanceof UnavailableException) {
+            StorageProxy.writeMetrics.unavailables.mark();
+            StorageProxy.writeMetricsMap.get((Object)consistencyLevel).unavailables.mark();
             Tracing.trace("Unavailable");
-         } else if(e instanceof WriteTimeoutException) {
-            writeMetrics.timeouts.mark();
-            ((ClientWriteRequestMetrics)writeMetricsMap.get(consistencyLevel)).timeouts.mark();
+         } else if (e instanceof WriteTimeoutException) {
+            StorageProxy.writeMetrics.timeouts.mark();
+            StorageProxy.writeMetricsMap.get((Object)consistencyLevel).timeouts.mark();
             WriteTimeoutException wte = (WriteTimeoutException)e;
-            Tracing.trace("Write timeout; received {} of {} required replies", Integer.valueOf(wte.received), Integer.valueOf(wte.blockFor));
-         } else if(e instanceof WriteFailureException) {
-            writeMetrics.failures.mark();
-            ((ClientWriteRequestMetrics)writeMetricsMap.get(consistencyLevel)).failures.mark();
+            Tracing.trace("Write timeout; received {} of {} required replies", (Object)wte.received, (Object)wte.blockFor);
+         } else if (e instanceof WriteFailureException) {
+            StorageProxy.writeMetrics.failures.mark();
+            StorageProxy.writeMetricsMap.get((Object)consistencyLevel).failures.mark();
             WriteFailureException wfe = (WriteFailureException)e;
-            Tracing.trace("Write failure; received {} of {} required replies", Integer.valueOf(wfe.received), Integer.valueOf(wfe.blockFor));
+            Tracing.trace("Write failure; received {} of {} required replies", (Object)wfe.received, (Object)wfe.blockFor);
          }
-
-         return Completable.error(e);
-      }).doFinally(() -> {
-         recordLatency(consistencyLevel, startTime);
-      });
+         return Completable.error((Throwable)e);
+      }).doFinally(() -> StorageProxy.recordLatency(consistencyLevel, startTime));
    }
+
 
    public static boolean isLocalRange(String keyspaceName, AbstractBounds<PartitionPosition> range) {
       assert !AbstractBounds.strictlyWrapsAround(range.left, range.right);
@@ -775,7 +767,7 @@ public class StorageProxy implements StorageProxyMBean {
       Keyspace keyspace = Keyspace.open(cm.getKeyspaceName());
       InetAddress endpoint = findSuitableEndpoint(keyspace, cm.key(), cm.consistency());
       WriteEndpoints.compute((IMutation)cm).checkAvailability(cm.consistency());
-      WriteHandler handler = WriteHandler.create(WriteEndpoints.withLive(keyspace, UnmodifiableArrayList.of((Object)endpoint)), ConsistencyLevel.ONE, WriteType.COUNTER, queryStartNanoTime, TPC.bestTPCTimer());
+      WriteHandler handler = WriteHandler.create(WriteEndpoints.withLive(keyspace, UnmodifiableArrayList.of(endpoint)), ConsistencyLevel.ONE, WriteType.COUNTER, queryStartNanoTime, TPC.bestTPCTimer());
       if(!endpoint.equals(FBUtilities.getBroadcastAddress())) {
          Tracing.trace("Forwarding counter update to write leader {}", (Object)endpoint);
       }
@@ -1058,7 +1050,7 @@ public class StorageProxy implements StorageProxyMBean {
    }
 
    private static Flow<FlowablePartition> getRangeSliceRemote(PartitionRangeReadCommand command, ReadContext ctx) {
-      checkNotBootstrappingOrSystemQuery(UnmodifiableArrayList.of((Object)command), new ClientRequestMetrics[]{rangeMetrics});
+      checkNotBootstrappingOrSystemQuery(UnmodifiableArrayList.of(command), new ClientRequestMetrics[]{rangeMetrics});
       Tracing.trace("Computing ranges to query");
       Keyspace keyspace = Keyspace.open(command.metadata().keyspace);
       StorageProxy.RangeIterator ranges = new StorageProxy.RangeIterator(command, keyspace, ctx);
@@ -1073,7 +1065,7 @@ public class StorageProxy implements StorageProxyMBean {
    private static Flow<FlowablePartition> getRangeSliceLocalContinuous(PartitionRangeReadCommand command, ReadContext ctx) {
       assert ctx.consistencyLevel.isSingleNode();
 
-      checkNotBootstrappingOrSystemQuery(UnmodifiableArrayList.of((Object)command), new ClientRequestMetrics[]{rangeMetrics});
+      checkNotBootstrappingOrSystemQuery(UnmodifiableArrayList.of(command), new ClientRequestMetrics[]{rangeMetrics});
       if(logger.isTraceEnabled()) {
          logger.trace("Querying local ranges {} for continuous paging", command);
       }
@@ -1089,106 +1081,75 @@ public class StorageProxy implements StorageProxyMBean {
 
    public static Map<String, List<String>> describeSchemaVersions() {
       String myVersion = Schema.instance.getVersion().toString();
-      final Map<InetAddress, UUID> versions = new ConcurrentHashMap();
+      final ConcurrentHashMap versions = new ConcurrentHashMap();
       Set<InetAddress> liveHosts = Gossiper.instance.getLiveMembers();
       final CountDownLatch latch = new CountDownLatch(liveHosts.size());
-      MessageCallback<UUID> cb = new MessageCallback<UUID>() {
+      MessageCallback<UUID> cb = new MessageCallback<UUID>(){
+
+         @Override
          public void onResponse(Response<UUID> message) {
             versions.put(message.from(), message.payload());
             latch.countDown();
          }
 
+         @Override
          public void onFailure(FailureResponse<UUID> message) {
          }
       };
-      Iterator var5 = liveHosts.iterator();
-
-      while(var5.hasNext()) {
-         InetAddress endpoint = (InetAddress)var5.next();
+      for (InetAddress endpoint : liveHosts) {
          MessagingService.instance().send(Verbs.SCHEMA.VERSION.newRequest(endpoint, EmptyPayload.instance), cb);
       }
-
       try {
          latch.await(DatabaseDescriptor.getRpcTimeout(), TimeUnit.MILLISECONDS);
-      } catch (InterruptedException var12) {
-         throw new AssertionError("This latch shouldn't have been interrupted.");
       }
-
-      Map<String, List<String>> results = new HashMap();
+      catch (InterruptedException ex) {
+         throw new AssertionError((Object)"This latch shouldn't have been interrupted.");
+      }
+      HashMap<String, List<String>> results = new HashMap<String, List<String>>();
       Iterable<InetAddress> allHosts = Iterables.concat(Gossiper.instance.getLiveMembers(), Gossiper.instance.getUnreachableMembers());
-
-      Iterator var7;
-      InetAddress host;
-      String host;
-      Object hosts;
-      for(var7 = allHosts.iterator(); var7.hasNext(); ((List)hosts).add(host.getHostAddress())) {
-         host = (InetAddress)var7.next();
+      for (InetAddress host : allHosts) {
          UUID version = (UUID)versions.get(host);
-         host = version == null?"UNREACHABLE":version.toString();
-         hosts = (List)results.get(host);
-         if(hosts == null) {
-            hosts = new ArrayList();
-            results.put(host, hosts);
+         String stringVersion = version == null ? UNREACHABLE : version.toString();
+         ArrayList<String> hosts = (ArrayList<String>)results.get(stringVersion);
+         if (hosts == null) {
+            hosts = new ArrayList<String>();
+            results.put(stringVersion, hosts);
+         }
+         hosts.add(host.getHostAddress());
+      }
+      if (results.get(UNREACHABLE) != null) {
+         logger.debug("Hosts not in agreement. Didn't get a response from everybody: {}", (Object)StringUtils.join((Iterable)((Iterable)results.get(UNREACHABLE)), (String)","));
+      }
+      for (Map.Entry entry : results.entrySet()) {
+         if (((String)entry.getKey()).equals(UNREACHABLE) || ((String)entry.getKey()).equals(myVersion)) continue;
+         for (String host : (List<String>)entry.getValue()) {
+            logger.debug("{} disagrees ({})", (Object)host, entry.getKey());
          }
       }
-
-      if(results.get("UNREACHABLE") != null) {
-         logger.debug("Hosts not in agreement. Didn't get a response from everybody: {}", StringUtils.join((Iterable)results.get("UNREACHABLE"), ","));
+      if (results.size() == 1) {
+         logger.debug("Schemas are in agreement.");
       }
-
-      var7 = results.entrySet().iterator();
-
-      while(true) {
-         Entry entry;
-         do {
-            do {
-               if(!var7.hasNext()) {
-                  if(results.size() == 1) {
-                     logger.debug("Schemas are in agreement.");
-                  }
-
-                  return results;
-               }
-
-               entry = (Entry)var7.next();
-            } while(((String)entry.getKey()).equals("UNREACHABLE"));
-         } while(((String)entry.getKey()).equals(myVersion));
-
-         Iterator var16 = ((List)entry.getValue()).iterator();
-
-         while(var16.hasNext()) {
-            host = (String)var16.next();
-            logger.debug("{} disagrees ({})", host, entry.getKey());
-         }
-      }
+      return results;
    }
 
    static <T extends RingPosition<T>> List<AbstractBounds<T>> getRestrictedRanges(AbstractBounds<T> queryRange) {
-      if(queryRange instanceof Bounds && queryRange.left.equals(queryRange.right) && !queryRange.left.isMinimum()) {
-         return UnmodifiableArrayList.of((Object)queryRange);
-      } else {
-         TokenMetadata tokenMetadata = StorageService.instance.getTokenMetadata();
-         List<AbstractBounds<T>> ranges = new ArrayList();
-         Iterator<Token> ringIter = TokenMetadata.ringIterator(tokenMetadata.sortedTokens(), queryRange.left.getToken(), true);
-         AbstractBounds remainder = queryRange;
-
-         while(ringIter.hasNext()) {
-            Token upperBoundToken = (Token)ringIter.next();
-            T upperBound = upperBoundToken.upperBound(queryRange.left.getClass());
-            if(!remainder.left.equals(upperBound) && !remainder.contains(upperBound)) {
-               break;
-            }
-
-            Pair<AbstractBounds<T>, AbstractBounds<T>> splits = remainder.split(upperBound);
-            if(splits != null) {
-               ranges.add(splits.left);
-               remainder = (AbstractBounds)splits.right;
-            }
-         }
-
-         ranges.add(remainder);
-         return ranges;
+      Token upperBoundToken;
+      RingPosition upperBound;
+      if (queryRange instanceof Bounds && queryRange.left.equals(queryRange.right) && !queryRange.left.isMinimum()) {
+         return Collections.singletonList(queryRange);
       }
+      TokenMetadata tokenMetadata = StorageService.instance.getTokenMetadata();
+      ArrayList<AbstractBounds<T>> ranges = new ArrayList<AbstractBounds<T>>();
+      Iterator<Token> ringIter = TokenMetadata.ringIterator(tokenMetadata.sortedTokens(), queryRange.left.getToken(), true);
+      AbstractBounds remainder = queryRange;
+      while (ringIter.hasNext() && (remainder.left.equals(upperBound = (upperBoundToken = ringIter.next()).upperBound(queryRange.left.getClass())) || remainder.contains(upperBound))) {
+         Pair<AbstractBounds<T>, AbstractBounds<T>> splits = remainder.split(upperBound);
+         if (splits == null) continue;
+         ranges.add((AbstractBounds<T>)splits.left);
+         remainder = (AbstractBounds)splits.right;
+      }
+      ranges.add(remainder);
+      return ranges;
    }
 
    public boolean getHintedHandoffEnabled() {
@@ -1328,48 +1289,39 @@ public class StorageProxy implements StorageProxyMBean {
 
    public static Future<Void> maybeSubmitHint(Mutation mutation, Iterable<InetAddress> candidates, WriteHandler handler) {
       int cap = 8;
-      if(candidates instanceof Collection) {
-         cap = Math.min(8, (int)((float)((Collection)candidates).size() / 0.75F + 1.0F));
+      if (candidates instanceof Collection) {
+         cap = Math.min(8, (int)((float)((Collection)candidates).size() / 0.75f + 1.0f));
       }
-
-      Set<InetAddress> tmpTargets = null;
-      Set<UUID> tmpHostIds = null;
-      Iterator var6 = candidates.iterator();
-
-      while(var6.hasNext()) {
-         InetAddress target = (InetAddress)var6.next();
-         if(shouldHint(target)) {
-            UUID hostId = StorageService.instance.getHostIdForEndpoint(target);
-            if(hostId != null) {
-               if(tmpTargets == null) {
-                  tmpTargets = SetsFactory.newSetForSize(cap);
-                  tmpHostIds = SetsFactory.newSetForSize(cap);
-               }
-
-               tmpTargets.add(target);
-               tmpHostIds.add(hostId);
-            } else {
-               logger.debug("Discarding hint for endpoint not part of ring: {}", target);
+      Set tmpTargets = null;
+      Set tmpHostIds = null;
+      for (InetAddress target : candidates) {
+         if (!StorageProxy.shouldHint(target)) continue;
+         UUID hostId = StorageService.instance.getHostIdForEndpoint(target);
+         if (hostId != null) {
+            if (tmpTargets == null) {
+               tmpTargets = SetsFactory.newSetForSize(cap);
+               tmpHostIds = SetsFactory.newSetForSize(cap);
             }
+            tmpTargets.add(target);
+            tmpHostIds.add(hostId);
+            continue;
          }
+         logger.debug("Discarding hint for endpoint not part of ring: {}", (Object)target);
       }
-
-      if(tmpTargets == null) {
-         return Futures.immediateFuture((Object)null);
-      } else {
-         return submitHint(tmpTargets, Completable.defer(() -> {
-            logger.trace("Adding hints for {}", tmpTargets);
-            HintsService.instance.write((Iterable)tmpHostIds, Hint.create(mutation, ApolloTime.systemClockMillis()));
-            HintedHandoffMetrics var10001 = HintsService.instance.metrics;
-            HintsService.instance.metrics.getClass();
-            tmpTargets.forEach(var10001::incrCreatedHints);
-            if(handler != null && handler.consistencyLevel() == ConsistencyLevel.ANY) {
-               handler.onLocalResponse();
-            }
-
-            return Completable.complete();
-         }));
+      if (tmpTargets == null) {
+         return Futures.immediateFuture(null);
       }
+      Set<InetAddress> targets = tmpTargets;
+      Set hostIds = tmpHostIds;
+      return StorageProxy.submitHint(targets, Completable.defer(() -> {
+         logger.trace("Adding hints for {}", (Object)targets);
+         HintsService.instance.write(hostIds, Hint.create(mutation, ApolloTime.systemClockMillis()));
+         targets.forEach(HintsService.instance.metrics::incrCreatedHints);
+         if (handler != null && handler.consistencyLevel() == ConsistencyLevel.ANY) {
+            handler.onLocalResponse();
+         }
+         return Completable.complete();
+      }));
    }
 
    private static Future<Void> submitHint(Collection<InetAddress> targets, Completable hintsCompletable) {
@@ -1551,7 +1503,7 @@ public class StorageProxy implements StorageProxyMBean {
          this.command = command;
          this.concurrencyFactor = concurrencyFactor;
          this.startTime = ApolloTime.approximateNanoTime();
-         this.ranges = new StorageProxy.RangeMerger(ranges, ctx, null);
+         this.ranges = new StorageProxy.RangeMerger(ranges, ctx);
          this.totalRangeCount = ranges.rangeCount();
          this.ctx = ctx;
       }

@@ -205,9 +205,7 @@ public abstract class CassandraIndex implements Index {
    }
 
    public RowFilter getPostIndexQueryFilter(RowFilter filter) {
-      Optional var10000 = this.getTargetExpression(filter.getExpressions());
-      filter.getClass();
-      return (RowFilter)var10000.map(filter::without).orElse(filter);
+      return this.getTargetExpression(filter.getExpressions()).map(filter::without).orElse(filter);
    }
 
    private Optional<RowFilter.Expression> getTargetExpression(List<RowFilter.Expression> expressions) {
@@ -216,44 +214,50 @@ public abstract class CassandraIndex implements Index {
 
    public Index.Searcher searcherFor(ReadCommand command) {
       Optional<RowFilter.Expression> target = this.getTargetExpression(command.rowFilter().getExpressions());
-      if(target.isPresent()) {
-         switch(null.$SwitchMap$org$apache$cassandra$schema$IndexMetadata$Kind[this.getIndexMetadata().kind.ordinal()]) {
-         case 1:
-            if(!this.indexedColumn.isStatic()) {
-               return new CompositesSearcher(command, (RowFilter.Expression)target.get(), this);
+      if (target.isPresent()) {
+         switch (this.getIndexMetadata().kind) {
+            case COMPOSITES: {
+               if (!this.indexedColumn.isStatic()) {
+                  return new CompositesSearcher(command, target.get(), this);
+               }
+               return new StaticColumnsSearcher(command, target.get(), this);
             }
-
-            return new StaticColumnsSearcher(command, (RowFilter.Expression)target.get(), this);
-         case 2:
-            return new KeysSearcher(command, (RowFilter.Expression)target.get(), this);
-         default:
-            throw new IllegalStateException(String.format("Unsupported index type %s for index %s on %s", new Object[]{this.metadata.kind, this.metadata.name, this.indexedColumn.name.toString()}));
+            case KEYS: {
+               return new KeysSearcher(command, target.get(), this);
+            }
          }
-      } else {
-         return null;
+         throw new IllegalStateException(String.format("Unsupported index type %s for index %s on %s", new Object[]{this.metadata.kind, this.metadata.name, this.indexedColumn.name.toString()}));
+      }
+      return null;
+   }
+
+   public void validate(final PartitionUpdate update) throws InvalidRequestException {
+      switch (this.indexedColumn.kind) {
+         case PARTITION_KEY: {
+            this.validatePartitionKey(update.partitionKey());
+            break;
+         }
+         case CLUSTERING: {
+            this.validateClusterings(update);
+            break;
+         }
+         case REGULAR: {
+            if (update.columns().regulars.contains(this.indexedColumn)) {
+               this.validateRows(update);
+               break;
+            }
+            break;
+         }
+         case STATIC: {
+            if (update.columns().statics.contains(this.indexedColumn)) {
+               this.validateRows(Collections.singleton(update.staticRow()));
+               break;
+            }
+            break;
+         }
       }
    }
 
-   public void validate(PartitionUpdate update) throws InvalidRequestException {
-      switch(null.$SwitchMap$org$apache$cassandra$schema$ColumnMetadata$Kind[this.indexedColumn.kind.ordinal()]) {
-      case 1:
-         this.validatePartitionKey(update.partitionKey());
-         break;
-      case 2:
-         this.validateClusterings(update);
-         break;
-      case 3:
-         if(update.columns().regulars.contains(this.indexedColumn)) {
-            this.validateRows(update);
-         }
-         break;
-      case 4:
-         if(update.columns().statics.contains(this.indexedColumn)) {
-            this.validateRows(Collections.singleton(update.staticRow()));
-         }
-      }
-
-   }
 
    public Index.Indexer indexerFor(final DecoratedKey key, RegularAndStaticColumns columns, final int nowInSec, final OpOrder.Group opGroup, IndexTransaction.Type transactionType) {
       return !this.isPrimaryKeyIndex() && !columns.contains(this.indexedColumn)?null:new Index.Indexer() {
@@ -577,42 +581,52 @@ public abstract class CassandraIndex implements Index {
       return getFunctions(indexMetadata, TargetParser.parse(baseCfs.metadata(), indexMetadata)).newIndexInstance(baseCfs, indexMetadata);
    }
 
-   static CassandraIndexFunctions getFunctions(IndexMetadata indexDef, Pair<ColumnMetadata, IndexTarget.Type> target) {
-      if(indexDef.isKeys()) {
+   static CassandraIndexFunctions getFunctions(final IndexMetadata indexDef, final Pair<ColumnMetadata, IndexTarget.Type> target) {
+      if (indexDef.isKeys()) {
          return CassandraIndexFunctions.KEYS_INDEX_FUNCTIONS;
-      } else {
-         ColumnMetadata indexedColumn = (ColumnMetadata)target.left;
-         if(indexedColumn.type.isCollection() && indexedColumn.type.isMultiCell()) {
-            switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[((CollectionType)indexedColumn.type).kind.ordinal()]) {
-            case 1:
+      }
+      final ColumnMetadata indexedColumn = target.left;
+      if (indexedColumn.type.isCollection() && indexedColumn.type.isMultiCell()) {
+         switch (((CollectionType) indexedColumn.type).kind) {
+            case LIST: {
                return CassandraIndexFunctions.COLLECTION_VALUE_INDEX_FUNCTIONS;
-            case 2:
+            }
+            case SET: {
                return CassandraIndexFunctions.COLLECTION_KEY_INDEX_FUNCTIONS;
-            case 3:
-               switch(null.$SwitchMap$org$apache$cassandra$cql3$statements$IndexTarget$Type[((IndexTarget.Type)target.right).ordinal()]) {
-               case 1:
-                  return CassandraIndexFunctions.COLLECTION_KEY_INDEX_FUNCTIONS;
-               case 2:
-                  return CassandraIndexFunctions.COLLECTION_ENTRY_INDEX_FUNCTIONS;
-               case 3:
-                  return CassandraIndexFunctions.COLLECTION_VALUE_INDEX_FUNCTIONS;
-               default:
-                  throw new AssertionError();
+            }
+            case MAP: {
+               switch (target.right) {
+                  case KEYS: {
+                     return CassandraIndexFunctions.COLLECTION_KEY_INDEX_FUNCTIONS;
+                  }
+                  case KEYS_AND_VALUES: {
+                     return CassandraIndexFunctions.COLLECTION_ENTRY_INDEX_FUNCTIONS;
+                  }
+                  case VALUES: {
+                     return CassandraIndexFunctions.COLLECTION_VALUE_INDEX_FUNCTIONS;
+                  }
+                  default: {
+                     throw new AssertionError();
+                  }
                }
             }
          }
-
-         switch(null.$SwitchMap$org$apache$cassandra$schema$ColumnMetadata$Kind[indexedColumn.kind.ordinal()]) {
-         case 1:
-            return CassandraIndexFunctions.PARTITION_KEY_INDEX_FUNCTIONS;
-         case 2:
+      }
+      switch (indexedColumn.kind) {
+         case CLUSTERING: {
             return CassandraIndexFunctions.CLUSTERING_COLUMN_INDEX_FUNCTIONS;
-         case 3:
-         case 4:
+         }
+         case REGULAR:
+         case STATIC: {
             return CassandraIndexFunctions.REGULAR_COLUMN_INDEX_FUNCTIONS;
-         default:
+         }
+         case PARTITION_KEY: {
+            return CassandraIndexFunctions.PARTITION_KEY_INDEX_FUNCTIONS;
+         }
+         default: {
             throw new AssertionError();
          }
       }
    }
+
 }

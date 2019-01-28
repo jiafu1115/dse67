@@ -42,12 +42,12 @@ public class ReconnectableSnitchHelper implements IEndpointStateChangeSubscriber
       return MessagingService.instance().getConnectionPool(publicAddress).thenCompose((cp) -> {
          if(cp == null) {
             logger.debug("InternodeAuthenticator said don't reconnect to {} on {}", publicAddress, localAddress);
-            return CompletableFuture.completedFuture((Object)null);
+            return CompletableFuture.completedFuture(null);
          } else {
             return snitch.getDatacenter(publicAddress).equals(localDc) && !cp.endPoint().equals(localAddress)?SystemKeyspace.updatePreferredIP(publicAddress, localAddress).thenAccept((r) -> {
                cp.reset(localAddress);
                logger.debug("Initiated reconnect to an Internal IP {} for the {}", localAddress, publicAddress);
-            }):CompletableFuture.completedFuture((Object)null);
+            }):CompletableFuture.completedFuture(null);
          }
       });
    }

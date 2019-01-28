@@ -95,21 +95,22 @@ public final class IntegerType extends NumberType<BigInteger> {
    }
 
    public ByteSource asByteComparableSource(final ByteBuffer buf) {
-      final int p = buf.position();
+      int pp = buf.position();
       final int limit = buf.limit();
-      if(p == limit) {
+      if(pp == limit) {
          return null;
       } else {
-         final byte signbyte = buf.get(p);
+         final byte signbyte = buf.get(pp);
          if(signbyte == 0 || signbyte == -1) {
-            while(p + 1 < limit) {
-               ++p;
-               if(buf.get(p) != signbyte) {
+            while(pp + 1 < limit) {
+               ++pp;
+               if(buf.get(pp) != signbyte) {
                   break;
                }
             }
          }
 
+         final int p=pp;
          return new ByteSource.WithToString() {
             int pos = p;
             int sizeToReport = limit - p;

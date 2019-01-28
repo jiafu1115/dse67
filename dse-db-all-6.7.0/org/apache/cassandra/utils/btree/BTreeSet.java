@@ -41,7 +41,7 @@ public class BTreeSet<V> implements NavigableSet<V>, List<V> {
    }
 
    public int indexOf(Object item) {
-      return BTree.findIndex(this.tree, this.comparator, item);
+      return BTree.findIndex(this.tree, this.comparator, (V)item);
    }
 
    public V get(int index) {
@@ -99,11 +99,11 @@ public class BTreeSet<V> implements NavigableSet<V>, List<V> {
    }
 
    public BTreeSet<V> headSet(V toElement, boolean inclusive) {
-      return new BTreeSet.BTreeRange(this.tree, this.comparator, (Object)null, true, toElement, inclusive);
+      return new BTreeSet.BTreeRange(this.tree, this.comparator, null, true, toElement, inclusive);
    }
 
    public BTreeSet<V> tailSet(V fromElement, boolean inclusive) {
-      return new BTreeSet.BTreeRange(this.tree, this.comparator, fromElement, inclusive, (Object)null, true);
+      return new BTreeSet.BTreeRange(this.tree, this.comparator, fromElement, inclusive, null, true);
    }
 
    public SortedSet<V> subSet(V fromElement, V toElement) {
@@ -372,7 +372,7 @@ public class BTreeSet<V> implements NavigableSet<V>, List<V> {
       protected final int upperBound;
 
       BTreeRange(Object[] tree, Comparator<? super V> comparator) {
-         this(tree, comparator, (Object)null, true, (Object)null, true);
+         this(tree, comparator, null, true, null, true);
       }
 
       BTreeRange(BTreeSet.BTreeRange<V> from) {
@@ -471,11 +471,11 @@ public class BTreeSet<V> implements NavigableSet<V>, List<V> {
       }
 
       public BTreeSet<V> headSet(V toElement, boolean inclusive) {
-         return new BTreeSet.BTreeRange(this, new BTreeSet.BTreeRange(this.tree, this.comparator, (Object)null, true, toElement, inclusive));
+         return new BTreeSet.BTreeRange(this, new BTreeSet.BTreeRange(this.tree, this.comparator, null, true, toElement, inclusive));
       }
 
       public BTreeSet<V> tailSet(V fromElement, boolean inclusive) {
-         return new BTreeSet.BTreeRange(this, new BTreeSet.BTreeRange(this.tree, this.comparator, fromElement, inclusive, (Object)null, true));
+         return new BTreeSet.BTreeRange(this, new BTreeSet.BTreeRange(this.tree, this.comparator, fromElement, inclusive, null, true));
       }
 
       public BTreeSet<V> descendingSet() {

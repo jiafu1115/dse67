@@ -4,7 +4,7 @@ public abstract class SharedCloseableImpl implements SharedCloseable {
    final Ref<?> ref;
 
    public SharedCloseableImpl(RefCounted.Tidy tidy) {
-      this.ref = new Ref((Object)null, tidy);
+      this.ref = new Ref(null, tidy);
    }
 
    protected SharedCloseableImpl(SharedCloseableImpl copy) {

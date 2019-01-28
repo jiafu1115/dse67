@@ -298,7 +298,7 @@ public class SelectStatement implements CQLStatement, TableStatement {
    }
 
    private Single<ResultMessage.Rows> processResults(Flow<FlowablePartition> partitions, QueryOptions options, Selection.Selectors selectors, int nowInSec, int userLimit, AggregationSpecification aggregationSpec) throws RequestValidationException {
-      return this.process(partitions, options, selectors, nowInSec, userLimit, aggregationSpec).map(ResultMessage.Rows::<init>);
+      return this.process(partitions, options, selectors, nowInSec, userLimit, aggregationSpec).map(ResultMessage.Rows::new);
    }
 
    public Single<ResultMessage.Rows> executeInternal(QueryState state, QueryOptions options) throws RequestExecutionException, RequestValidationException {
@@ -348,8 +348,8 @@ public class SelectStatement implements CQLStatement, TableStatement {
       PageSize pageSize = this.getPageSize(queryOptions);
       DataLimits limit = this.getDataLimits(userLimit, userPerPartitionLimit, pageSize, aggregationSpec);
       ReadQuery query = this.getQuery(queryState, queryOptions, selectors.getColumnFilter(), nowInSec, limit);
-      SelectStatement.LoadAwareContinuousPagingEventHandler handler = new SelectStatement.LoadAwareContinuousPagingEventHandler(queryOptions, query, null);
-      SelectStatement.ContinuousPagingExecutor executor = new SelectStatement.ContinuousPagingExecutor(this, queryOptions, queryState, query, queryStartNanoTime, pageSize, handler, null);
+      SelectStatement.LoadAwareContinuousPagingEventHandler handler = new SelectStatement.LoadAwareContinuousPagingEventHandler(queryOptions, query);
+      SelectStatement.ContinuousPagingExecutor executor = new SelectStatement.ContinuousPagingExecutor(this, queryOptions, queryState, query, queryStartNanoTime, pageSize, handler);
       ResultBuilder builder = null;
 
       try {
@@ -603,58 +603,56 @@ public class SelectStatement implements CQLStatement, TableStatement {
 
    <T extends ResultBuilder> Flow<T> processPartition(FlowablePartition partition, QueryOptions options, T result, int nowInSec) throws InvalidRequestException {
       ByteBuffer[] keyComponents = getComponents(this.table, partition.header().partitionKey);
-      Flow var10000 = partition.content();
-      result.getClass();
-      return var10000.takeUntil(result::isCompleted).reduce(Boolean.valueOf(false), (hasContent, row) -> {
+      return partition.content().takeUntil(result::isCompleted).reduce(Boolean.valueOf(false), (hasContent, row) -> {
          result.newRow(partition.partitionKey(), row.clustering());
-         Iterator var7 = this.selection.getColumns().iterator();
 
-         while(var7.hasNext()) {
-            ColumnMetadata def = (ColumnMetadata)var7.next();
-            switch(null.$SwitchMap$org$apache$cassandra$schema$ColumnMetadata$Kind[def.kind.ordinal()]) {
-            case 1:
-               result.add(keyComponents[def.position()]);
-               break;
-            case 2:
-               result.add(partition.staticRow().getColumnData(def), nowInSec);
-               break;
-            case 3:
-               result.add(row.clustering().get(def.position()));
-               break;
-            case 4:
-               assert !def.isHidden() : "Hidden column should not be visible externally";
+         for (ColumnMetadata def : this.selection.getColumns()) {
 
-               result.add(row.getColumnData(def), nowInSec);
-               break;
-            default:
-               throw new AssertionError();
+            switch (def.kind) {
+               case PARTITION_KEY: {
+                  result.add(keyComponents[def.position()]);
+                  break;
+               }
+               case CLUSTERING: {
+                  result.add(row.clustering().get(def.position()));
+                  break;
+               }
+               case REGULAR: {
+                  assert (!def.isHidden());
+                  result.add(row.getColumnData(def), nowInSec);
+                  break;
+               }
+               case STATIC: {
+                  result.add(partition.staticRow().getColumnData(def), nowInSec);
+                  break;
+               }
             }
+            throw new AssertionError();
          }
 
          return Boolean.valueOf(true);
       }).map((hasContent) -> {
          if(!hasContent.booleanValue() && !result.isCompleted() && !partition.staticRow().isEmpty() && this.returnStaticContentOnPartitionWithNoRows()) {
             result.newRow(partition.partitionKey(), partition.staticRow().clustering());
-            Iterator var6 = this.selection.getColumns().iterator();
-
-            while(var6.hasNext()) {
-               ColumnMetadata def = (ColumnMetadata)var6.next();
-               switch(null.$SwitchMap$org$apache$cassandra$schema$ColumnMetadata$Kind[def.kind.ordinal()]) {
-               case 1:
-                  result.add(keyComponents[def.position()]);
-                  break;
-               case 2:
-                  result.add(partition.staticRow().getColumnData(def), nowInSec);
-                  break;
-               default:
-                  result.add((ByteBuffer)null);
+            for (ColumnMetadata def : this.selection.getColumns()) {
+               switch (def.kind) {
+                  case PARTITION_KEY: {
+                     result.add(keyComponents[def.position()]);
+                     break;
+                  }
+                  case STATIC: {
+                     result.add(partition.staticRow().getColumnData(def), nowInSec);
+                     break;
+                  }
                }
+               result.add(null);
             }
          }
 
          return result;
       });
    }
+
 
    private boolean queriesFullPartitions() {
       return !this.restrictions.hasClusteringColumnsRestrictions() && !this.restrictions.hasRegularColumnsRestrictions();
@@ -675,7 +673,7 @@ public class SelectStatement implements CQLStatement, TableStatement {
       private final List<Integer> positions;
 
       private CompositeComparator(List<Comparator<ByteBuffer>> orderTypes, List<Integer> positions) {
-         super(null);
+         super();
          this.orderTypes = orderTypes;
          this.positions = positions;
       }
@@ -699,7 +697,7 @@ public class SelectStatement implements CQLStatement, TableStatement {
       private final Comparator<ByteBuffer> comparator;
 
       public SingleColumnComparator(int columnIndex, Comparator<ByteBuffer> orderer) {
-         super(null);
+         super();
          this.index = columnIndex;
          this.comparator = orderer;
       }
@@ -936,7 +934,7 @@ public class SelectStatement implements CQLStatement, TableStatement {
                sorters.add(orderingColumn.type);
             }
 
-            return (Comparator)(idToSort.size() == 1?new SelectStatement.SingleColumnComparator(((Integer)idToSort.get(0)).intValue(), (Comparator)sorters.get(0)):new SelectStatement.CompositeComparator(sorters, idToSort, null));
+            return (Comparator)(idToSort.size() == 1?new SelectStatement.SingleColumnComparator(((Integer)idToSort.get(0)).intValue(), (Comparator)sorters.get(0)):new SelectStatement.CompositeComparator(sorters, idToSort));
          }
       }
 
@@ -1180,11 +1178,11 @@ public class SelectStatement implements CQLStatement, TableStatement {
       }
 
       public static SelectStatement.Pager forInternalQuery(QueryPager pager) {
-         return new SelectStatement.Pager.InternalPager(pager, null);
+         return new SelectStatement.Pager.InternalPager(pager);
       }
 
       public static SelectStatement.Pager forNormalQuery(QueryPager pager, ReadContext.Builder paramsBuilder) {
-         return new SelectStatement.Pager.NormalPager(pager, paramsBuilder, null);
+         return new SelectStatement.Pager.NormalPager(pager, paramsBuilder);
       }
 
       public boolean isExhausted() {

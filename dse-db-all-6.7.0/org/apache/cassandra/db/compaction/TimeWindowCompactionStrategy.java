@@ -167,27 +167,30 @@ public class TimeWindowCompactionStrategy extends AbstractCompactionStrategy {
       }
    }
 
-   public static Pair<Long, Long> getWindowBoundsInMillis(TimeUnit windowTimeUnit, int windowTimeSize, long timestampInMillis) {
-      long timestampInSeconds = TimeUnit.SECONDS.convert(timestampInMillis, TimeUnit.MILLISECONDS);
-      long lowerTimestamp;
-      long upperTimestamp;
-      switch(null.$SwitchMap$java$util$concurrent$TimeUnit[windowTimeUnit.ordinal()]) {
-      case 1:
-         lowerTimestamp = timestampInSeconds - timestampInSeconds % (60L * (long)windowTimeSize);
-         upperTimestamp = lowerTimestamp + 60L * ((long)windowTimeSize - 1L) + 59L;
-         break;
-      case 2:
-         lowerTimestamp = timestampInSeconds - timestampInSeconds % (3600L * (long)windowTimeSize);
-         upperTimestamp = lowerTimestamp + 3600L * ((long)windowTimeSize - 1L) + 3599L;
-         break;
-      case 3:
-      default:
-         lowerTimestamp = timestampInSeconds - timestampInSeconds % (86400L * (long)windowTimeSize);
-         upperTimestamp = lowerTimestamp + 86400L * ((long)windowTimeSize - 1L) + 86399L;
-      }
 
-      return Pair.create(Long.valueOf(TimeUnit.MILLISECONDS.convert(lowerTimestamp, TimeUnit.SECONDS)), Long.valueOf(TimeUnit.MILLISECONDS.convert(upperTimestamp, TimeUnit.SECONDS)));
+   public static Pair<Long, Long> getWindowBoundsInMillis(TimeUnit windowTimeUnit, int windowTimeSize, long timestampInMillis) {
+      long upperTimestamp;
+      long lowerTimestamp;
+      long timestampInSeconds = TimeUnit.SECONDS.convert(timestampInMillis, TimeUnit.MILLISECONDS);
+      switch (windowTimeUnit) {
+         case MINUTES: {
+            lowerTimestamp = timestampInSeconds - timestampInSeconds % (60L * (long)windowTimeSize);
+            upperTimestamp = lowerTimestamp + 60L * ((long)windowTimeSize - 1L) + 59L;
+            break;
+         }
+         case HOURS: {
+            lowerTimestamp = timestampInSeconds - timestampInSeconds % (3600L * (long)windowTimeSize);
+            upperTimestamp = lowerTimestamp + 3600L * ((long)windowTimeSize - 1L) + 3599L;
+            break;
+         }
+         default: {
+            lowerTimestamp = timestampInSeconds - timestampInSeconds % (86400L * (long)windowTimeSize);
+            upperTimestamp = lowerTimestamp + 86400L * ((long)windowTimeSize - 1L) + 86399L;
+         }
+      }
+      return Pair.create(TimeUnit.MILLISECONDS.convert(lowerTimestamp, TimeUnit.SECONDS), TimeUnit.MILLISECONDS.convert(upperTimestamp, TimeUnit.SECONDS));
    }
+
 
    @VisibleForTesting
    static Pair<HashMultimap<Long, SSTableReader>, Long> getBuckets(Iterable<SSTableReader> files, TimeUnit sstableWindowUnit, int sstableWindowSize, TimeUnit timestampResolution) {

@@ -87,7 +87,7 @@ public interface Clustering extends ClusteringPrefix {
       return sb.toString();
    }
 
-   static default Clustering make(ByteBuffer... values) {
+   static Clustering make(ByteBuffer... values) {
       return (Clustering)(values.length == 0?EMPTY:new BufferClustering(values));
    }
 

@@ -98,9 +98,9 @@ public final class IndexMetadata {
 
          Map unknownOptions;
          try {
-            unknownOptions = (Map)indexerClass.getMethod("validateOptions", new Class[]{Map.class, TableMetadata.class}).invoke((Object)null, new Object[]{filteredOptions, table});
+            unknownOptions = (Map)indexerClass.getMethod("validateOptions", new Class[]{Map.class, TableMetadata.class}).invoke(null, new Object[]{filteredOptions, table});
          } catch (NoSuchMethodException var7) {
-            unknownOptions = (Map)indexerClass.getMethod("validateOptions", new Class[]{Map.class}).invoke((Object)null, new Object[]{filteredOptions});
+            unknownOptions = (Map)indexerClass.getMethod("validateOptions", new Class[]{Map.class}).invoke(null, new Object[]{filteredOptions});
          }
 
          if(!unknownOptions.isEmpty()) {

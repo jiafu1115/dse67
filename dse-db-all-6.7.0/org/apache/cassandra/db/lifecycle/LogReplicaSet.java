@@ -78,7 +78,7 @@ public class LogReplicaSet implements AutoCloseable {
    boolean readRecords(Set<LogRecord> records) {
       Map<LogReplica, List<String>> linesByReplica = (Map)this.replicas().stream().collect(Collectors.toMap(Function.identity(), LogReplica::readLines, (k, v) -> {
          throw new IllegalStateException("Duplicated key: " + k);
-      }, LinkedHashMap::<init>));
+      }, LinkedHashMap::new));
       int maxNumLines = ((Integer)linesByReplica.values().stream().map(List::size).reduce(Integer.valueOf(0), Integer::max)).intValue();
 
       for(int i = 0; i < maxNumLines; ++i) {
@@ -190,7 +190,7 @@ public class LogReplicaSet implements AutoCloseable {
    }
 
    public void close() {
-      Throwables.maybeFail(Throwables.perform((Throwable)null, (Stream)this.replicas().stream().map((r) -> {
+      Throwables.maybeFail(Throwables.perform((Throwable)null, this.replicas().stream().map((r) -> {
          return r::close;
       })));
    }

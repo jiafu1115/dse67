@@ -67,15 +67,18 @@ public class ColumnFilter {
       this.fetched = fetched;
       this.queried = queried;
       this.subSelections = subSelections;
-      switch(null.$SwitchMap$org$apache$cassandra$db$filter$ColumnFilter$FetchType[fetchType.ordinal()]) {
-      case 1:
-      case 2:
-         assert fetched != null : "When fetching all columns, the _fetched_ set is required";
-         break;
-      case 3:
-         assert queried != null : "When fetching a COLUMNS_IN_QUERIED, the _queried_ set is required";
 
-         assert queried == fetched : "When fetching a COLUMNS_IN_QUERIED both _fetched_ and _queried_ must point to the same set of columns";
+      switch (fetchType) {
+         case ALL_COLUMNS:
+         case COLUMNS_IN_FETCHED: {
+            assert fetched != null : "When fetching all columns, the _fetched_ set is required";
+            break;
+         }
+         case COLUMNS_IN_QUERIED: {
+            assert queried != null : "When fetching a COLUMNS_IN_QUERIED, the _queried_ set is required";
+            assert queried == fetched : "When fetching a COLUMNS_IN_QUERIED both _fetched_ and _queried_ must point to the same set of columns";
+            break;
+         }
       }
 
    }
@@ -121,14 +124,17 @@ public class ColumnFilter {
    }
 
    public boolean fetchesAllColumns(boolean isStatic) {
-      switch(null.$SwitchMap$org$apache$cassandra$db$filter$ColumnFilter$FetchType[this.fetchType.ordinal()]) {
-      case 1:
-         return isStatic?this.queried == null:true;
-      case 2:
-      case 3:
-         return false;
-      default:
-         throw new IllegalStateException("Unrecognized fetch type: " + this.fetchType);
+      switch (this.fetchType) {
+         case ALL_COLUMNS: {
+            return !isStatic || this.queried == null;
+         }
+         case COLUMNS_IN_FETCHED:
+         case COLUMNS_IN_QUERIED: {
+            return false;
+         }
+         default: {
+            throw new IllegalStateException("Unrecognized fetch type: " + this.fetchType);
+         }
       }
    }
 
@@ -137,19 +143,19 @@ public class ColumnFilter {
    }
 
    public boolean fetches(ColumnMetadata column) {
-      switch(null.$SwitchMap$org$apache$cassandra$db$filter$ColumnFilter$FetchType[this.fetchType.ordinal()]) {
-      case 1:
-         if(!column.isStatic()) {
-            return true;
+      switch (this.fetchType) {
+         case ALL_COLUMNS: {
+            return !column.isStatic() || this.queried == null || this.queried.contains(column);
          }
-
-         return this.queried == null || this.queried.contains(column);
-      case 2:
-         return this.fetched.contains(column);
-      case 3:
-         return this.queried.contains(column);
-      default:
-         throw new IllegalStateException("Unrecognized fetch type: " + this.fetchType);
+         case COLUMNS_IN_FETCHED: {
+            return this.fetched.contains(column);
+         }
+         case COLUMNS_IN_QUERIED: {
+            return this.queried.contains(column);
+         }
+         default: {
+            throw new IllegalStateException("Unrecognized fetch type: " + this.fetchType);
+         }
       }
    }
 
@@ -186,7 +192,7 @@ public class ColumnFilter {
    public ColumnFilter.Tester newTester(ColumnMetadata column) {
       if(this.subSelections != null && column.isComplex()) {
          SortedSet<ColumnSubselection> s = this.subSelections.get(column.name);
-         return s.isEmpty()?null:new ColumnFilter.Tester(!column.isStatic() && this.fetchType != ColumnFilter.FetchType.COLUMNS_IN_QUERIED, s.iterator(), null);
+         return s.isEmpty()?null:new ColumnFilter.Tester(!column.isStatic() && this.fetchType != ColumnFilter.FetchType.COLUMNS_IN_QUERIED, s.iterator());
       } else {
          return null;
       }
@@ -200,11 +206,11 @@ public class ColumnFilter {
    }
 
    public static ColumnFilter.Builder allRegularColumnsBuilder(TableMetadata metadata) {
-      return new ColumnFilter.Builder(metadata, null);
+      return new ColumnFilter.Builder(metadata);
    }
 
    public static ColumnFilter.Builder selectionBuilder() {
-      return new ColumnFilter.Builder((TableMetadata)null, null);
+      return new ColumnFilter.Builder((TableMetadata)null);
    }
 
    public boolean equals(Object other) {
@@ -267,7 +273,7 @@ public class ColumnFilter {
       logger = LoggerFactory.getLogger(ColumnFilter.class);
       noSpamLogger = NoSpamLogger.getLogger(logger, 1L, TimeUnit.MINUTES);
       serializers = ReadVerbs.ReadVersion.versioned((x$0) -> {
-         return new ColumnFilter.Serializer(x$0, null);
+         return new ColumnFilter.Serializer(x$0);
       });
    }
 
@@ -290,7 +296,7 @@ public class ColumnFilter {
          if(((ReadVerbs.ReadVersion)this.version).compareTo(ReadVerbs.ReadVersion.OSS_3014) <= 0 && selection.fetchType != ColumnFilter.FetchType.COLUMNS_IN_QUERIED && selection.queried != null) {
             List<ColumnMetadata> queriedStatic = new ArrayList();
             Iterables.addAll(queriedStatic, Iterables.filter(selection.queried, ColumnMetadata::isStatic));
-            return new ColumnFilter(ColumnFilter.FetchType.COLUMNS_IN_QUERIED, (TableMetadata)null, new RegularAndStaticColumns(Columns.from(queriedStatic), selection.fetched.regulars), selection.subSelections, null);
+            return new ColumnFilter(ColumnFilter.FetchType.COLUMNS_IN_QUERIED, (TableMetadata)null, new RegularAndStaticColumns(Columns.from(queriedStatic), selection.fetched.regulars), selection.subSelections);
          } else {
             return selection;
          }
@@ -362,7 +368,7 @@ public class ColumnFilter {
          }
 
          ColumnFilter.FetchType fetchType = isFetchAll?ColumnFilter.FetchType.ALL_COLUMNS:ColumnFilter.FetchType.COLUMNS_IN_QUERIED;
-         return (new ColumnFilter(fetchType, fetchType == ColumnFilter.FetchType.ALL_COLUMNS?fetched:queried, queried, subSelections, null)).withPartitionColumnsVerified(metadata.regularAndStaticColumns());
+         return (new ColumnFilter(fetchType, fetchType == ColumnFilter.FetchType.ALL_COLUMNS?fetched:queried, queried, subSelections)).withPartitionColumnsVerified(metadata.regularAndStaticColumns());
       }
 
       public long serializedSize(ColumnFilter selection) {
@@ -475,7 +481,7 @@ public class ColumnFilter {
                ColumnSubselection subSelection;
                do {
                   if(!var4.hasNext()) {
-                     return new ColumnFilter(fetchType, this.metadata, queried, s, null);
+                     return new ColumnFilter(fetchType, this.metadata, queried, s);
                   }
 
                   subSelection = (ColumnSubselection)var4.next();
@@ -484,7 +490,7 @@ public class ColumnFilter {
                s.put(subSelection.column().name, subSelection);
             }
          } else {
-            return new ColumnFilter(fetchType, this.metadata, queried, s, null);
+            return new ColumnFilter(fetchType, this.metadata, queried, s);
          }
       }
    }

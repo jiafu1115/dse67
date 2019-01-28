@@ -91,7 +91,7 @@ public class CacheService implements CacheServiceMBean {
 
       CacheProvider cacheProvider;
       try {
-         Class<CacheProvider<RowCacheKey, IRowCacheEntry>> cacheProviderClass = Class.forName(cacheProviderClassName);
+         Class<?> cacheProviderClass = Class.forName(cacheProviderClassName);
          cacheProvider = (CacheProvider)cacheProviderClass.newInstance();
       } catch (Exception var6) {
          throw new RuntimeException("Cannot find configured row cache provider class " + DatabaseDescriptor.getRowCacheClassName());

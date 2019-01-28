@@ -285,19 +285,12 @@ public class DynamicCompositeType extends AbstractCompositeType {
       }
 
       public void serializeComparator(ByteBuffer bb) {
-         int headerx = false;
-         int header;
-         if(this.isAlias) {
-            header = '耀' | (byte)this.comparatorName.charAt(0) & 255;
-         } else {
-            header = this.comparatorName.length();
-         }
-
+         int header = 0;
+         header = this.isAlias ? 32768 | (byte)this.comparatorName.charAt(0) & 255 : this.comparatorName.length();
          ByteBufferUtil.writeShortLength(bb, header);
-         if(!this.isAlias) {
+         if (!this.isAlias) {
             bb.put(ByteBufferUtil.bytes(this.comparatorName));
          }
-
       }
    }
 }

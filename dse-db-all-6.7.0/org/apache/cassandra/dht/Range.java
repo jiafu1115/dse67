@@ -2,14 +2,8 @@ package org.apache.cassandra.dht;
 
 import com.google.common.base.Preconditions;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.cassandra.db.PartitionPosition;
 import org.apache.cassandra.utils.Pair;
 import org.apache.cassandra.utils.SetsFactory;
@@ -61,7 +55,7 @@ public class Range<T extends RingPosition<T>> extends AbstractBounds<T> implemen
 
    @SafeVarargs
    public static <T extends RingPosition<T>> Set<Range<T>> rangeSet(Range... ranges) {
-      return Collections.unmodifiableSet(SetsFactory.setFromArray(ranges));
+       return Collections.unmodifiableSet(new HashSet(Arrays.asList(ranges)));
    }
 
    public static <T extends RingPosition<T>> Set<Range<T>> rangeSet(Range<T> range) {
@@ -133,7 +127,7 @@ public class Range<T extends RingPosition<T>> extends AbstractBounds<T> implemen
 
    public UnmodifiableArrayList<Range<T>> unwrap() {
       T minValue = this.right.minValue();
-      return !this.isTrulyWrapAround()?UnmodifiableArrayList.of((Object)this):UnmodifiableArrayList.of(new Range(this.left, minValue), new Range(minValue, this.right));
+      return !this.isTrulyWrapAround()?UnmodifiableArrayList.of(this):UnmodifiableArrayList.of(new Range(this.left, minValue), new Range(minValue, this.right));
    }
 
    private static <T extends RingPosition<T>> boolean isWrapAround(T left, T right) {
@@ -305,44 +299,32 @@ public class Range<T extends RingPosition<T>> extends AbstractBounds<T> implemen
    }
 
    private static <T extends RingPosition<T>> List<Range<T>> deoverlap(List<Range<T>> ranges) {
-      if(ranges.isEmpty()) {
+      if (ranges.isEmpty()) {
          return ranges;
-      } else {
-         List<Range<T>> output = new ArrayList();
-         Iterator<Range<T>> iter = ranges.iterator();
-         Range<T> current = (Range)iter.next();
-         RingPosition min = current.left.minValue();
-
-         while(true) {
-            Range next;
-            label36:
-            do {
-               while(iter.hasNext()) {
-                  if(current.right.equals(min)) {
-                     if(current.left.equals(min)) {
-                        return Collections.singletonList(current);
-                     }
-
-                     output.add(new Range(current.left, min));
-                     return output;
-                  }
-
-                  next = (Range)iter.next();
-                  if(next.left.compareTo(current.right) <= 0) {
-                     continue label36;
-                  }
-
-                  output.add(current);
-                  current = next;
-               }
-
-               output.add(current);
-               return output;
-            } while(!next.right.equals(min) && current.right.compareTo(next.right) >= 0);
-
-            current = new Range(current.left, next.right);
-         }
       }
+      ArrayList<Range<T>> output = new ArrayList<Range<T>>();
+      Iterator<Range<T>> iter = ranges.iterator();
+      Range<T> current = iter.next();
+      Object min = current.left.minValue();
+      while (iter.hasNext()) {
+         if (current.right.equals(min)) {
+            if (current.left.equals(min)) {
+               return Collections.singletonList(current);
+            }
+            output.add(new Range(current.left, (RingPosition)min));
+            return output;
+         }
+         Range<T> next = iter.next();
+         if (next.left.compareTo(current.right) <= 0) {
+            if (!next.right.equals(min) && current.right.compareTo(next.right) >= 0) continue;
+            current = new Range(current.left, next.right);
+            continue;
+         }
+         output.add(current);
+         current = next;
+      }
+      output.add(current);
+      return output;
    }
 
    public AbstractBounds<T> withNewRight(T newRight) {

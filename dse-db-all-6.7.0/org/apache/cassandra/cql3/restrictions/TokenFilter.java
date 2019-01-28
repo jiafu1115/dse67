@@ -96,7 +96,7 @@ abstract class TokenFilter implements PartitionKeyRestrictions {
          } else {
             BoundType endBoundType = toBoundType(slice.isInclusive(Bound.END));
             Token end = this.deserializeToken((ByteBuffer)slice.bounds(Bound.END, options).get(0));
-            return start.equals(end) && (BoundType.OPEN == startBoundType || BoundType.OPEN == endBoundType)?ImmutableRangeSet.of():(start.compareTo(end) <= 0?ImmutableRangeSet.of(Range.range(start, startBoundType, end, endBoundType)):ImmutableRangeSet.builder().add(Range.upTo(end, endBoundType)).add(Range.downTo(start, startBoundType)).build());
+            return start.equals(end) && (BoundType.OPEN == startBoundType || BoundType.OPEN == endBoundType)?ImmutableRangeSet.of():(start.compareTo(end) <= 0?ImmutableRangeSet.of(Range.range(start, startBoundType, end, endBoundType)):ImmutableRangeSet.<Token>builder().add(Range.upTo(end, endBoundType)).add(Range.downTo(start, startBoundType)).build());
          }
       } else {
          start = this.deserializeToken((ByteBuffer)slice.bounds(Bound.END, options).get(0));
@@ -162,7 +162,7 @@ abstract class TokenFilter implements PartitionKeyRestrictions {
 
    private static final class NotOnToken extends TokenFilter {
       private NotOnToken(PartitionKeyRestrictions restrictions, TokenRestriction tokenRestriction) {
-         super(restrictions, tokenRestriction, null);
+         super(restrictions, tokenRestriction);
       }
 
       public boolean isInclusive(Bound bound) {
@@ -192,7 +192,7 @@ abstract class TokenFilter implements PartitionKeyRestrictions {
 
    private static final class OnToken extends TokenFilter {
       private OnToken(PartitionKeyRestrictions restrictions, TokenRestriction tokenRestriction) {
-         super(restrictions, tokenRestriction, null);
+         super(restrictions, tokenRestriction);
       }
 
       public boolean isOnToken() {

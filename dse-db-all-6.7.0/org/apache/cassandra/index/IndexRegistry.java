@@ -45,7 +45,7 @@ public interface IndexRegistry {
 
    void validate(PartitionUpdate var1);
 
-   static default IndexRegistry obtain(TableMetadata table) {
+   static IndexRegistry obtain(TableMetadata table) {
       return (IndexRegistry)(table.isVirtual()?EMPTY:Keyspace.openAndGetStore(table).indexManager);
    }
 }

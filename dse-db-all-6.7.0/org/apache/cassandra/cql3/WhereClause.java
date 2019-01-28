@@ -30,12 +30,12 @@ public class WhereClause {
       }
 
       public WhereClause.Builder add(Relation relation) {
-         this.relations.add((Object)relation);
+         this.relations.add(relation);
          return this;
       }
 
       public WhereClause.Builder add(CustomIndexExpression expression) {
-         this.expressions.add((Object)expression);
+         this.expressions.add(expression);
          return this;
       }
 

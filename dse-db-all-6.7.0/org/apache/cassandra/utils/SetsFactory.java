@@ -50,7 +50,7 @@ public class SetsFactory {
 
    public static <T> Set<T> setFromArray(T... c) {
       Set<T> result = newSetForSize(c.length);
-      Object[] var2 = c;
+      T[] var2 = c;
       int var3 = c.length;
 
       for(int var4 = 0; var4 < var3; ++var4) {
@@ -90,7 +90,7 @@ public class SetsFactory {
       Iterator var2 = iterable.iterator();
 
       while(var2.hasNext()) {
-         T element = var2.next();
+         T element =(T) var2.next();
          result.add(element);
       }
 

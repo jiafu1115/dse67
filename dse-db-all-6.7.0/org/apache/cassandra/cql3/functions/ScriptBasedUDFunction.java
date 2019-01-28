@@ -60,7 +60,7 @@ final class ScriptBasedUDFunction extends UDFunction {
       super(name, argNames, argTypes, returnType, calledOnNullInput, language, body, deterministic, monotonic, monotonicOn);
       if("JavaScript".equalsIgnoreCase(language) && scriptEngine != null) {
          try {
-            this.script = (CompiledScript)AccessController.doPrivileged(() -> {
+            this.script = AccessController.doPrivileged((PrivilegedExceptionAction<CompiledScript>)() -> {
                return scriptEngine.compile(body);
             }, accessControlContext);
          } catch (PrivilegedActionException var13) {

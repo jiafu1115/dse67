@@ -325,25 +325,25 @@ public class DatabaseDescriptor {
 
    private static Integer pickBestDepricatedMemtableSize() {
       Integer value;
-      switch(null.$SwitchMap$org$apache$cassandra$config$Config$MemtableAllocationType[conf.memtable_allocation_type.ordinal()]) {
-      case 1:
-      case 2:
-         value = conf.memtable_offheap_space_in_mb;
-         if(value != null) {
+      switch (DatabaseDescriptor.conf.memtable_allocation_type) {
+         case offheap_buffers:
+         case offheap_objects: {
+            value = DatabaseDescriptor.conf.memtable_offheap_space_in_mb;
+            if (value == null) break;
             logger.warn("Using memtable_offheap_space_in_mb in place of memtable_space_in_mb. This may be incorrect, please set the latter.");
+            break;
          }
-         break;
-      case 3:
-      case 4:
-         value = conf.memtable_heap_space_in_mb;
-         if(value != null) {
+         case heap_buffers:
+         case unslabbed_heap_buffers: {
+            value = DatabaseDescriptor.conf.memtable_heap_space_in_mb;
+            if (value == null) break;
             logger.warn("Using memtable_heap_space_in_mb in place of memtable_space_in_mb. This may be incorrect, please set the latter.");
+            break;
          }
-         break;
-      default:
-         throw new RuntimeException("Unknown memtable_allocation_type: " + conf.memtable_allocation_type);
+         default: {
+            throw new RuntimeException("Unknown memtable_allocation_type: " + (Object)((Object)DatabaseDescriptor.conf.memtable_allocation_type));
+         }
       }
-
       return value;
    }
 
@@ -1643,7 +1643,7 @@ public class DatabaseDescriptor {
    }
 
    public static Set<InetAddress> getSeeds() {
-      return ImmutableSet.builder().addAll(seedProvider.getSeeds()).build();
+      return ImmutableSet.<InetAddress>builder().addAll(seedProvider.getSeeds()).build();
    }
 
    public static SeedProvider getSeedProvider() {

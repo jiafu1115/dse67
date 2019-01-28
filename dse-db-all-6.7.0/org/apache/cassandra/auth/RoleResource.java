@@ -17,7 +17,7 @@ import org.apache.cassandra.utils.versioning.Versioned;
 import org.apache.commons.lang3.StringUtils;
 
 public class RoleResource implements IResource, Comparable<RoleResource> {
-   public static final Versioned<EncodingVersion, RoleResource.RoleResourceSerializer> rawSerializers = EncodingVersion.versioned(RoleResource.RoleResourceSerializer::<init>);
+   public static final Versioned<EncodingVersion, RoleResource.RoleResourceSerializer> rawSerializers = EncodingVersion.versioned(RoleResource.RoleResourceSerializer::new);
    public static final Versioned<AuthVerbs.AuthVersion, Serializer<RoleResource>> serializers = AuthVerbs.AuthVersion.versioned((v) -> {
       return (RoleResource.RoleResourceSerializer)rawSerializers.get(v.encodingVersion);
    });

@@ -103,7 +103,7 @@ public class Scrubber implements Closeable {
       this.outputHandler = outputHandler;
       this.skipCorrupted = skipCorrupted;
       this.reinsertOverflowedTTLRows = reinsertOverflowedTTLRows;
-      List<SSTableReader> toScrub = UnmodifiableArrayList.of((Object)this.sstable);
+      List<SSTableReader> toScrub = UnmodifiableArrayList.of(this.sstable);
       long writeSize = cfs.getExpectedCompactedFileSize(toScrub, OperationType.SCRUB);
       this.destination = cfs.getDirectories().getWriteableLocationAsFile(cfs, this.sstable, writeSize);
       this.isCommutative = cfs.metadata().isCounter();
@@ -535,37 +535,23 @@ public class Scrubber implements Closeable {
       }
 
       private boolean hasNegativeLocalExpirationTime(Row next) {
-         if(next.primaryKeyLivenessInfo().isExpiring() && next.primaryKeyLivenessInfo().localExpirationTime() < 0) {
-            return true;
-         } else {
-            Iterator var3 = next.iterator();
-
-            Cell cell;
-            label40:
-            do {
-               while(var3.hasNext()) {
-                  ColumnData cd = (ColumnData)var3.next();
-                  if(cd.column().isSimple()) {
-                     cell = (Cell)cd;
-                     continue label40;
-                  }
-
-                  ComplexColumnData complexData = (ComplexColumnData)cd;
-                  Iterator var6 = complexData.iterator();
-
-                  while(var6.hasNext()) {
-                     Cell cell = (Cell)var6.next();
-                     if(cell.isExpiring() && cell.localDeletionTime() < 0) {
-                        return true;
-                     }
-                  }
-               }
-
-               return false;
-            } while(!cell.isExpiring() || cell.localDeletionTime() >= 0);
-
+         Row row = next;
+         if (row.primaryKeyLivenessInfo().isExpiring() && row.primaryKeyLivenessInfo().localExpirationTime() < 0) {
             return true;
          }
+         for (ColumnData cd : row) {
+            if (cd.column().isSimple()) {
+               Cell cell = (Cell)cd;
+               if (!cell.isExpiring() || cell.localDeletionTime() >= 0) continue;
+               return true;
+            }
+            ComplexColumnData complexData = (ComplexColumnData)cd;
+            for (Cell cell : complexData) {
+               if (!cell.isExpiring() || cell.localDeletionTime() >= 0) continue;
+               return true;
+            }
+         }
+         return false;
       }
 
       private Unfiltered fixNegativeLocalExpirationTime(Row row) {

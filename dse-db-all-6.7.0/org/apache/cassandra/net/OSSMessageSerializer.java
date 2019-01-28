@@ -8,12 +8,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.Map.Entry;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.db.TypeSizes;
@@ -31,6 +26,8 @@ import org.apache.cassandra.utils.Serializer;
 import org.apache.cassandra.utils.UUIDGen;
 import org.apache.cassandra.utils.UnmodifiableArrayList;
 import org.apache.cassandra.utils.time.ApolloTime;
+
+import static org.apache.cassandra.net.MessageParameters.from;
 
 public class OSSMessageSerializer implements Message.Serializer {
    private static final OSSMessageSerializer.OSSVerb[] LEGACY_VERB_VALUES = OSSMessageSerializer.OSSVerb.values();
@@ -262,7 +259,7 @@ public class OSSMessageSerializer implements Message.Serializer {
             if(rawParameters.containsKey("FAIL")) {
                rawParameters.remove("FAIL");
                RequestFailureReason reason = rawParameters.containsKey("FAIL_REASON")?RequestFailureReason.fromCode(ByteBufferUtil.toShort(ByteBuffer.wrap((byte[])rawParameters.remove("FAIL_REASON")))):RequestFailureReason.UNKNOWN;
-               data = new Message.Data((Object)null, -1L, timestamp, timeoutMillis, MessageParameters.from(rawParameters), tracingInfo);
+               data = new Message.Data(null, -1L, timestamp, timeoutMillis, from(rawParameters), tracingInfo);
                return new FailureResponse(from, FBUtilities.getBroadcastAddress(), id, verb, reason, data);
             } else {
                try {
@@ -276,7 +273,7 @@ public class OSSMessageSerializer implements Message.Serializer {
          }
       } else {
          rawParameters.remove("FAIL_REASON");
-         Verb<?, ?> verb = ossVerb == OSSMessageSerializer.OSSVerb.REPAIR_MESSAGE?(Verb)repairVerbToLegacyCode.inverse().get(Integer.valueOf(in.readByte())):ossVerb.verb;
+         Verb verb = ossVerb == OSSMessageSerializer.OSSVerb.REPAIR_MESSAGE?(Verb)repairVerbToLegacyCode.inverse().get(Integer.valueOf(in.readByte())):ossVerb.verb;
 
          assert verb != null : "Unknown definition for verb " + ossVerb;
 
@@ -314,48 +311,26 @@ public class OSSMessageSerializer implements Message.Serializer {
    }
 
    private List<Request.Forward> extractAndRemoveForwards(Map<String, byte[]> parameters) {
-      if(!parameters.containsKey("FWD_TO")) {
-         return UnmodifiableArrayList.emptyList();
-      } else {
-         try {
-            DataInputStream in = new DataInputStream(new FastByteArrayInputStream((byte[])parameters.remove("FWD_TO")));
-            Throwable var3 = null;
-
-            try {
-               int size = in.readInt();
-               List<Request.Forward> forwards = new ArrayList(size);
-
-               for(int i = 0; i < size; ++i) {
-                  InetAddress address = CompactEndpointSerializationHelper.deserialize(in);
-                  int id = in.readInt();
-                  forwards.add(new Request.Forward(address, id));
-               }
-
-               ArrayList var20 = forwards;
-               return var20;
-            } catch (Throwable var17) {
-               var3 = var17;
-               throw var17;
-            } finally {
-               if(in != null) {
-                  if(var3 != null) {
-                     try {
-                        in.close();
-                     } catch (Throwable var16) {
-                        var3.addSuppressed(var16);
-                     }
-                  } else {
-                     in.close();
-                  }
-               }
-
+      if (!parameters.containsKey(FORWARD_TO)) {
+         return Collections.emptyList();
+      }
+      try {
+         try (DataInputStream in = new DataInputStream(new FastByteArrayInputStream(parameters.remove(FORWARD_TO)));){
+            int size = in.readInt();
+            ArrayList<Request.Forward> forwards = new ArrayList<Request.Forward>(size);
+            for (int i = 0; i < size; ++i) {
+               InetAddress address = CompactEndpointSerializationHelper.deserialize(in);
+               int id = in.readInt();
+               forwards.add(new Request.Forward(address, id));
             }
-         } catch (IOException var19) {
-            throw new AssertionError();
+            ArrayList<Request.Forward> i = forwards;
+            return i;
          }
       }
+      catch (IOException e) {
+         throw new AssertionError();
+      }
    }
-
    private long deserializeTimestampPre40(DataInputPlus in, InetAddress from) throws IOException {
       int partial = in.readInt();
       long currentTime = ApolloTime.systemClockMillis();

@@ -68,7 +68,7 @@ class NodeSyncMaintenanceTasks {
 
    private class SizeChecker extends NodeSyncMaintenanceTasks.ScheduledTask {
       private SizeChecker() {
-         super(null);
+         super();
       }
 
       long delayInSec() {
@@ -119,7 +119,7 @@ class NodeSyncMaintenanceTasks {
       private long lastLowRateInfo;
 
       private RateChecker() {
-         super(null);
+         super();
          this.lastInsufficientRateWarn = -1L;
          this.lastLowRateInfo = -1L;
       }
@@ -191,7 +191,7 @@ class NodeSyncMaintenanceTasks {
       private long lastFailedPages;
 
       private LogReporter() {
-         super(null);
+         super();
          this.LOG_INTERVAL = TimeValue.of(NodeSyncMaintenanceTasks.LOG_REPORTING_DELAY_SEC, TimeUnit.SECONDS);
          this.lastValidatedBytes = 0L;
          this.lastRepairedBytes = 0L;

@@ -79,8 +79,8 @@ class ValidationExecutor implements Validator.PageProcessingListener {
       this.blockedOnNewTaskTimeNanos = new AtomicLong();
       this.waitingOnTaskThreads = new ConcurrentHashMap();
       this.scheduler = scheduler;
-      this.validationExecutor = DebuggableThreadPoolExecutor.createWithFixedPoolSize((ThreadFactory)(new ValidationExecutor.ValidationThread.Factory(null)), config.getMinThreads());
-      this.wrappingScheduler = new ValidationExecutor.NodeSyncStagedExecutor(null);
+      this.validationExecutor = DebuggableThreadPoolExecutor.createWithFixedPoolSize((ThreadFactory)(new ValidationExecutor.ValidationThread.Factory()), config.getMinThreads());
+      this.wrappingScheduler = new ValidationExecutor.NodeSyncStagedExecutor();
       this.config = config;
       this.maxInFlightValidations = config.getMinInflightValidations();
       this.controllerIntervalMs = controllerIntervalMs;
@@ -123,7 +123,7 @@ class ValidationExecutor implements Validator.PageProcessingListener {
             throw new IllegalStateException("Cannot restart a stopped ValidationExecutor");
          }
       } else {
-         this.controller = new ValidationExecutor.Controller(this.controllerIntervalMs, null);
+         this.controller = new ValidationExecutor.Controller(this.controllerIntervalMs);
          this.controller.updateValues();
 
          for(int i = 0; i < this.maxInFlightValidations; ++i) {
@@ -154,7 +154,7 @@ class ValidationExecutor implements Validator.PageProcessingListener {
       }
 
       if(this.inFlightValidations.get() == 0) {
-         this.shutdownFuture.complete((Object)null);
+         this.shutdownFuture.complete(null);
       }
 
       this.updaterExecutor.shutdown();
@@ -184,7 +184,7 @@ class ValidationExecutor implements Validator.PageProcessingListener {
       }
 
       if(value == 0 && this.isShutdown()) {
-         this.shutdownFuture.complete((Object)null);
+         this.shutdownFuture.complete(null);
       }
 
    }
@@ -292,7 +292,7 @@ class ValidationExecutor implements Validator.PageProcessingListener {
          }
 
          public Thread newThread(Runnable runnable) {
-            return new ValidationExecutor.ValidationThread("NodeSync-" + this.n.getAndIncrement(), runnable, null);
+            return new ValidationExecutor.ValidationThread("NodeSync-" + this.n.getAndIncrement(), runnable);
          }
       }
    }
@@ -361,10 +361,10 @@ class ValidationExecutor implements Validator.PageProcessingListener {
 
       private Controller(long controllerIntervalMs) {
          this.lastTickNanos = ApolloTime.approximateNanoTime();
-         this.processingWaitTimeMsDiff = new ValidationExecutor.DiffValue(null);
-         this.limiterWaitTimeMsDiff = new ValidationExecutor.DiffValue(null);
-         this.dataValidatedBytesDiff = new ValidationExecutor.DiffValue(null);
-         this.blockedOnNewTaskMsDiff = new ValidationExecutor.DiffValue(null);
+         this.processingWaitTimeMsDiff = new ValidationExecutor.DiffValue();
+         this.limiterWaitTimeMsDiff = new ValidationExecutor.DiffValue();
+         this.dataValidatedBytesDiff = new ValidationExecutor.DiffValue();
+         this.blockedOnNewTaskMsDiff = new ValidationExecutor.DiffValue();
          this.history = new History(12);
          this.lastMaxedOutWarn = -1L;
          this.threadWaitTimeThresholdMs = 10L * controllerIntervalMs / 100L;
@@ -485,19 +485,23 @@ class ValidationExecutor implements Validator.PageProcessingListener {
                ValidationExecutor.logger.debug("NodeSync executor controller: recent rate={} (configured={}), {} thread(s) and {} maximum in-flight validation(s), ~{}% avg thread occupation: {}", new Object[]{Units.toString((long)recentRate, RateUnit.B_S), Units.toString((long)targetRate, RateUnit.B_S), Integer.valueOf(ValidationExecutor.this.validationExecutor.getCorePoolSize()), Integer.valueOf(ValidationExecutor.this.maxInFlightValidations), Integer.valueOf(this.threadAvgOccupationPercentage()), action});
             }
 
-            switch(null.$SwitchMap$com$datastax$bdp$db$nodesync$ValidationExecutor$Action[action.ordinal()]) {
-            case 1:
-               ValidationExecutor.this.validationExecutor.setCorePoolSize(ValidationExecutor.this.validationExecutor.getCorePoolSize() + 1);
-               break;
-            case 2:
-               ++ValidationExecutor.this.maxInFlightValidations;
-               ValidationExecutor.this.submitNewValidation();
-               break;
-            case 3:
-               ValidationExecutor.this.validationExecutor.setCorePoolSize(ValidationExecutor.this.validationExecutor.getCorePoolSize() - 1);
-               break;
-            case 4:
-               --ValidationExecutor.this.maxInFlightValidations;
+            switch (action) {
+               case INCREASE_THREADS: {
+                  ValidationExecutor.this.validationExecutor.setCorePoolSize(ValidationExecutor.this.validationExecutor.getCorePoolSize() + 1);
+                  break;
+               }
+               case INCREASE_INFLIGHT_VALIDATIONS: {
+                  ++ValidationExecutor.this.maxInFlightValidations;
+                  ValidationExecutor.this.submitNewValidation();
+                  break;
+               }
+               case DECREASE_THREADS: {
+                  ValidationExecutor.this.validationExecutor.setCorePoolSize(ValidationExecutor.this.validationExecutor.getCorePoolSize() - 1);
+                  break;
+               }
+               case DECREASE_INFLIGHT_VALIDATIONS: {
+                  --ValidationExecutor.this.maxInFlightValidations;
+               }
             }
 
             this.history.add(action);

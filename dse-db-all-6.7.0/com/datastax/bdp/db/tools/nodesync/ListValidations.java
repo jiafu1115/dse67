@@ -2,10 +2,7 @@ package com.datastax.bdp.db.tools.nodesync;
 
 import com.datastax.bdp.db.nodesync.UserValidationProposer;
 import com.datastax.bdp.db.nodesync.ValidationOutcome;
-import com.datastax.driver.core.Metadata;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.UDTValue;
+import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import io.airlift.airline.Command;
@@ -62,11 +59,13 @@ public class ListValidations extends NodeSyncCommand {
       Predicate<Row> statusFilter = (r) -> {
          return this.all || Objects.equals(r.getString("status"), UserValidationProposer.Status.RUNNING.toString());
       };
-      List<ListValidations.Validation> validations = (List)((Map)Streams.of(session.execute(select)).filter(statusFilter).map((x$0) -> {
+      List<ListValidations.Validation> validations = (List)(Streams.of(session.execute(select)).filter(statusFilter).map((x$0) -> {
          return ListValidations.Validation.fromRow(x$0);
       }).collect(Collectors.groupingBy((v) -> {
          return v.key;
       }, Collectors.reducing(ListValidations.Validation::combineWith)))).values().stream().filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+
+
       List<Map<String, String>> table = new ArrayList(validations.size());
       Iterator var8 = validations.iterator();
 

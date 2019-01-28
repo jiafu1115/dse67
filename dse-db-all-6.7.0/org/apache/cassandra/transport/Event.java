@@ -19,16 +19,18 @@ public abstract class Event {
       if(eventType.minimumVersion.isGreaterThan(version)) {
          throw new ProtocolException("Event " + eventType.name() + " not valid for protocol version " + version);
       } else {
-         switch(null.$SwitchMap$org$apache$cassandra$transport$Event$Type[eventType.ordinal()]) {
-         case 1:
-            return Event.TopologyChange.deserializeEvent(cb, version);
-         case 2:
-            return Event.StatusChange.deserializeEvent(cb, version);
-         case 3:
-            return Event.SchemaChange.deserializeEvent(cb, version);
-         default:
-            throw new AssertionError();
+         switch (eventType) {
+            case TOPOLOGY_CHANGE: {
+               return TopologyChange.deserializeEvent(cb, version);
+            }
+            case STATUS_CHANGE: {
+               return StatusChange.deserializeEvent(cb, version);
+            }
+            case SCHEMA_CHANGE: {
+               return SchemaChange.deserializeEvent(cb, version);
+            }
          }
+         throw new AssertionError();
       }
    }
 
@@ -58,7 +60,7 @@ public abstract class Event {
       public final List<String> argTypes;
 
       public SchemaChange(Event.SchemaChange.Change change, Event.SchemaChange.Target target, String keyspace, String name, List<String> argTypes) {
-         super(Event.Type.SCHEMA_CHANGE, null);
+         super(Event.Type.SCHEMA_CHANGE);
          this.change = change;
          this.target = target;
          this.keyspace = keyspace;
@@ -91,7 +93,6 @@ public abstract class Event {
 
             return new Event.SchemaChange(change, target, keyspace, tableOrType, argTypes);
          } else {
-            String keyspace = CBUtil.readString(cb);
             keyspace = CBUtil.readString(cb);
             return new Event.SchemaChange(change, keyspace.isEmpty()?Event.SchemaChange.Target.KEYSPACE:Event.SchemaChange.Target.TABLE, keyspace, keyspace.isEmpty()?null:keyspace);
          }
@@ -218,7 +219,7 @@ public abstract class Event {
       public final Event.StatusChange.Status status;
 
       private StatusChange(Event.StatusChange.Status status, InetSocketAddress node) {
-         super(Event.Type.STATUS_CHANGE, node, null);
+         super(Event.Type.STATUS_CHANGE, node);
          this.status = status;
       }
 
@@ -275,7 +276,7 @@ public abstract class Event {
       public final Event.TopologyChange.Change change;
 
       private TopologyChange(Event.TopologyChange.Change change, InetSocketAddress node) {
-         super(Event.Type.TOPOLOGY_CHANGE, node, null);
+         super(Event.Type.TOPOLOGY_CHANGE, node);
          this.change = change;
       }
 
@@ -341,7 +342,7 @@ public abstract class Event {
       }
 
       private NodeEvent(Event.Type type, InetSocketAddress node) {
-         super(type, null);
+         super(type);
          this.node = node;
       }
    }

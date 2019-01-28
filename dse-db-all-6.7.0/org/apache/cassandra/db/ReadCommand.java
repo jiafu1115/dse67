@@ -144,7 +144,7 @@ public abstract class ReadCommand extends AbstractReadQuery implements Schedulab
    }
 
    public Flow<FlowableUnfilteredPartition> executeLocally(Monitor monitor) {
-      long startTimeNanos = ApolloTime.approximateNanoTime();
+      long startTimeNanos = System.nanoTime();
       ColumnFamilyStore cfs = Keyspace.openAndGetStore(this.metadata());
       Index index = this.getIndex(cfs);
       Index.Searcher pickSearcher = null;
@@ -156,16 +156,16 @@ public abstract class ReadCommand extends AbstractReadQuery implements Schedulab
          pickSearcher = index.searcherFor(this);
          Tracing.trace("Executing read on {}.{} using index {}", new Object[]{cfs.metadata.keyspace, cfs.metadata.name, index.getIndexMetadata().name});
       }
-
+      Index.Searcher searcher =pickSearcher;
       Flow<FlowableUnfilteredPartition> flow = this.applyController((controller) -> {
-         Flow<FlowableUnfilteredPartition> r = pickSearcher == null?this.queryStorage(cfs, controller):pickSearcher.search(controller);
+         Flow<FlowableUnfilteredPartition> r = searcher == null?this.queryStorage(cfs, controller):searcher.search(controller);
          if(monitor != null) {
             r = monitor.withMonitoring(r);
          }
 
          r = this.withoutPurgeableTombstones(r, cfs);
          r = this.withMetricsRecording(r, cfs.metric, startTimeNanos);
-         RowFilter updatedFilter = pickSearcher == null?this.rowFilter():index.getPostIndexQueryFilter(this.rowFilter());
+         RowFilter updatedFilter = searcher == null?this.rowFilter():index.getPostIndexQueryFilter(this.rowFilter());
          r = updatedFilter.filter(r, cfs.metadata(), this.nowInSec());
          return this.limits().truncateUnfiltered(r, this.nowInSec(), this.selectsFullPartition(), this.metadata().rowPurger());
       });

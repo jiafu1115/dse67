@@ -180,7 +180,7 @@ public class CassandraRoleManager implements IRoleManager {
       Iterable<RoleResource> roles = Iterables.transform(rows, (row) -> {
          return RoleResource.role(row.getString("role"));
       });
-      return ImmutableSet.builder().addAll(roles).build();
+      return ImmutableSet.<RoleResource>builder().addAll(roles).build();
    }
 
    public boolean isSuper(RoleResource role) {
@@ -200,7 +200,7 @@ public class CassandraRoleManager implements IRoleManager {
    }
 
    public Set<RoleResource> filterExistingRoleNames(List<String> roleNames) {
-      List<ByteBuffer> params = UnmodifiableArrayList.of((Object)ListType.getInstance(UTF8Type.instance, false).getSerializer().serialize(roleNames));
+      List<ByteBuffer> params = UnmodifiableArrayList.of(ListType.getInstance(UTF8Type.instance, false).getSerializer().serialize(roleNames));
       ResultMessage.Rows rows = (ResultMessage.Rows)TPCUtils.blockingGet(this.checkRolesStatement.execute(QueryState.forInternalCalls(), QueryOptions.forInternalCalls(consistencyForRole("-"), params), ApolloTime.approximateNanoTime()));
       Set<RoleResource> roles = SetsFactory.newSetForSize(roleNames.size());
       Iterator var5 = UntypedResultSet.create(rows.result).iterator();
@@ -263,12 +263,12 @@ public class CassandraRoleManager implements IRoleManager {
    private Future<?> scheduleSetupTask() {
       if(!needsDefaultRoleSetup()) {
          this.isClusterReady = true;
-         return Futures.immediateFuture((Object)null);
+         return Futures.immediateFuture(null);
       } else {
          long setupDelay = PropertyConfiguration.getLong("cassandra.superuser_setup_delay_ms", 10000L);
          if(setupDelay < 0L) {
             this.doSetupDefaultRole();
-            return Futures.immediateFuture((Object)null);
+            return Futures.immediateFuture(null);
          } else {
             return ScheduledExecutors.optionalTasks.schedule(this::doSetupDefaultRole, setupDelay, TimeUnit.MILLISECONDS);
          }
@@ -309,7 +309,7 @@ public class CassandraRoleManager implements IRoleManager {
          return internalUserRole;
       } else {
          String roleName = role.getRoleName();
-         ResultMessage.Rows rows = (ResultMessage.Rows)TPCUtils.blockingGet(this.loadRoleStatement.execute(QueryState.forInternalCalls(), QueryOptions.forInternalCalls(consistencyForRole(roleName), UnmodifiableArrayList.of((Object)ByteBufferUtil.bytes(roleName))), ApolloTime.approximateNanoTime()));
+         ResultMessage.Rows rows = (ResultMessage.Rows)TPCUtils.blockingGet(this.loadRoleStatement.execute(QueryState.forInternalCalls(), QueryOptions.forInternalCalls(consistencyForRole(roleName), UnmodifiableArrayList.of(ByteBufferUtil.bytes(roleName))), ApolloTime.approximateNanoTime()));
          if(rows.result.isEmpty()) {
             return Role.NULL_ROLE;
          } else {
@@ -344,17 +344,19 @@ public class CassandraRoleManager implements IRoleManager {
    }
 
    private Iterable<String> optionsToAssignments(Map<IRoleManager.Option, Object> options) {
-      return Iterables.transform(options.entrySet(), (entry) -> {
-         switch(null.$SwitchMap$org$apache$cassandra$auth$IRoleManager$Option[((IRoleManager.Option)entry.getKey()).ordinal()]) {
-         case 1:
-            return String.format("can_login = %s", new Object[]{entry.getValue()});
-         case 2:
-            return String.format("is_superuser = %s", new Object[]{entry.getValue()});
-         case 3:
-            return String.format("salted_hash = '%s'", new Object[]{escape(hashpw((String)entry.getValue()))});
-         default:
-            return null;
+      return Iterables.transform(options.entrySet(), entry -> {
+         switch ((IRoleManager.Option)((Object)entry.getKey())) {
+            case LOGIN: {
+               return String.format("can_login = %s", entry.getValue());
+            }
+            case SUPERUSER: {
+               return String.format("is_superuser = %s", entry.getValue());
+            }
+            case PASSWORD: {
+               return String.format("salted_hash = '%s'", CassandraRoleManager.escape(CassandraRoleManager.hashpw((String)entry.getValue())));
+            }
          }
+         return null;
       });
    }
 

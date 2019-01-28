@@ -138,7 +138,7 @@ public class SecondaryIndexManager implements IndexRegistry, INotificationConsum
    private Future<?> reloadIndex(IndexMetadata indexDef) {
       Index index = (Index)this.indexes.get(indexDef.name);
       Callable<?> reloadTask = index.getMetadataReloadTask(indexDef);
-      return reloadTask == null?Futures.immediateFuture((Object)null):blockingExecutor.submit(reloadTask);
+      return reloadTask == null?Futures.immediateFuture(null):blockingExecutor.submit(reloadTask);
    }
 
    private Index createIndex(IndexMetadata indexDef, boolean isNewCF) {
@@ -161,7 +161,7 @@ public class SecondaryIndexManager implements IndexRegistry, INotificationConsum
 
       if(initialBuildTask == null) {
          this.markIndexBuilt(index, true);
-         return Futures.immediateFuture((Object)null);
+         return Futures.immediateFuture(null);
       } else {
          final SettableFuture initialization = SettableFuture.create();
          Futures.addCallback(asyncExecutor.submit(initialBuildTask), new FutureCallback() {
@@ -893,16 +893,16 @@ public class SecondaryIndexManager implements IndexRegistry, INotificationConsum
          }).filter(Objects::nonNull).toArray((x$0) -> {
             return new Index.Indexer[x$0];
          });
-         return (UpdateTransaction)(indexers.length == 0?UpdateTransaction.NO_OP:new SecondaryIndexManager.WriteTimeTransaction(indexers, null));
+         return (UpdateTransaction)(indexers.length == 0?UpdateTransaction.NO_OP:new SecondaryIndexManager.WriteTimeTransaction(indexers));
       }
    }
 
    public CompactionTransaction newCompactionTransaction(DecoratedKey key, RegularAndStaticColumns regularAndStaticColumns, int versions, int nowInSec) {
-      return new SecondaryIndexManager.IndexGCTransaction(key, regularAndStaticColumns, versions, nowInSec, this.listIndexes(), null);
+      return new SecondaryIndexManager.IndexGCTransaction(key, regularAndStaticColumns, versions, nowInSec, this.listIndexes());
    }
 
    public CleanupTransaction newCleanupTransaction(DecoratedKey key, RegularAndStaticColumns regularAndStaticColumns, int nowInSec) {
-      return (CleanupTransaction)(!this.hasIndexes()?CleanupTransaction.NO_OP:new SecondaryIndexManager.CleanupGCTransaction(key, regularAndStaticColumns, nowInSec, this.listIndexes(), null));
+      return (CleanupTransaction)(!this.hasIndexes()?CleanupTransaction.NO_OP:new SecondaryIndexManager.CleanupGCTransaction(key, regularAndStaticColumns, nowInSec, this.listIndexes()));
    }
 
    private void executeBlocking(Callable<?> task, FutureCallback<Object> callback) {

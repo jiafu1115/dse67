@@ -31,20 +31,21 @@ public class OperationsVerbs extends VerbGroup<OperationsVerbs.OperationsVersion
    public OperationsVerbs(Verbs.Group id) {
       super(id, true, OperationsVerbs.OperationsVersion.class);
       VerbGroup<OperationsVerbs.OperationsVersion>.RegistrationHelper helper = this.helper();
-      this.TRUNCATE = ((VerbGroup.RegistrationHelper.RequestResponseBuilder)((VerbGroup.RegistrationHelper.RequestResponseBuilder)((VerbGroup.RegistrationHelper.RequestResponseBuilder)helper.requestResponse("TRUNCATE", Truncation.class, TruncateResponse.class).requestStage(Stage.MISC)).droppedGroup(DroppedMessages.Group.TRUNCATE)).timeout(DatabaseDescriptor::getTruncateRpcTimeout)).syncHandler((from, t) -> {
-         Tracing.trace("Applying truncation of {}.{}", t.keyspace, t.columnFamily);
+      this.TRUNCATE = helper.requestResponse("TRUNCATE", Truncation.class, TruncateResponse.class).requestStage(Stage.MISC).droppedGroup(DroppedMessages.Group.TRUNCATE).timeout(DatabaseDescriptor::getTruncateRpcTimeout).
+              syncHandler((from, t) -> {
+                 Tracing.trace("Applying truncation of {}.{}", t.keyspace, t.columnFamily);
 
-         try {
-            ColumnFamilyStore cfs = Keyspace.open(t.keyspace).getColumnFamilyStore(t.columnFamily);
-            cfs.truncateBlocking();
-            return new TruncateResponse(t.keyspace, t.columnFamily);
-         } catch (Exception var4) {
-            logger.error("Error in truncation", var4);
-            FSError fsError = FSError.findNested(var4);
-            throw Throwables.propagate((Throwable)(fsError == null?var4:fsError));
-         }
-      });
-      this.SNAPSHOT = ((VerbGroup.RegistrationHelper.AckedRequestBuilder)((VerbGroup.RegistrationHelper.AckedRequestBuilder)((VerbGroup.RegistrationHelper.AckedRequestBuilder)helper.ackedRequest("SNAPSHOT", SnapshotCommand.class).requestStage(Stage.MISC)).droppedGroup(DroppedMessages.Group.SNAPSHOT)).timeout(DatabaseDescriptor::getRpcTimeout)).syncHandler((from, command) -> {
+                 try {
+                    ColumnFamilyStore cfs = Keyspace.open(t.keyspace).getColumnFamilyStore(t.columnFamily);
+                    cfs.truncateBlocking();
+                    return new TruncateResponse(t.keyspace, t.columnFamily);
+                 } catch (Exception var4) {
+                    logger.error("Error in truncation", var4);
+                    FSError fsError = FSError.findNested(var4);
+                    throw Throwables.propagate((Throwable)(fsError == null?var4:fsError));
+                 }
+              });
+      this.SNAPSHOT = (helper.ackedRequest("SNAPSHOT", SnapshotCommand.class).requestStage(Stage.MISC).droppedGroup(DroppedMessages.Group.SNAPSHOT).timeout(DatabaseDescriptor::getRpcTimeout)).syncHandler((from, command) -> {
          if(command.clearSnapshot) {
             Keyspace.clearSnapshot(command.snapshotName, command.keyspace);
          } else {

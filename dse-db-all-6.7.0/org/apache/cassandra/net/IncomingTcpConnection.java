@@ -119,7 +119,6 @@ public class IncomingTcpConnection extends FastThreadLocalThread implements Clos
       }
 
       this.messageSerializer = Message.createSerializer(version, baseTimestampMillis);
-      Object in;
       if(this.compressed) {
          logger.trace("Upgrading incoming connection to be compressed");
          LZ4FastDecompressor decompressor = LZ4Factory.fastestInstance().fastDecompressor();

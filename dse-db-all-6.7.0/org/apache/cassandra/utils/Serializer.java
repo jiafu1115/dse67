@@ -7,7 +7,7 @@ import org.apache.cassandra.io.util.DataInputPlus;
 import org.apache.cassandra.io.util.DataOutputPlus;
 
 public interface Serializer<T> {
-   static default <T> Serializer<Optional<T>> forOptional(final Serializer<T> serializer) {
+   static <T> Serializer<Optional<T>> forOptional(final Serializer<T> serializer) {
       return new Serializer<Optional<T>>() {
          public void serialize(Optional<T> t, DataOutputPlus out) throws IOException {
             out.writeBoolean(t.isPresent());

@@ -54,13 +54,13 @@ public class WriteEndpoints implements Iterable<InetAddress> {
       for(int i = 0; i < endpoints.size(); ++i) {
          InetAddress endpoint = (InetAddress)endpoints.get(i);
          if(FailureDetector.instance.isAlive(endpoint)) {
-            liveBuilder.add((Object)endpoint);
+            liveBuilder.add(endpoint);
          } else {
             if(deadBuilder == null) {
                deadBuilder = UnmodifiableArrayList.builder(2);
             }
 
-            deadBuilder.add((Object)endpoint);
+            deadBuilder.add(endpoint);
          }
       }
 

@@ -41,7 +41,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
    }
 
    public SortedMap<K, V> headMap(K toKey) {
-      return new PatriciaTrie.RangeEntryMap((Object)null, toKey);
+      return new PatriciaTrie.RangeEntryMap(null, toKey);
    }
 
    public SortedMap<K, V> subMap(K fromKey, K toKey) {
@@ -49,7 +49,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
    }
 
    public SortedMap<K, V> tailMap(K fromKey) {
-      return new PatriciaTrie.RangeEntryMap(fromKey, (Object)null);
+      return new PatriciaTrie.RangeEntryMap(fromKey, null);
    }
 
    private AbstractPatriciaTrie.TrieEntry<K, V> higherEntry(K key) {
@@ -99,7 +99,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
    }
 
    private AbstractPatriciaTrie.TrieEntry<K, V> replaceCeil(K key, int bitIndex) {
-      AbstractPatriciaTrie.TrieEntry<K, V> added = new AbstractPatriciaTrie.TrieEntry(key, (Object)null, bitIndex);
+      AbstractPatriciaTrie.TrieEntry<K, V> added = new AbstractPatriciaTrie.TrieEntry(key, null, bitIndex);
       this.addEntry(added);
       this.incrementSize();
       AbstractPatriciaTrie.TrieEntry<K, V> ceil = this.nextEntry(added);
@@ -109,7 +109,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
    }
 
    private AbstractPatriciaTrie.TrieEntry<K, V> replaceLower(K key, int bitIndex) {
-      AbstractPatriciaTrie.TrieEntry<K, V> added = new AbstractPatriciaTrie.TrieEntry(key, (Object)null, bitIndex);
+      AbstractPatriciaTrie.TrieEntry<K, V> added = new AbstractPatriciaTrie.TrieEntry(key, null, bitIndex);
       this.addEntry(added);
       this.incrementSize();
       AbstractPatriciaTrie.TrieEntry<K, V> prior = this.previousEntry(added);
@@ -230,7 +230,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
       private AbstractPatriciaTrie.TrieEntry<K, V> prefixStart;
       private int expectedModCount = -1;
 
-      public PrefixRangeEntrySet(PatriciaTrie<K, V>.PrefixRangeMap var1) {
+      public PrefixRangeEntrySet(PatriciaTrie<K, V>.PrefixRangeMap delegate) {
          super(delegate);
          this.delegate = delegate;
       }
@@ -258,7 +258,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
          protected boolean lastOne;
          protected AbstractPatriciaTrie.TrieEntry<K, V> subtree;
 
-         EntryIterator(AbstractPatriciaTrie.TrieEntry<K, V> var1, K startScan) {
+         EntryIterator(AbstractPatriciaTrie.TrieEntry<K, V> startScan, K prefix) {
             super();
             this.subtree = startScan;
             this.next = PatriciaTrie.this.followLeft(startScan);
@@ -301,7 +301,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
          private final AbstractPatriciaTrie.TrieEntry<K, V> entry;
          private int hit = 0;
 
-         public SingletonIterator(AbstractPatriciaTrie.TrieEntry<K, V> var1) {
+         public SingletonIterator(AbstractPatriciaTrie.TrieEntry<K, V> entry) {
             this.entry = entry;
          }
 
@@ -336,8 +336,8 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
       private int expectedModCount;
       private int size;
 
-      private PrefixRangeMap(K var1) {
-         super(null);
+      private PrefixRangeMap(K prefix) {
+         super();
          this.fromKey = null;
          this.toKey = null;
          this.expectedModCount = -1;
@@ -445,7 +445,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
       private int size = -1;
       private int expectedModCount = -1;
 
-      public RangeEntrySet(PatriciaTrie<K, V>.RangeMap var1) {
+      public RangeEntrySet(PatriciaTrie<K, V>.RangeMap delegate) {
          if(delegate == null) {
             throw new NullPointerException("delegate");
          } else {
@@ -523,7 +523,7 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
       private final class EntryIterator extends AbstractPatriciaTrie<K, V>.TrieIterator<Entry<K, V>> {
          private final K excludedKey;
 
-         private EntryIterator(AbstractPatriciaTrie.TrieEntry<K, V> var1, AbstractPatriciaTrie.TrieEntry<K, V> first) {
+         private EntryIterator(AbstractPatriciaTrie.TrieEntry<K, V> first, AbstractPatriciaTrie.TrieEntry<K, V> last) {
             super(first);
             this.excludedKey = last != null?last.getKey():null;
          }
@@ -548,12 +548,12 @@ public class PatriciaTrie<K, V> extends AbstractPatriciaTrie<K, V> implements Se
       protected final boolean fromInclusive;
       protected final boolean toInclusive;
 
-      protected RangeEntryMap(K var1, K fromKey) {
+      protected RangeEntryMap(K fromKey, K toKey) {
          this(fromKey, true, toKey, false);
       }
 
-      protected RangeEntryMap(K var1, boolean fromKey, K fromInclusive, boolean toKey) {
-         super(null);
+      protected RangeEntryMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
+         super();
          if(fromKey == null && toKey == null) {
             throw new IllegalArgumentException("must have a from or to!");
          } else if(fromKey != null && toKey != null && PatriciaTrie.this.keyAnalyzer.compare(fromKey, toKey) > 0) {

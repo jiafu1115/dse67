@@ -152,7 +152,7 @@ public abstract class MultiCBuilder {
                   List<ByteBuffer> newComposite = new ArrayList(oldComposite);
                   this.elementsList.add(newComposite);
                   List<ByteBuffer> value = (List)values.get(j);
-                  if(value.contains((Object)null)) {
+                  if(value.contains(null)) {
                      this.containsNull = true;
                   }
 
@@ -328,7 +328,7 @@ public abstract class MultiCBuilder {
 
       public List<ByteBuffer> buildSerializedPartitionKeys() {
          this.built = true;
-         return this.hasMissingElements?UnmodifiableArrayList.emptyList():(this.size == 0?UnmodifiableArrayList.of((Object)ByteBufferUtil.EMPTY_BYTE_BUFFER):(this.size == 1?UnmodifiableArrayList.of((Object)this.elements[0]):UnmodifiableArrayList.of((Object)CompositeType.build(this.elements))));
+         return this.hasMissingElements?UnmodifiableArrayList.emptyList():(this.size == 0?UnmodifiableArrayList.of(ByteBufferUtil.EMPTY_BYTE_BUFFER):(this.size == 1?UnmodifiableArrayList.of(this.elements[0]):UnmodifiableArrayList.of(CompositeType.build(this.elements))));
       }
 
       public NavigableSet<ClusteringBound> buildBoundForSlice(boolean isStart, boolean isInclusive, boolean isOtherBoundInclusive, List<ColumnMetadata> columnDefs) {

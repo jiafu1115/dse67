@@ -27,7 +27,7 @@ public class SetLoggingLevel extends NodeTool.NodeToolCmd {
    public void execute(NodeProbe probe) {
       String target = this.args.size() >= 1?(String)this.args.get(0):"";
       String level = this.args.size() == 2?(String)this.args.get(1):"";
-      List<String> classQualifiers = UnmodifiableArrayList.of((Object)target);
+      List<String> classQualifiers = UnmodifiableArrayList.of(target);
       if(target.equals("bootstrap")) {
          classQualifiers = Lists.newArrayList(new String[]{"org.apache.cassandra.gms", "org.apache.cassandra.hints", "org.apache.cassandra.schema", "org.apache.cassandra.service.StorageService", "org.apache.cassandra.db.SystemKeyspace", "org.apache.cassandra.batchlog.BatchlogManager", "org.apache.cassandra.net.MessagingService"});
       } else if(target.equals("repair")) {

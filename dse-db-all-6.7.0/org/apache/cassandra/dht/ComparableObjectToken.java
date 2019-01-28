@@ -25,11 +25,10 @@ abstract class ComparableObjectToken<C extends Comparable<C>> extends Token {
    }
 
    public int compareTo(Token o) {
-      if(o.getClass() != this.getClass()) {
+      if (o.getClass() != this.getClass()) {
          throw new IllegalArgumentException("Invalid type of Token.compareTo() argument.");
-      } else {
-         return this.token.compareTo(((ComparableObjectToken)o).token);
       }
+      return this.token.compareTo((C)((ComparableObjectToken)o).token);
    }
 
    public double size(Token next) {

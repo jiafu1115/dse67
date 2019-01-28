@@ -186,7 +186,7 @@ public final class CastFcts {
       }
 
       protected AbstractType<O> outputType() {
-         return this.returnType;
+         return (AbstractType<O>) this.returnType;
       }
    }
 }

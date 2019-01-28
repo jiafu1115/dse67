@@ -148,7 +148,7 @@ final class AuditLogger implements IAuditLogger {
    public List<AuditableEvent> getEvents(CQLStatement statement, String queryString, QueryState queryState, QueryOptions queryOptions, List<ColumnSpecification> boundNames) {
       if(!queryState.isSystem() && this.isEnabled() && !this.isPagingQuery(queryOptions)) {
          if(!(statement instanceof BatchStatement)) {
-            return UnmodifiableArrayList.of((Object)this.getEvent(queryState, statement, queryString, (UUID)null, queryOptions.getValues(), boundNames, queryOptions.getConsistency()));
+            return UnmodifiableArrayList.of(this.getEvent(queryState, statement, queryString, (UUID)null, queryOptions.getValues(), boundNames, queryOptions.getConsistency()));
          } else {
             UUID batchID = UUID.randomUUID();
             List<BatchStatementUtils.Meta> batchStatements = BatchStatementUtils.decomposeBatchStatement(queryString);
@@ -207,7 +207,7 @@ final class AuditLogger implements IAuditLogger {
    public List<AuditableEvent> getEventsForPrepare(CQLStatement statement, String queryString, QueryState queryState) {
       if(!queryState.isSystem() && this.isEnabled()) {
          if(!(statement instanceof BatchStatement)) {
-            return UnmodifiableArrayList.of((Object)this.getEventForPrepared(queryState, statement, queryString, (UUID)null));
+            return UnmodifiableArrayList.of(this.getEventForPrepared(queryState, statement, queryString, (UUID)null));
          } else {
             UUID batchID = UUID.randomUUID();
             List<BatchStatementUtils.Meta> batchStatements = BatchStatementUtils.decomposeBatchStatement(queryString);

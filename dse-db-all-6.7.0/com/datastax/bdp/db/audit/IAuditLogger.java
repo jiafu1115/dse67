@@ -35,11 +35,11 @@ public interface IAuditLogger {
 
    Completable logFailedQuery(List<AuditableEvent> var1, Throwable var2);
 
-   static default IAuditLogger newInstance(IAuditWriter writer, IAuditFilter filter) {
+   static IAuditLogger newInstance(IAuditWriter writer, IAuditFilter filter) {
       return new AuditLogger(writer, filter);
    }
 
-   static default IAuditLogger fromConfiguration(Config config) {
+   static IAuditLogger fromConfiguration(Config config) {
       AuditLoggingOptions auditLoggingOptions = config.audit_logging_options;
       if(!auditLoggingOptions.enabled && PropertyConfiguration.getString("cassandra.audit_writer") == null) {
          logger.info("Audit logging is disabled");

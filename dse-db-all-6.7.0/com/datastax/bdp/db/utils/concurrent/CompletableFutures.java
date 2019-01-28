@@ -20,7 +20,7 @@ public abstract class CompletableFutures {
    }
 
    public static CompletableFuture<Void> allOf(Collection<CompletableFuture<?>> futures) {
-      return futures.isEmpty()?CompletableFuture.completedFuture((Object)null):CompletableFuture.allOf((CompletableFuture[])futures.toArray(new CompletableFuture[0]));
+      return futures.isEmpty()?CompletableFuture.completedFuture(null):CompletableFuture.allOf((CompletableFuture[])futures.toArray(new CompletableFuture[0]));
    }
 
    public static CompletableFuture<Void> allOf(Stream<CompletableFuture<?>> futures) {
@@ -31,15 +31,12 @@ public abstract class CompletableFutures {
 
    public static <T> CompletableFuture<List<T>> allAsList(List<CompletableFuture<T>> futures) {
       CompletableFuture<List<T>> result = CompletableFuture.completedFuture(new ArrayList(futures.size()));
-
-      CompletableFuture future;
-      for(Iterator var2 = futures.iterator(); var2.hasNext(); result = result.thenCombine(future, (l, t) -> {
-         l.add(t);
-         return l;
-      })) {
-         future = (CompletableFuture)var2.next();
+      for (CompletableFuture<T> future : futures) {
+         result = result.thenCombine(future, (l, t) -> {
+            l.add(t);
+            return l;
+         });
       }
-
       return result;
    }
 }

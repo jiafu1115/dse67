@@ -215,10 +215,7 @@ final class HintsDispatchExecutor {
 
          try {
             reader.forEach((page) -> {
-               Iterator var10000 = page.hintsIterator();
-               HintsService var10001 = HintsService.instance;
-               HintsService.instance.getClass();
-               var10000.forEachRemaining(var10001::writeForAllReplicas);
+               page.hintsIterator().forEachRemaining(HintsService.instance::writeForAllReplicas);
             });
             this.store.delete(descriptor);
             this.store.cleanUp(descriptor);
@@ -248,7 +245,7 @@ final class HintsDispatchExecutor {
       private final HintsCatalog catalog;
       private final Supplier<UUID> hostIdSupplier;
 
-      private TransferHintsTask(HintsCatalog var1, Supplier<UUID> catalog) {
+      private TransferHintsTask(HintsCatalog catalog, Supplier<UUID> hostIdSupplier) {
          this.catalog = catalog;
          this.hostIdSupplier = hostIdSupplier;
       }

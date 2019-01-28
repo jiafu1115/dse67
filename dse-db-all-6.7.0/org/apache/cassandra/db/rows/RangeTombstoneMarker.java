@@ -53,7 +53,7 @@ public interface RangeTombstoneMarker extends Unfiltered {
       }
 
       public void clear() {
-         Arrays.fill(this.markers, (Object)null);
+         Arrays.fill(this.markers, null);
       }
 
       public void add(int i, RangeTombstoneMarker marker) {

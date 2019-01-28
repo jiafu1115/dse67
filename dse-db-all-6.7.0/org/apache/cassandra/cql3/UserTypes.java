@@ -36,7 +36,7 @@ public abstract class UserTypes {
 
          for(int i = 0; i < ut.size(); ++i) {
             FieldIdentifier field = ut.fieldName(i);
-            T value = (AssignmentTestable)entries.get(field);
+            T value = entries.get(field);
             if(value != null) {
                ColumnSpecification fieldSpec = fieldSpecOf(receiver, i);
                if(!value.testAssignment(receiver.ksName, fieldSpec).isAssignable()) {

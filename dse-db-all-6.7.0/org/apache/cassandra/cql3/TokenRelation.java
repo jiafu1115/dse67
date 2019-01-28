@@ -106,7 +106,7 @@ public final class TokenRelation extends Relation {
          throw RequestValidations.invalidRequest("The token function arguments must be in the partition key order: %s", new Object[]{Joiner.on(", ").join(ColumnMetadata.toIdentifiers(table.partitionKeyColumns()))});
       } else {
          ColumnMetadata firstColumn = (ColumnMetadata)columnDefs.get(0);
-         return UnmodifiableArrayList.of((Object)(new ColumnSpecification(firstColumn.ksName, firstColumn.cfName, new ColumnIdentifier("partition key token", true), table.partitioner.getTokenValidator())));
+         return UnmodifiableArrayList.of((new ColumnSpecification(firstColumn.ksName, firstColumn.cfName, new ColumnIdentifier("partition key token", true), table.partitioner.getTokenValidator())));
       }
    }
 }

@@ -28,7 +28,7 @@ public abstract class Verb<P, Q> {
    }
 
    public <V extends Enum<V> & Version<V>> VerbGroup<V> group() {
-      return this.info.group;
+      return (VerbGroup<V>) this.info.group;
    }
 
    public String name() {

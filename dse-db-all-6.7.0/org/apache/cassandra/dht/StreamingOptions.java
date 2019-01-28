@@ -90,7 +90,7 @@ public final class StreamingOptions {
 
    public static StreamingOptions forRebuild(TokenMetadata tokenMetadata, String sourceDc, String specificSources) {
       Set<InetAddress> includedSources = getHostsFromArgument("specific-sources", "argument", asList(specificSources));
-      Map<String, StreamingOptions.Racks> includedDCs = getDatacentersFromArgument("source-DC", "argument", sourceDc != null?UnmodifiableArrayList.of((Object)sourceDc):null);
+      Map<String, StreamingOptions.Racks> includedDCs = getDatacentersFromArgument("source-DC", "argument", sourceDc != null?UnmodifiableArrayList.of(sourceDc):null);
       validateArguments(tokenMetadata, includedSources, (Set)null, includedDCs, (Map)null);
       return new StreamingOptions(includedDCs, (Map)null, includedSources, (Set)null, (Set)null);
    }

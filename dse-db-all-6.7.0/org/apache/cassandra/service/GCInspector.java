@@ -70,7 +70,7 @@ public class GCInspector implements NotificationListener, GCInspectorMXBean {
 
       while(var3.hasNext()) {
          ObjectName name = (ObjectName)var3.next();
-         server.addNotificationListener(name, inspector, (NotificationFilter)null, (Object)null);
+         server.addNotificationListener(name, inspector, (NotificationFilter)null, null);
       }
 
    }
@@ -282,7 +282,7 @@ public class GCInspector implements NotificationListener, GCInspectorMXBean {
          return -1L;
       } else {
          try {
-            return BITS_TOTAL_CAPACITY.getLong((Object)null);
+            return BITS_TOTAL_CAPACITY.getLong(null);
          } catch (Throwable var1) {
             logger.trace("Error accessing field of java.nio.Bits", var1);
             return -1L;

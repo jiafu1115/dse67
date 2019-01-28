@@ -12,7 +12,7 @@ public class DynamicList<E> {
 
    public DynamicList(int maxExpectedSize) {
       this.maxHeight = 3 + Math.max(0, (int)Math.ceil(Math.log((double)maxExpectedSize) / Math.log(2.0D)));
-      this.head = new DynamicList.Node(this.maxHeight, (Object)null);
+      this.head = new DynamicList.Node(this.maxHeight, null);
    }
 
    private int randomLevel() {

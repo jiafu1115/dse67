@@ -33,7 +33,7 @@ public abstract class SingleColumnRestriction extends SingleRestriction {
    }
 
    public List<ColumnMetadata> getColumnDefs() {
-      return UnmodifiableArrayList.of((Object)this.columnDef);
+      return UnmodifiableArrayList.of(this.columnDef);
    }
 
    public ColumnMetadata getFirstColumn() {
@@ -167,7 +167,7 @@ public abstract class SingleColumnRestriction extends SingleRestriction {
       }
 
       MultiColumnRestriction toMultiColumnRestriction() {
-         return new MultiColumnRestriction.NotNullRestriction(UnmodifiableArrayList.of((Object)this.columnDef));
+         return new MultiColumnRestriction.NotNullRestriction(UnmodifiableArrayList.of(this.columnDef));
       }
 
       public void addRowFilterTo(RowFilter filter, IndexRegistry indexRegistry, QueryOptions options) {
@@ -352,7 +352,7 @@ public abstract class SingleColumnRestriction extends SingleRestriction {
       }
 
       MultiColumnRestriction toMultiColumnRestriction() {
-         return new MultiColumnRestriction.SliceRestriction(UnmodifiableArrayList.of((Object)this.columnDef), this.slice);
+         return new MultiColumnRestriction.SliceRestriction(UnmodifiableArrayList.of(this.columnDef), this.slice);
       }
 
       public MultiCBuilder appendTo(MultiCBuilder builder, QueryOptions options) {
@@ -423,7 +423,7 @@ public abstract class SingleColumnRestriction extends SingleRestriction {
       }
 
       MultiColumnRestriction toMultiColumnRestriction() {
-         return new MultiColumnRestriction.InRestrictionWithMarker(UnmodifiableArrayList.of((Object)this.columnDef), this.marker);
+         return new MultiColumnRestriction.InRestrictionWithMarker(UnmodifiableArrayList.of(this.columnDef), this.marker);
       }
 
       protected List<ByteBuffer> getValues(QueryOptions options) {
@@ -448,7 +448,7 @@ public abstract class SingleColumnRestriction extends SingleRestriction {
       }
 
       MultiColumnRestriction toMultiColumnRestriction() {
-         return new MultiColumnRestriction.InRestrictionWithValues(UnmodifiableArrayList.of((Object)this.columnDef), this.values);
+         return new MultiColumnRestriction.InRestrictionWithValues(UnmodifiableArrayList.of(this.columnDef), this.values);
       }
 
       public void addFunctionsTo(List<Function> functions) {
@@ -524,7 +524,7 @@ public abstract class SingleColumnRestriction extends SingleRestriction {
       }
 
       MultiColumnRestriction toMultiColumnRestriction() {
-         return new MultiColumnRestriction.EQRestriction(UnmodifiableArrayList.of((Object)this.columnDef), this.value);
+         return new MultiColumnRestriction.EQRestriction(UnmodifiableArrayList.of(this.columnDef), this.value);
       }
 
       public void addRowFilterTo(RowFilter filter, IndexRegistry indexRegistry, QueryOptions options) {

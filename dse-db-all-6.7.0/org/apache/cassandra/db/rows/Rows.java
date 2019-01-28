@@ -186,7 +186,7 @@ public abstract class Rows {
 
          public void onKeyChange() {
             this.mergedData = null;
-            Arrays.fill(this.inputDatas, (Object)null);
+            Arrays.fill(this.inputDatas, null);
          }
       });
 

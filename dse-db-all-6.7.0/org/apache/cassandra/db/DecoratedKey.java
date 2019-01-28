@@ -50,20 +50,20 @@ public abstract class DecoratedKey extends PartitionPosition implements IFilter.
    private int compareKeys(DecoratedKey other) {
       boolean isThisNative = this instanceof NativeDecoratedKey;
       boolean isOtherNative = other instanceof NativeDecoratedKey;
-      NativeDecoratedKey tnKey;
-      if(isOtherNative && !isThisNative) {
-         tnKey = (NativeDecoratedKey)other;
-         return FastByteOperations.UnsafeOperations.compare0(this.getKey(), (Object)null, tnKey.address(), tnKey.length());
-      } else if(isOtherNative && isThisNative) {
-         tnKey = (NativeDecoratedKey)other;
-         NativeDecoratedKey tnKey = (NativeDecoratedKey)this;
-         return FastByteOperations.UnsafeOperations.compare0((Object)null, tnKey.address(), tnKey.length(), (Object)null, tnKey.address(), tnKey.length());
-      } else if(isThisNative) {
-         tnKey = (NativeDecoratedKey)this;
-         return -FastByteOperations.UnsafeOperations.compare0(other.getKey(), (Object)null, tnKey.address(), tnKey.length());
-      } else {
-         return ByteBufferUtil.compareUnsigned(this.getKey(), other.getKey());
+      if (isOtherNative && !isThisNative) {
+         NativeDecoratedKey onKey = (NativeDecoratedKey)other;
+         return FastByteOperations.UnsafeOperations.compare0(this.getKey(), null, onKey.address(), onKey.length());
       }
+      if (isOtherNative && isThisNative) {
+         NativeDecoratedKey onKey = (NativeDecoratedKey)other;
+         NativeDecoratedKey tnKey = (NativeDecoratedKey)this;
+         return FastByteOperations.UnsafeOperations.compare0(null, tnKey.address(), tnKey.length(), null, onKey.address(), onKey.length());
+      }
+      if (isThisNative) {
+         NativeDecoratedKey tnKey = (NativeDecoratedKey)this;
+         return - FastByteOperations.UnsafeOperations.compare0(other.getKey(), null, tnKey.address(), tnKey.length());
+      }
+      return ByteBufferUtil.compareUnsigned(this.getKey(), other.getKey());
    }
 
    public int compareTo(PartitionPosition pos) {

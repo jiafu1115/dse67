@@ -9,7 +9,7 @@ public interface RowPurger {
    RowPurger PURGE_EMPTY_ROWS = new RowPurger.PurgeEmptyRows();
    RowPurger PURGE_ROWS_WITH_EMPTY_PRIMARY_KEY = new RowPurger.PurgeRowsWithEmptyPrimaryKey();
 
-   static default RowPurger purgeRowsWithoutRequiredColumns(int requiredColumnsForLiveness) {
+   static RowPurger purgeRowsWithoutRequiredColumns(int requiredColumnsForLiveness) {
       return new RowPurger.PurgeRowsWithoutRequiredColumns(requiredColumnsForLiveness);
    }
 

@@ -77,7 +77,7 @@ public class ReducingKeyIterator implements KeyIterator {
       AbstractBounds<Token> range;
       final long total;
 
-      public Iter(SSTableReader this$0, AbstractBounds<Token> sstable) {
+      public Iter(SSTableReader sstable, AbstractBounds<Token> range) {
          this.sstable = sstable;
          this.range = range;
          ReducingKeyIterator.this.bytesTotal += this.total = sstable.uncompressedLength();

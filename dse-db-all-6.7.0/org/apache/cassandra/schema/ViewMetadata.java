@@ -55,7 +55,7 @@ public final class ViewMetadata {
       this.columns = ViewColumns.create(baseTableMetadata, viewTableMetadata, select.whereClause);
       this.regularBaseColumnsInViewPrimaryKey = (Set)this.columns.regularBaseColumnsInViewPrimaryKey().stream().map((c) -> {
          return baseTableMetadata.getColumn(c.name());
-      }).collect(Collectors.toCollection(LinkedHashSet::<init>));
+      }).collect(Collectors.toCollection(LinkedHashSet::new));
       this.viewVersion = viewVersion;
       boolean isSchemaLegacy = isLegacyView(this.columns, viewTableMetadata);
 

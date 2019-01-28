@@ -42,14 +42,12 @@ class GossipDigestAck2Serializer implements Serializer<GossipDigestAck2> {
       return new GossipDigestAck2(epStateMap);
    }
 
+
    public long serializedSize(GossipDigestAck2 ack2) {
-      long size = (long)TypeSizes.sizeof(ack2.epStateMap.size());
-
-      Entry entry;
-      for(Iterator var4 = ack2.epStateMap.entrySet().iterator(); var4.hasNext(); size += (long)CompactEndpointSerializationHelper.serializedSize((InetAddress)entry.getKey()) + EndpointState.serializer.serializedSize(entry.getValue())) {
-         entry = (Entry)var4.next();
+      long size = TypeSizes.sizeof(ack2.epStateMap.size());
+      for (Map.Entry<InetAddress, EndpointState> entry : ack2.epStateMap.entrySet()) {
+         size += (long)CompactEndpointSerializationHelper.serializedSize(entry.getKey()) + EndpointState.serializer.serializedSize(entry.getValue());
       }
-
       return size;
    }
 }

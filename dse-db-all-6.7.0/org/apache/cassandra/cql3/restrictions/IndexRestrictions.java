@@ -67,7 +67,7 @@ public final class IndexRestrictions {
       }
 
       public IndexRestrictions.Builder add(Restrictions restrictions) {
-         this.regularRestrictions.add((Object)restrictions);
+         this.regularRestrictions.add(restrictions);
          return this;
       }
 
@@ -78,7 +78,7 @@ public final class IndexRestrictions {
       }
 
       public IndexRestrictions.Builder add(ExternalRestriction restriction) {
-         this.externalRestrictions.add((Object)restriction);
+         this.externalRestrictions.add(restriction);
          return this;
       }
 

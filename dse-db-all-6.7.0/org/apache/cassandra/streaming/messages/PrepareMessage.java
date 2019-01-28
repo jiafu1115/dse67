@@ -18,42 +18,31 @@ public class PrepareMessage extends StreamMessage {
       public PrepareMessage deserialize(ReadableByteChannel in, StreamMessage.StreamVersion version, StreamSession session) throws IOException {
          DataInputPlus input = new DataInputPlus.DataInputStreamPlus(Channels.newInputStream(in));
          PrepareMessage message = new PrepareMessage();
-         Serializer<StreamRequest> streamRequestSerializer = (Serializer)StreamRequest.serializers.get(version);
          int numRequests = input.readInt();
 
-         for(int i = 0; i < numRequests; ++i) {
-            message.requests.add(streamRequestSerializer.deserialize(input));
+         int numSummaries;
+         for(numSummaries = 0; numSummaries < numRequests; ++numSummaries) {
+            message.requests.add((StreamRequest.serializers.get(version)).deserialize(input));
          }
 
-         Serializer<StreamSummary> streamSummarySerializer = (Serializer)StreamSummary.serializers.get(version);
-         int numSummaries = input.readInt();
+         numSummaries = input.readInt();
 
-         for(int ix = 0; ix < numSummaries; ++ix) {
-            message.summaries.add(streamSummarySerializer.deserialize(input));
+         for(int i = 0; i < numSummaries; ++i) {
+            message.summaries.add((StreamSummary.serializers.get(version)).deserialize(input));
          }
 
          return message;
       }
 
       public void serialize(PrepareMessage message, DataOutputStreamPlus out, StreamMessage.StreamVersion version, StreamSession session) throws IOException {
-         Serializer<StreamRequest> streamRequestSerializer = (Serializer)StreamRequest.serializers.get(version);
          out.writeInt(message.requests.size());
-         Iterator var6 = message.requests.iterator();
-
-         while(var6.hasNext()) {
-            StreamRequest request = (StreamRequest)var6.next();
-            streamRequestSerializer.serialize(request, out);
+         for (StreamRequest request : message.requests) {
+            StreamRequest.serializers.get(version).serialize(request, out);
          }
-
-         Serializer<StreamSummary> streamSummarySerializer = (Serializer)StreamSummary.serializers.get(version);
          out.writeInt(message.summaries.size());
-         Iterator var10 = message.summaries.iterator();
-
-         while(var10.hasNext()) {
-            StreamSummary summary = (StreamSummary)var10.next();
-            streamSummarySerializer.serialize(summary, out);
+         for (StreamSummary summary : message.summaries) {
+            StreamSummary.serializers.get(version).serialize(summary, out);
          }
-
       }
    };
    public final Collection<StreamRequest> requests = new ArrayList();

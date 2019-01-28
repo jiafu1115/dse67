@@ -54,7 +54,7 @@ abstract class WriteHandlers {
          AtomicInteger i;
          do {
             if(!var2.hasNext()) {
-               this.complete((Object)null);
+               this.complete(null);
                return;
             }
 
@@ -92,7 +92,7 @@ abstract class WriteHandlers {
       public void onResponse(Response<EmptyPayload> response) {
          if(this.waitingFor(response.from())) {
             if(this.responses.incrementAndGet() == this.blockFor) {
-               this.complete((Object)null);
+               this.complete(null);
             }
 
          }

@@ -303,8 +303,8 @@ public class NodeProbe implements AutoCloseable {
       RepairRunner runner = new RepairRunner(out, this.ssProxy, keyspace, options);
 
       try {
-         this.jmxc.addConnectionNotificationListener(runner, (NotificationFilter)null, (Object)null);
-         this.ssProxy.addNotificationListener(runner, (NotificationFilter)null, (Object)null);
+         this.jmxc.addConnectionNotificationListener(runner, (NotificationFilter)null, null);
+         this.ssProxy.addNotificationListener(runner, (NotificationFilter)null, null);
          runner.run();
       } catch (Exception var13) {
          throw new IOException(var13);
@@ -1563,8 +1563,8 @@ public class NodeProbe implements AutoCloseable {
       BootstrapMonitor monitor = new BootstrapMonitor(out);
 
       try {
-         this.jmxc.addConnectionNotificationListener(monitor, (NotificationFilter)null, (Object)null);
-         this.ssProxy.addNotificationListener(monitor, (NotificationFilter)null, (Object)null);
+         this.jmxc.addConnectionNotificationListener(monitor, (NotificationFilter)null, null);
+         this.ssProxy.addNotificationListener(monitor, (NotificationFilter)null, null);
          if(this.ssProxy.resumeBootstrap()) {
             out.println("Resuming bootstrap");
             monitor.awaitCompletion();

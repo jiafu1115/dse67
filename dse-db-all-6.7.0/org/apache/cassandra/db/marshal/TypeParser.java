@@ -42,7 +42,7 @@ public class TypeParser {
             return type;
          } else {
             int i = 0;
-            int i = skipBlank(str, i);
+            i = skipBlank(str, i);
 
             int j;
             for(j = i; !isEOS(str, i) && isIdentifierChar(str.charAt(i)); ++i) {
@@ -291,7 +291,7 @@ public class TypeParser {
 
       try {
          Field field = typeClass.getDeclaredField("instance");
-         return (AbstractType)field.get((Object)null);
+         return (AbstractType)field.get(null);
       } catch (IllegalAccessException | NoSuchFieldException var4) {
          return getRawAbstractType(typeClass, EMPTY_PARSER);
       }
@@ -303,7 +303,7 @@ public class TypeParser {
 
       try {
          Method method = typeClass.getDeclaredMethod("getInstance", new Class[]{TypeParser.class});
-         return (AbstractType)method.invoke((Object)null, new Object[]{parser});
+         return (AbstractType)method.invoke(null, new Object[]{parser});
       } catch (IllegalAccessException | NoSuchMethodException var6) {
          AbstractType<?> type = getRawAbstractType(typeClass);
          return AbstractType.parseDefaultParameters(type, parser);
@@ -317,7 +317,7 @@ public class TypeParser {
    private static AbstractType<?> getRawAbstractType(Class<? extends AbstractType<?>> typeClass) throws ConfigurationException {
       try {
          Field field = typeClass.getDeclaredField("instance");
-         return (AbstractType)field.get((Object)null);
+         return (AbstractType)field.get(null);
       } catch (IllegalAccessException | NoSuchFieldException var2) {
          throw new ConfigurationException("Invalid comparator class " + typeClass.getName() + ": must define a public static instance field or a public static method getInstance(TypeParser).");
       }
@@ -326,7 +326,7 @@ public class TypeParser {
    private static AbstractType<?> getRawAbstractType(Class<? extends AbstractType<?>> typeClass, TypeParser parser) throws ConfigurationException {
       try {
          Method method = typeClass.getDeclaredMethod("getInstance", new Class[]{TypeParser.class});
-         return (AbstractType)method.invoke((Object)null, new Object[]{parser});
+         return (AbstractType)method.invoke(null, new Object[]{parser});
       } catch (IllegalAccessException | NoSuchMethodException var4) {
          throw new ConfigurationException("Invalid comparator class " + typeClass.getName() + ": must define a public static instance field or a public static method getInstance(TypeParser).");
       } catch (InvocationTargetException var5) {

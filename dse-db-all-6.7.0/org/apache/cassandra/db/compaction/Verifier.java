@@ -204,7 +204,7 @@ public class Verifier implements Closeable {
          try {
             this.sstable.descriptor.getMetadataSerializer().mutateRepaired(this.sstable.descriptor, 0L, this.sstable.getSSTableMetadata().pendingRepair);
             this.sstable.reloadSSTableMetadata();
-            this.controller.cfs.getTracker().notifySSTableRepairedStatusChanged(UnmodifiableArrayList.of((Object)this.sstable));
+            this.controller.cfs.getTracker().notifySSTableRepairedStatusChanged(UnmodifiableArrayList.of(this.sstable));
          } catch (IOException var3) {
             this.outputHandler.output("Error mutating repairedAt for SSTable " + this.sstable.getFilename() + ", as part of markAndThrow");
          }

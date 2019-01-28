@@ -38,8 +38,8 @@ public class RevokePermissionsStatement extends PermissionsManagementStatement {
       return Single.fromCallable(() -> {
          IAuthorizer authorizer = DatabaseDescriptor.getAuthorizer();
          Set<Permission> revoked = authorizer.revoke(state.getUser(), this.permissions, this.resource, this.grantee, new GrantMode[]{this.grantMode});
-         if(revoked.size() != this.permissions.size() && this.permissions.size() != authorizer.filterApplicablePermissions(this.resource, Permissions.all()).size()) {
-            String permissionsStr = (String)(new TreeSet(this.permissions)).stream().filter((permission) -> {
+         if(!revoked.equals(this.permissions) && !this.permissions.equals(authorizer.applicablePermissions(this.resource))) {
+            String permissionsStr = (String)(new TreeSet<Permission>(this.permissions)).stream().filter((permission) -> {
                return !revoked.contains(permission);
             }).map(PartitionedEnum::name).collect(Collectors.joining(", "));
             ClientWarn.instance.warn(this.grantMode.revokeWarningMessage(this.grantee.getRoleName(), this.resource, permissionsStr));

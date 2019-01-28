@@ -56,7 +56,7 @@ public class NativeTransportService {
             if(this.nativePort != nativePortSSL) {
                this.servers = Collections.unmodifiableList(Arrays.asList(new Server[]{builder.withSSL(false).withPort(this.nativePort).build(), builder.withSSL(true).withPort(nativePortSSL).build()}));
             } else {
-               this.servers = UnmodifiableArrayList.of((Object)builder.withSSL(true).withPort(this.nativePort).build());
+               this.servers = UnmodifiableArrayList.of(builder.withSSL(true).withPort(this.nativePort).build());
             }
          }
 

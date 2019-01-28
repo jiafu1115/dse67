@@ -167,7 +167,7 @@ public class SizeEstimates {
       TableSizeEstimates(String keyspace, String table, IPartitioner partitioner) {
          this.keyspace = keyspace;
          this.table = table;
-         this.splitter = (Splitter)partitioner.splitter().orElse((Object)null);
+         this.splitter = (Splitter)partitioner.splitter().orElse(null);
       }
 
       public long getEstimatedPartitions(InetAddress peer, Range<Token> range) {

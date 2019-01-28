@@ -86,7 +86,7 @@ public class TPCUtils {
    public static <T> CompletableFuture<Void> toFutureVoid(Single<T> single) {
       CompletableFuture<Void> ret = new CompletableFuture();
       single.subscribe((result) -> {
-         ret.complete((Object)null);
+         ret.complete(null);
       }, ret::completeExceptionally);
       return ret;
    }
@@ -94,7 +94,7 @@ public class TPCUtils {
    public static CompletableFuture<Void> toFuture(Completable completable) {
       CompletableFuture<Void> ret = new CompletableFuture();
       completable.subscribe(() -> {
-         ret.complete((Object)null);
+         ret.complete(null);
       }, ret::completeExceptionally);
       return ret;
    }
@@ -132,7 +132,7 @@ public class TPCUtils {
    }
 
    public static CompletableFuture<Void> completedFuture() {
-      return CompletableFuture.completedFuture((Object)null);
+      return CompletableFuture.completedFuture(null);
    }
 
    public static <T> CompletableFuture<T> completedFuture(T value) {

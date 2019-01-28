@@ -89,7 +89,7 @@ public class SubmitValidation extends NodeSyncCommand {
                if(!rangeReplicas.isEmpty()) {
                   Set<Range<Token>> ranges = (Set)rangeReplicas.entrySet().stream().filter((e) -> {
                      return ((Set)e.getValue()).remove(address);
-                  }).map(Entry::getKey).collect(Collectors.toCollection(TreeSet::<init>));
+                  }).map(Entry::getKey).collect(Collectors.toCollection(TreeSet::new));
                   if(ranges.isEmpty()) {
                      return;
                   }
@@ -120,34 +120,18 @@ public class SubmitValidation extends NodeSyncCommand {
       }
    }
 
-   private static Map<Range<Token>, Set<InetAddress>> liveRangeReplicas(Metadata metadata, String keyspace, Collection<Range<Token>> ranges) {
-      Token.TokenFactory tkFactory = tokenFactory(metadata);
-      Map<Range<Token>, Set<InetAddress>> replicas = new HashMap();
-      Iterator var5 = ((Set)metadata.getAllHosts().stream().filter(Host::isUp).collect(Collectors.toSet())).iterator();
 
-      while(var5.hasNext()) {
-         Host host = (Host)var5.next();
-         List<Range<Token>> localRanges = ranges(tkFactory, metadata.getTokenRanges(keyspace, host));
-         localRanges.stream().flatMap((r) -> {
-            Stream var10000 = ranges.stream();
-            r.getClass();
-            var10000 = var10000.filter(r::intersects);
-            r.getClass();
-            return var10000.map(r::intersectionWith);
-         }).flatMap(Collection::stream).distinct().forEach((r) -> {
-            ((Set)replicas.computeIfAbsent(r, (k) -> {
-               return Sets.newHashSet();
-            })).add(host.getBroadcastAddress());
-         });
+   private static Map<Range<Token>, Set<InetAddress>> liveRangeReplicas(final Metadata metadata, final String keyspace, final Collection<Range<Token>> ranges) {
+      final Token.TokenFactory tkFactory = tokenFactory(metadata);
+      final Map<Range<Token>, Set<InetAddress>> replicas = new HashMap<Range<Token>, Set<InetAddress>>();
+      for (Host host : metadata.getAllHosts().stream().filter(Host::isUp).collect(Collectors.toSet())) {
+         final List<Range<Token>> localRanges = ranges(tkFactory, metadata.getTokenRanges(keyspace, host));
+         localRanges.stream().flatMap(r -> ranges.stream().filter(r::intersects).map(r::intersectionWith)).flatMap(Collection::stream).distinct().forEach(r -> replicas.computeIfAbsent(r, k -> Sets.newHashSet()).add(host.getBroadcastAddress()));
       }
-
-      if(ranges.stream().anyMatch((r) -> {
-         return !r.subtractAll(replicas.keySet()).isEmpty();
-      })) {
+      if (ranges.stream().anyMatch(r -> !r.subtractAll(replicas.keySet()).isEmpty())) {
          throw new NodeSyncException("There are not enough live replicas to cover all the requested ranges");
-      } else {
-         return replicas;
       }
+      return replicas;
    }
 
    private void cancel(NodeProbes probes, Set<InetAddress> addresses, String id) {

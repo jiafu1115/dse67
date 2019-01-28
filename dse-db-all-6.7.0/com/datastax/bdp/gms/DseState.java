@@ -72,35 +72,32 @@ public class DseState {
       });
    }
 
-   public synchronized void setIndexingStatusSync(String core, DseState.CoreIndexingStatus status) {
+   public synchronized void setIndexingStatusSync(String core, CoreIndexingStatus status) {
       try {
-         Map<String, Object> state = doGetCurrentState();
-         Map<String, String> indexingStatus = doGetCoreIndexingStatus(state);
-         switch(null.$SwitchMap$com$datastax$bdp$gms$DseState$CoreIndexingStatus[status.ordinal()]) {
-         case 1:
-         case 2:
-            indexingStatus.put(core, status.toString());
-            break;
-         case 3:
-            indexingStatus.remove(core);
-         }
-
-         state.put("coreIndexingStatus", indexingStatus);
-         Set<String> indexingCores = new HashSet();
-         Iterator var6 = indexingStatus.entrySet().iterator();
-
-         while(var6.hasNext()) {
-            Entry<String, String> entry = (Entry)var6.next();
-            if(((String)entry.getValue()).equals(DseState.CoreIndexingStatus.INDEXING.toString())) {
-               indexingCores.add(entry.getKey());
+         Map<String, Object> state = DseState.doGetCurrentState();
+         Map<String, String> indexingStatus = DseState.doGetCoreIndexingStatus(state);
+         switch (status) {
+            case INDEXING:
+            case FAILED: {
+               indexingStatus.put(core, status.toString());
+               break;
+            }
+            case FINISHED: {
+               indexingStatus.remove(core);
             }
          }
-
-         state.put("indexingCores", indexingCores);
+         state.put(CORE_INDEXING_STATUS, indexingStatus);
+         HashSet<String> indexingCores = new HashSet<String>();
+         for (Map.Entry<String, String> entry : indexingStatus.entrySet()) {
+            if (!entry.getValue().equals(CoreIndexingStatus.INDEXING.toString())) continue;
+            indexingCores.add(entry.getKey());
+         }
+         state.put(INDEXING_CORES, indexingCores);
          String newValue = jsonMapper.writeValueAsString(state);
          Gossiper.instance.updateLocalApplicationState(ApplicationState.DSE_GOSSIP_STATE, StorageService.instance.valueFactory.datacenter(newValue));
-      } catch (IOException var8) {
-         throw new RuntimeException(var8);
+      }
+      catch (IOException ex) {
+         throw new RuntimeException(ex);
       }
    }
 
@@ -277,7 +274,7 @@ public class DseState {
    }
 
    private static <T> T getFromValues(Map<String, Object> values, String key) {
-      return values.get(key);
+      return (T)values.get(key);
    }
 
    public static enum CoreIndexingStatus {

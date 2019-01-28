@@ -2,6 +2,7 @@ package org.apache.cassandra.cql3;
 
 import java.util.List;
 import java.util.function.Consumer;
+
 import org.apache.cassandra.cql3.functions.Function;
 import org.apache.cassandra.db.marshal.AbstractType;
 import org.apache.cassandra.db.marshal.CollectionType;
@@ -9,97 +10,99 @@ import org.apache.cassandra.db.marshal.ListType;
 import org.apache.cassandra.exceptions.InvalidRequestException;
 
 public abstract class AbstractMarker extends Term.NonTerminal {
-   protected final int bindIndex;
-   protected final ColumnSpecification receiver;
+    protected final int bindIndex;
+    protected final ColumnSpecification receiver;
 
-   protected AbstractMarker(int bindIndex, ColumnSpecification receiver) {
-      this.bindIndex = bindIndex;
-      this.receiver = receiver;
-   }
+    protected AbstractMarker(int bindIndex, ColumnSpecification receiver) {
+        this.bindIndex = bindIndex;
+        this.receiver = receiver;
+    }
 
-   public void collectMarkerSpecification(VariableSpecifications boundNames) {
-      boundNames.add(this.bindIndex, this.receiver);
-   }
+    public void collectMarkerSpecification(VariableSpecifications boundNames) {
+        boundNames.add(this.bindIndex, this.receiver);
+    }
 
-   public boolean containsBindMarker() {
-      return true;
-   }
+    public boolean containsBindMarker() {
+        return true;
+    }
 
-   public void addFunctionsTo(List<Function> functions) {
-   }
+    public void addFunctionsTo(List<Function> functions) {
+    }
 
-   public void forEachFunction(Consumer<Function> c) {
-   }
+    public void forEachFunction(Consumer<Function> c) {
+    }
 
-   public static final class INRaw extends AbstractMarker.Raw {
-      public INRaw(int bindIndex) {
-         super(bindIndex);
-      }
+    public static final class INRaw extends AbstractMarker.Raw {
+        public INRaw(int bindIndex) {
+            super(bindIndex);
+        }
 
-      private static ColumnSpecification makeInReceiver(ColumnSpecification receiver) {
-         ColumnIdentifier inName = new ColumnIdentifier("in(" + receiver.name + ")", true);
-         return new ColumnSpecification(receiver.ksName, receiver.cfName, inName, ListType.getInstance(receiver.type, false));
-      }
+        private static ColumnSpecification makeInReceiver(ColumnSpecification receiver) {
+            ColumnIdentifier inName = new ColumnIdentifier("in(" + receiver.name + ")", true);
+            return new ColumnSpecification(receiver.ksName, receiver.cfName, inName, ListType.getInstance(receiver.type, false));
+        }
 
-      public Lists.Marker prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
-         return new Lists.Marker(this.bindIndex, makeInReceiver(receiver));
-      }
-   }
+        public Lists.Marker prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
+            return new Lists.Marker(this.bindIndex, makeInReceiver(receiver));
+        }
+    }
 
-   public abstract static class MultiColumnRaw extends Term.MultiColumnRaw {
-      protected final int bindIndex;
+    public abstract static class MultiColumnRaw extends Term.MultiColumnRaw {
+        protected final int bindIndex;
 
-      public MultiColumnRaw(int bindIndex) {
-         this.bindIndex = bindIndex;
-      }
+        public MultiColumnRaw(int bindIndex) {
+            this.bindIndex = bindIndex;
+        }
 
-      public Term.NonTerminal prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
-         throw new AssertionError("MultiColumnRaw..prepare() requires a list of receivers");
-      }
+        public Term.NonTerminal prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
+            throw new AssertionError("MultiColumnRaw..prepare() requires a list of receivers");
+        }
 
-      public AssignmentTestable.TestResult testAssignment(String keyspace, ColumnSpecification receiver) {
-         return AssignmentTestable.TestResult.WEAKLY_ASSIGNABLE;
-      }
+        public AssignmentTestable.TestResult testAssignment(String keyspace, ColumnSpecification receiver) {
+            return AssignmentTestable.TestResult.WEAKLY_ASSIGNABLE;
+        }
 
-      public String getText() {
-         return "?";
-      }
-   }
+        public String getText() {
+            return "?";
+        }
+    }
 
-   public static class Raw extends Term.Raw {
-      protected final int bindIndex;
+    public static class Raw extends Term.Raw {
+        protected final int bindIndex;
 
-      public Raw(int bindIndex) {
-         this.bindIndex = bindIndex;
-      }
+        public Raw(int bindIndex) {
+            this.bindIndex = bindIndex;
+        }
 
-      public Term.NonTerminal prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
-         if(receiver.type.isCollection()) {
-            switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[((CollectionType)receiver.type).kind.ordinal()]) {
-            case 1:
-               return new Lists.Marker(this.bindIndex, receiver);
-            case 2:
-               return new Sets.Marker(this.bindIndex, receiver);
-            case 3:
-               return new Maps.Marker(this.bindIndex, receiver);
-            default:
-               throw new AssertionError();
+        public Term.NonTerminal prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
+            if (receiver.type.isCollection()) {
+                switch (((CollectionType) receiver.type).kind) {
+                    case LIST: {
+                        return new Lists.Marker(this.bindIndex, receiver);
+                    }
+                    case SET: {
+                        return new Sets.Marker(this.bindIndex, receiver);
+                    }
+                    case MAP: {
+                        return new Maps.Marker(this.bindIndex, receiver);
+                    }
+                }
+                throw new AssertionError();
+            } else {
+                return (Term.NonTerminal) (receiver.type.isUDT() ? new UserTypes.Marker(this.bindIndex, receiver) : new Constants.Marker(this.bindIndex, receiver));
             }
-         } else {
-            return (Term.NonTerminal)(receiver.type.isUDT()?new UserTypes.Marker(this.bindIndex, receiver):new Constants.Marker(this.bindIndex, receiver));
-         }
-      }
+        }
 
-      public AssignmentTestable.TestResult testAssignment(String keyspace, ColumnSpecification receiver) {
-         return AssignmentTestable.TestResult.WEAKLY_ASSIGNABLE;
-      }
+        public AssignmentTestable.TestResult testAssignment(String keyspace, ColumnSpecification receiver) {
+            return AssignmentTestable.TestResult.WEAKLY_ASSIGNABLE;
+        }
 
-      public AbstractType<?> getExactTypeIfKnown(String keyspace) {
-         return null;
-      }
+        public AbstractType<?> getExactTypeIfKnown(String keyspace) {
+            return null;
+        }
 
-      public String getText() {
-         return "?";
-      }
-   }
+        public String getText() {
+            return "?";
+        }
+    }
 }

@@ -44,7 +44,7 @@ public class RepairSyncCache {
    }
 
    private boolean isSkipped(InetAddress endpoint, Range<Token> range) {
-      return ((Set)this.skippedSource.getOrDefault(endpoint, Collections.emptySet())).stream().anyMatch((r) -> {
+      return (this.skippedSource.getOrDefault(endpoint, Collections.emptySet())).stream().anyMatch((r) -> {
          return r.contains((AbstractBounds)range);
       });
    }

@@ -58,7 +58,7 @@ class MessageDeserializationException extends RuntimeException {
    }
 
    private static <Q> FailureResponse<Q> failureResponse(InetAddress from, int id, Verb<?, Q> verb, long createAtMillis, long timeoutMillis, MessageParameters parameters, Tracing.SessionInfo tracingInfo, RequestFailureReason reason) {
-      return new FailureResponse(Request.local, from, id, verb, reason, new Message.Data((Object)null, -1L, createAtMillis, timeoutMillis, parameters, tracingInfo));
+      return new FailureResponse(Request.local, from, id, verb, reason, new Message.Data(null, -1L, createAtMillis, timeoutMillis, parameters, tracingInfo));
    }
 
    private static MessageDeserializationException nonRecoverable(Exception e, FailureResponse<?> failureResponse) {

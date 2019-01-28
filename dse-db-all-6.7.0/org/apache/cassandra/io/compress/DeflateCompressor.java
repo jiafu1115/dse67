@@ -97,7 +97,7 @@ public final class DeflateCompressor implements ICompressor {
       def.finish();
 
       while(!def.finished()) {
-         int len = def.deflate(buffer, chunkLen, chunkLen);
+         len = def.deflate(buffer, chunkLen, chunkLen);
          output.put(buffer, chunkLen, len);
       }
 
@@ -137,7 +137,7 @@ public final class DeflateCompressor implements ICompressor {
          inf.setInput(buffer, 0, len);
 
          while(!inf.needsInput()) {
-            int len = inf.inflate(buffer, chunkLen, chunkLen);
+            len = inf.inflate(buffer, chunkLen, chunkLen);
             output.put(buffer, chunkLen, len);
          }
 

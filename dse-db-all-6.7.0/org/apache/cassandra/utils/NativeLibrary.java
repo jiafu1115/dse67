@@ -306,18 +306,18 @@ public final class NativeLibrary {
    }
 
    static {
-      switch(null.$SwitchMap$org$apache$cassandra$utils$NativeLibrary$OSType[osType.ordinal()]) {
-      case 1:
-         wrappedLibrary = new NativeLibraryDarwin();
-         break;
-      case 2:
-         wrappedLibrary = new NativeLibraryWindows();
-         break;
-      case 3:
-      case 4:
-      case 5:
-      default:
-         wrappedLibrary = new NativeLibraryLinux();
+      switch (osType) {
+         case MAC: {
+            wrappedLibrary = new NativeLibraryDarwin();
+            break;
+         }
+         case WINDOWS: {
+            wrappedLibrary = new NativeLibraryWindows();
+            break;
+         }
+         default: {
+            wrappedLibrary = new NativeLibraryLinux();
+         }
       }
 
       if(System.getProperty("os.arch").toLowerCase().contains("ppc")) {

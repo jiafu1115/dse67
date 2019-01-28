@@ -113,13 +113,16 @@ public class FunctionCall extends Term.NonTerminal {
          return null;
       } else {
          if(fun.returnType().isCollection()) {
-            switch(null.$SwitchMap$org$apache$cassandra$db$marshal$CollectionType$Kind[((CollectionType)fun.returnType()).kind.ordinal()]) {
-            case 1:
-               return Lists.Value.fromSerialized(result, (ListType)fun.returnType(), version);
-            case 2:
-               return Sets.Value.fromSerialized(result, (SetType)fun.returnType(), version);
-            case 3:
-               return Maps.Value.fromSerialized(result, (MapType)fun.returnType(), version);
+            switch (((CollectionType)fun.returnType()).kind) {
+               case LIST: {
+                  return Lists.Value.fromSerialized(result, (ListType)fun.returnType(), version);
+               }
+               case SET: {
+                  return Sets.Value.fromSerialized(result, (SetType)fun.returnType(), version);
+               }
+               case MAP: {
+                  return Maps.Value.fromSerialized(result, (MapType)fun.returnType(), version);
+               }
             }
          } else if(fun.returnType().isUDT()) {
             return UserTypes.Value.fromSerialized(result, (UserType)fun.returnType());
@@ -145,12 +148,12 @@ public class FunctionCall extends Term.NonTerminal {
 
       public static FunctionCall.Raw newNegation(Term.Raw raw) {
          FunctionName name = FunctionName.nativeFunction("_negate");
-         return new FunctionCall.Raw(name, UnmodifiableArrayList.of((Object)raw));
+         return new FunctionCall.Raw(name, UnmodifiableArrayList.of(raw));
       }
 
       public static FunctionCall.Raw newCast(Term.Raw raw, CQL3Type type) {
          FunctionName name = FunctionName.nativeFunction(CastFcts.getFunctionName(type));
-         return new FunctionCall.Raw(name, UnmodifiableArrayList.of((Object)raw));
+         return new FunctionCall.Raw(name, UnmodifiableArrayList.of(raw));
       }
 
       public Term prepare(String keyspace, ColumnSpecification receiver) throws InvalidRequestException {
@@ -177,7 +180,7 @@ public class FunctionCall extends Term.NonTerminal {
                   parameters.add(t);
                }
 
-               return new FunctionCall(scalarFun, parameters, null);
+               return new FunctionCall(scalarFun, parameters);
             }
          }
       }

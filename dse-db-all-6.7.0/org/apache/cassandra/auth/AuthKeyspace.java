@@ -31,7 +31,7 @@ public final class AuthKeyspace {
    }
 
    public static List<TableMetadata> tablesIfNotExist() {
-      return UnmodifiableArrayList.of((Object)RolePermissions);
+      return UnmodifiableArrayList.of(RolePermissions);
    }
 
    static {

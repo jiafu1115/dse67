@@ -348,7 +348,7 @@ public final class MessagingService implements MessagingServiceMBean {
             backPressureState.onRequestSent(request);
          }
 
-      }):CompletableFuture.completedFuture((Object)null);
+      }):CompletableFuture.completedFuture(null);
    }
 
    CompletableFuture<Void> updateBackPressureOnReceive(InetAddress host, Verb<?, ?> verb, boolean timeout) {
@@ -362,7 +362,7 @@ public final class MessagingService implements MessagingServiceMBean {
             }
          }
 
-      }):CompletableFuture.completedFuture((Object)null);
+      }):CompletableFuture.completedFuture(null);
    }
 
    public CompletableFuture<Void> applyBackPressure(Iterable<InetAddress> hosts, long timeoutInNanos) {
@@ -396,7 +396,7 @@ public final class MessagingService implements MessagingServiceMBean {
          }
       }
 
-      return CompletableFuture.completedFuture((Object)null);
+      return CompletableFuture.completedFuture(null);
    }
 
    void addLatency(Verb<?, ?> verb, InetAddress address, long latency) {
@@ -690,7 +690,7 @@ public final class MessagingService implements MessagingServiceMBean {
       } else if(shouldBackpressure) {
          backpressure.complete(new RejectedExecutionException("Too many pending remote requests!"));
       } else {
-         backpressure.complete((Object)null);
+         backpressure.complete(null);
       }
 
    }
@@ -708,7 +708,7 @@ public final class MessagingService implements MessagingServiceMBean {
    }
 
    <Q> CallbackInfo<Q> getRegisteredCallback(Response<Q> response, boolean remove) {
-      return this.getRegisteredCallback(response.id(), remove, response.from());
+      return (CallbackInfo<Q>)this.getRegisteredCallback(response.id(), remove, response.from());
    }
 
    public static void validateMagic(int magic) throws IOException {

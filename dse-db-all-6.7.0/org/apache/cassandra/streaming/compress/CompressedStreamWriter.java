@@ -31,59 +31,25 @@ public class CompressedStreamWriter extends StreamWriter {
 
    public void write(DataOutputStreamPlus out) throws IOException {
       long totalSize = this.totalSize();
-      logger.debug("[Stream #{}] Start streaming file {} to {}, repairedAt = {}, totalSize = {}", new Object[]{this.session.planId(), this.sstable.getFilename(), this.session.peer, Long.valueOf(this.sstable.getSSTableMetadata().repairedAt), Long.valueOf(totalSize)});
-      AsynchronousChannelProxy fc = this.sstable.getDataChannel().sharedCopy();
-      Throwable var5 = null;
-
-      try {
+      logger.debug("[Stream #{}] Start streaming file {} to {}, repairedAt = {}, totalSize = {}", new Object[]{this.session.planId(), this.sstable.getFilename(), this.session.peer, this.sstable.getSSTableMetadata().repairedAt, totalSize});
+      try (AsynchronousChannelProxy fc = this.sstable.getDataChannel().sharedCopy();){
          long progress = 0L;
          List<Pair<Long, Long>> sections = this.getTransferSections(this.compressionInfo.chunks);
          int sectionIdx = 0;
-         Iterator var10 = sections.iterator();
-
-         label89:
-         while(true) {
-            if(var10.hasNext()) {
-               Pair<Long, Long> section = (Pair)var10.next();
-               long length = ((Long)section.right).longValue() - ((Long)section.left).longValue();
-               logger.trace("[Stream #{}] Writing section {} with length {} to stream.", new Object[]{this.session.planId(), Integer.valueOf(sectionIdx++), Long.valueOf(length)});
-               long bytesTransferred = 0L;
-
-               while(true) {
-                  if(bytesTransferred >= length) {
-                     continue label89;
-                  }
-
-                  int toTransfer = (int)Math.min(10485760L, length - bytesTransferred);
-                  this.limiter.acquire(toTransfer);
-                  long lastWrite = ((Long)out.applyToChannel((wbc) -> {
-                     return Long.valueOf(fc.transferTo(((Long)section.left).longValue() + bytesTransferred, (long)toTransfer, wbc));
-                  })).longValue();
-                  bytesTransferred += lastWrite;
-                  progress += lastWrite;
-                  this.session.progress(this.sstable.descriptor.filenameFor(Component.DATA), ProgressInfo.Direction.OUT, progress, totalSize);
-               }
-            }
-
-            logger.debug("[Stream #{}] Finished streaming file {} to {}, bytesTransferred = {}, totalSize = {}", new Object[]{this.session.planId(), this.sstable.getFilename(), this.session.peer, FBUtilities.prettyPrintMemory(progress), FBUtilities.prettyPrintMemory(totalSize)});
-            return;
-         }
-      } catch (Throwable var28) {
-         var5 = var28;
-         throw var28;
-      } finally {
-         if(fc != null) {
-            if(var5 != null) {
-               try {
-                  fc.close();
-               } catch (Throwable var27) {
-                  var5.addSuppressed(var27);
-               }
-            } else {
-               fc.close();
+         for (Pair<Long, Long> section : sections) {
+            long lastWrite;
+            long length = (Long)section.right - (Long)section.left;
+            Object[] arrobject = new Object[]{this.session.planId(), sectionIdx++, length};
+            logger.trace("[Stream #{}] Writing section {} with length {} to stream.", arrobject);
+            for (long bytesTransferred = 0L; bytesTransferred < length; bytesTransferred += lastWrite) {
+               long bytesTransferredFinal = bytesTransferred;
+               int toTransfer = (int)Math.min(0xA00000L, length - bytesTransferred);
+               this.limiter.acquire(toTransfer);
+               lastWrite = out.applyToChannel(wbc -> fc.transferTo((Long)section.left + bytesTransferredFinal, toTransfer, wbc));
+               this.session.progress(this.sstable.descriptor.filenameFor(Component.DATA), ProgressInfo.Direction.OUT, progress += lastWrite, totalSize);
             }
          }
-
+         logger.debug("[Stream #{}] Finished streaming file {} to {}, bytesTransferred = {}, totalSize = {}", new Object[]{this.session.planId(), this.sstable.getFilename(), this.session.peer, FBUtilities.prettyPrintMemory(progress), FBUtilities.prettyPrintMemory(totalSize)});
       }
    }
 

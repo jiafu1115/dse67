@@ -20,7 +20,7 @@ public final class SystemViewsKeyspace extends VirtualKeyspace {
       }
 
       public SystemViewsKeyspace.Builder addView(VirtualTable view) {
-         this.views.add((Object)view);
+         this.views.add(view);
          return this;
       }
 

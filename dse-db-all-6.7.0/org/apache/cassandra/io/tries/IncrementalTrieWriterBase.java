@@ -62,18 +62,18 @@ public abstract class IncrementalTrieWriterBase<Value, Dest, Node extends Increm
 
       IncrementalTrieWriterBase.BaseNode node;
       for(node = (IncrementalTrieWriterBase.BaseNode)this.stack.getLast(); n != -1; n = next.next()) {
-         this.stack.addLast(node = node.addChild((byte)n));
+         this.stack.addLast((Node)node.addChild((byte)n));
          ++stackpos;
       }
 
-      Value existingPayload = node.setPayload(value);
+      Value existingPayload = (Value)node.setPayload(value);
 
       assert existingPayload == null;
 
    }
 
    public long complete() throws IOException {
-      Node root = (IncrementalTrieWriterBase.BaseNode)this.stack.getFirst();
+      Node root = this.stack.getFirst();
       return root.filePos != -1L?root.filePos:this.performCompletion().filePos;
    }
 
@@ -83,8 +83,8 @@ public abstract class IncrementalTrieWriterBase<Value, Dest, Node extends Increm
          ;
       }
 
-      this.stack.addLast(root);
-      return root;
+      this.stack.addLast((Node)root);
+      return (Node)root;
    }
 
    public long count() {
@@ -92,7 +92,7 @@ public abstract class IncrementalTrieWriterBase<Value, Dest, Node extends Increm
    }
 
    protected Node completeLast() throws IOException {
-      Node node = (IncrementalTrieWriterBase.BaseNode)this.stack.removeLast();
+      Node node = this.stack.removeLast();
       this.complete(node);
       return node;
    }

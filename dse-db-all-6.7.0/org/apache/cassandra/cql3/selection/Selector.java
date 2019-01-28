@@ -123,7 +123,7 @@ public abstract class Selector {
          }
       };
 
-      static default Selector.RowTimestamps newInstance(MutableTimestamps.TimestampsType type, List<ColumnMetadata> columns) {
+      static Selector.RowTimestamps newInstance(MutableTimestamps.TimestampsType type, List<ColumnMetadata> columns) {
          final MutableTimestamps[] array = new MutableTimestamps[columns.size()];
          int i = 0;
 

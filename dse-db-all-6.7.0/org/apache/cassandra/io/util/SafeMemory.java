@@ -10,7 +10,7 @@ public class SafeMemory extends Memory implements SharedCloseable {
 
    public SafeMemory(long size) {
       super(size);
-      this.ref = new Ref((Object)null, new SafeMemory.MemoryTidy(this.peer, size));
+      this.ref = new Ref(null, new MemoryTidy(this.peer, size));
    }
 
    private SafeMemory(SafeMemory copyOf) {

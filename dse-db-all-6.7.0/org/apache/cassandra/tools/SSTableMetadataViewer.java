@@ -133,181 +133,121 @@ public class SSTableMetadataViewer {
       return sb.toString();
    }
 
-   private void printScannedOverview(Descriptor descriptor, StatsMetadata stats) throws IOException {
-      TableMetadata cfm = Util.metadataFromSSTable(descriptor);
-      SSTableReader reader = SSTableReader.openNoValidation(descriptor, TableMetadataRef.forOfflineTools(cfm));
-
-      try {
-         ISSTableScanner scanner = reader.getScanner();
-         Throwable var6 = null;
-
-         try {
-            long bytes = scanner.getLengthInBytes();
-            MinMaxPriorityQueue<SSTableMetadataViewer.ValuedByteBuffer> widestPartitions = MinMaxPriorityQueue.orderedBy(VCOMP).maximumSize(5).create();
-            MinMaxPriorityQueue<SSTableMetadataViewer.ValuedByteBuffer> largestPartitions = MinMaxPriorityQueue.orderedBy(VCOMP).maximumSize(5).create();
-            MinMaxPriorityQueue<SSTableMetadataViewer.ValuedByteBuffer> mostTombstones = MinMaxPriorityQueue.orderedBy(VCOMP).maximumSize(5).create();
-            long partitionCount = 0L;
-            long rowCount = 0L;
-            long tombstoneCount = 0L;
-            long cellCount = 0L;
-            double totalCells = (double)stats.totalColumnsSet;
-            int lastPercent = 0;
-            long lastPercentTime = 0L;
-
-            label483:
-            while(true) {
-               if(scanner.hasNext()) {
-                  UnfilteredRowIterator partition = (UnfilteredRowIterator)scanner.next();
-                  Throwable var77 = null;
-
-                  try {
-                     long psize = 0L;
-                     long pcount = 0L;
-                     int ptombcount = 0;
-                     ++partitionCount;
-                     if(!partition.staticRow().isEmpty()) {
+   private void printScannedOverview(final Descriptor descriptor, final StatsMetadata stats) throws IOException {
+      final TableMetadata cfm = Util.metadataFromSSTable(descriptor);
+      final SSTableReader reader = SSTableReader.openNoValidation(descriptor, TableMetadataRef.forOfflineTools(cfm));
+      try (final ISSTableScanner scanner = reader.getScanner()) {
+         final long bytes = scanner.getLengthInBytes();
+         final MinMaxPriorityQueue<ValuedByteBuffer> widestPartitions = (MinMaxPriorityQueue<ValuedByteBuffer>)MinMaxPriorityQueue.orderedBy((Comparator)SSTableMetadataViewer.VCOMP).maximumSize(5).create();
+         final MinMaxPriorityQueue<ValuedByteBuffer> largestPartitions = (MinMaxPriorityQueue<ValuedByteBuffer>)MinMaxPriorityQueue.orderedBy((Comparator)SSTableMetadataViewer.VCOMP).maximumSize(5).create();
+         final MinMaxPriorityQueue<ValuedByteBuffer> mostTombstones = (MinMaxPriorityQueue<ValuedByteBuffer>)MinMaxPriorityQueue.orderedBy((Comparator)SSTableMetadataViewer.VCOMP).maximumSize(5).create();
+         long partitionCount = 0L;
+         long rowCount = 0L;
+         long tombstoneCount = 0L;
+         long cellCount = 0L;
+         final double totalCells = stats.totalColumnsSet;
+         int lastPercent = 0;
+         long lastPercentTime = 0L;
+         while (scanner.hasNext()) {
+            try (final UnfilteredRowIterator partition = scanner.next()) {
+               long psize = 0L;
+               long pcount = 0L;
+               int ptombcount = 0;
+               ++partitionCount;
+               if (!partition.staticRow().isEmpty()) {
+                  ++rowCount;
+                  ++pcount;
+                  psize += partition.staticRow().dataSize();
+               }
+               if (!partition.partitionLevelDeletion().isLive()) {
+                  ++tombstoneCount;
+                  ++ptombcount;
+               }
+               while (partition.hasNext()) {
+                  final Unfiltered unfiltered = partition.next();
+                  switch (unfiltered.kind()) {
+                     case ROW: {
                         ++rowCount;
+                        final Row row = (Row)unfiltered;
+                        psize += row.dataSize();
                         ++pcount;
-                        psize += (long)partition.staticRow().dataSize();
-                     }
-
-                     if(!partition.partitionLevelDeletion().isLive()) {
-                        ++tombstoneCount;
-                        ++ptombcount;
-                     }
-
-                     while(true) {
-                        label474:
-                        while(partition.hasNext()) {
-                           Unfiltered unfiltered = (Unfiltered)partition.next();
-                           switch(null.$SwitchMap$org$apache$cassandra$db$rows$Unfiltered$Kind[unfiltered.kind().ordinal()]) {
-                           case 1:
-                              ++rowCount;
-                              Row row = (Row)unfiltered;
-                              psize += (long)row.dataSize();
-                              ++pcount;
-                              Iterator var34 = row.cells().iterator();
-
-                              while(true) {
-                                 if(!var34.hasNext()) {
-                                    continue label474;
-                                 }
-
-                                 Cell cell = (Cell)var34.next();
-                                 ++cellCount;
-                                 double percentComplete = Math.min(1.0D, (double)cellCount / totalCells);
-                                 if(lastPercent != (int)(percentComplete * 100.0D) && ApolloTime.systemClockMillis() - lastPercentTime > 1000L) {
-                                    lastPercentTime = ApolloTime.systemClockMillis();
-                                    lastPercent = (int)(percentComplete * 100.0D);
-                                    if(this.color) {
-                                       this.out.printf("\r%sAnalyzing SSTable...  %s%s %s(%%%s)", new Object[]{"\u001b[34m", "\u001b[36m", Util.progress(percentComplete, 30, this.unicode), "\u001b[0m", Integer.valueOf((int)(percentComplete * 100.0D))});
-                                    } else {
-                                       this.out.printf("\rAnalyzing SSTable...  %s (%%%s)", new Object[]{Util.progress(percentComplete, 30, this.unicode), Integer.valueOf((int)(percentComplete * 100.0D))});
-                                    }
-
-                                    this.out.flush();
-                                 }
-
-                                 if(cell.isTombstone()) {
-                                    ++tombstoneCount;
-                                    ++ptombcount;
-                                 }
+                        for (final Cell cell : row.cells()) {
+                           ++cellCount;
+                           final double percentComplete = Math.min(1.0, cellCount / totalCells);
+                           if (lastPercent != (int)(percentComplete * 100.0) && ApolloTime.systemClockMillis() - lastPercentTime > 1000L) {
+                              lastPercentTime = ApolloTime.systemClockMillis();
+                              lastPercent = (int)(percentComplete * 100.0);
+                              if (this.color) {
+                                 this.out.printf("\r%sAnalyzing SSTable...  %s%s %s(%%%s)", "\u001b[34m", "\u001b[36m", Util.progress(percentComplete, 30, this.unicode), "\u001b[0m", (int)(percentComplete * 100.0));
                               }
-                           case 2:
+                              else {
+                                 this.out.printf("\rAnalyzing SSTable...  %s (%%%s)", Util.progress(percentComplete, 30, this.unicode), (int)(percentComplete * 100.0));
+                              }
+                              this.out.flush();
+                           }
+                           if (cell.isTombstone()) {
                               ++tombstoneCount;
                               ++ptombcount;
                            }
                         }
-
-                        widestPartitions.add(new SSTableMetadataViewer.ValuedByteBuffer(partition.partitionKey().getKey(), pcount));
-                        largestPartitions.add(new SSTableMetadataViewer.ValuedByteBuffer(partition.partitionKey().getKey(), psize));
-                        mostTombstones.add(new SSTableMetadataViewer.ValuedByteBuffer(partition.partitionKey().getKey(), (long)ptombcount));
-                        continue label483;
+                        continue;
                      }
-                  } catch (Throwable var71) {
-                     var77 = var71;
-                     throw var71;
-                  } finally {
-                     if(partition != null) {
-                        if(var77 != null) {
-                           try {
-                              partition.close();
-                           } catch (Throwable var70) {
-                              var77.addSuppressed(var70);
-                           }
-                        } else {
-                           partition.close();
-                        }
+                     case RANGE_TOMBSTONE_MARKER: {
+                        ++tombstoneCount;
+                        ++ptombcount;
+                        continue;
                      }
-
                   }
                }
-
-               this.out.printf("\r%80s\r", new Object[]{" "});
-               this.field("Size", Long.valueOf(bytes));
-               this.field("Partitions", Long.valueOf(partitionCount));
-               this.field("Rows", Long.valueOf(rowCount));
-               this.field("Tombstones", Long.valueOf(tombstoneCount));
-               this.field("Cells", Long.valueOf(cellCount));
-               this.field("Widest Partitions", "");
-               Util.iterToStream(widestPartitions.iterator()).sorted(VCOMP).forEach((p) -> {
-                  this.out.println("  " + this.scannedOverviewOutput(cfm.partitionKeyType.getString(p.buffer), p.value));
-               });
-               this.field("Largest Partitions", "");
-               Util.iterToStream(largestPartitions.iterator()).sorted(VCOMP).forEach((p) -> {
-                  this.out.print("  ");
-                  this.out.print(this.scannedOverviewOutput(cfm.partitionKeyType.getString(p.buffer), p.value));
-                  if(this.color) {
-                     this.out.print("\u001b[37m");
-                  }
-
-                  this.out.print(" (");
-                  this.out.print(toByteString(p.value));
-                  this.out.print(")");
-                  if(this.color) {
-                     this.out.print("\u001b[0m");
-                  }
-
-                  this.out.println();
-               });
-               StringBuilder tleaders = new StringBuilder();
-               Util.iterToStream(mostTombstones.iterator()).sorted(VCOMP).forEach((p) -> {
-                  if(p.value > 0L) {
-                     tleaders.append("  ");
-                     tleaders.append(this.scannedOverviewOutput(cfm.partitionKeyType.getString(p.buffer), p.value));
-                     tleaders.append(System.lineSeparator());
-                  }
-
-               });
-               String tombstoneLeaders = tleaders.toString();
-               if(tombstoneLeaders.length() > 10) {
-                  this.field("Tombstone Leaders", "");
-                  this.out.print(tombstoneLeaders);
-               }
-               break;
+               widestPartitions.add(new ValuedByteBuffer(partition.partitionKey().getKey(), pcount));
+               largestPartitions.add(new ValuedByteBuffer(partition.partitionKey().getKey(), psize));
+               mostTombstones.add(new ValuedByteBuffer(partition.partitionKey().getKey(), ptombcount));
             }
-         } catch (Throwable var73) {
-            var6 = var73;
-            throw var73;
-         } finally {
-            if(scanner != null) {
-               if(var6 != null) {
-                  try {
-                     scanner.close();
-                  } catch (Throwable var69) {
-                     var6.addSuppressed(var69);
-                  }
-               } else {
-                  scanner.close();
-               }
-            }
-
          }
-      } finally {
+         this.out.printf("\r%80s\r", " ");
+         this.field("Size", bytes);
+         this.field("Partitions", partitionCount);
+         this.field("Rows", rowCount);
+         this.field("Tombstones", tombstoneCount);
+         this.field("Cells", cellCount);
+         this.field("Widest Partitions", "");
+         Util.iterToStream(widestPartitions.iterator()).sorted(SSTableMetadataViewer.VCOMP).forEach(p -> this.out.println("  " + this.scannedOverviewOutput(cfm.partitionKeyType.getString(p.buffer), p.value)));
+         this.field("Largest Partitions", "");
+         Util.iterToStream(largestPartitions.iterator()).sorted(SSTableMetadataViewer.VCOMP).forEach(p -> {
+            this.out.print("  ");
+            this.out.print(this.scannedOverviewOutput(cfm.partitionKeyType.getString(p.buffer), p.value));
+            if (this.color) {
+               this.out.print("\u001b[37m");
+            }
+            this.out.print(" (");
+            this.out.print(toByteString(p.value));
+            this.out.print(")");
+            if (this.color) {
+               this.out.print("\u001b[0m");
+            }
+            this.out.println();
+            return;
+         });
+         final StringBuilder tleaders = new StringBuilder();
+         Util.iterToStream(mostTombstones.iterator()).sorted(SSTableMetadataViewer.VCOMP).forEach(p -> {
+            if (p.value > 0L) {
+               tleaders.append("  ");
+               tleaders.append(this.scannedOverviewOutput(cfm.partitionKeyType.getString(p.buffer), p.value));
+               tleaders.append(System.lineSeparator());
+            }
+            return;
+         });
+         final String tombstoneLeaders = tleaders.toString();
+         if (tombstoneLeaders.length() > 10) {
+            this.field("Tombstone Leaders", "");
+            this.out.print(tombstoneLeaders);
+         }
+      }
+      finally {
          reader.selfRef().ensureReleased();
       }
-
    }
+
 
    private void printSStableMetadata(String fname, boolean scan) throws IOException {
       Descriptor descriptor = Descriptor.fromFilename(fname);

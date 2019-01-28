@@ -77,7 +77,7 @@ public final class FunctionArguments implements Arguments {
    }
 
    public <T> T get(int i) {
-      return this.arguments[i];
+      return (T)this.arguments[i];
    }
 
    public int size() {

@@ -9,19 +9,19 @@ public class FilterPipelineExecutor {
    public FilterPipelineExecutor() {
    }
 
-   public static <F, T> T execute(FilterPipelineTask<F, T> task, T initialInput) {
+   public static <F, T> T execute(final FilterPipelineTask<F, T> task, final T initialInput) {
       FilterPipelineTask<?, ?> taskPtr = task;
-      Object result = initialInput;
-
+      T result = initialInput;
       try {
          do {
-            result = taskPtr.process(result);
+            final FilterPipelineTask<F, T> taskGeneric = (FilterPipelineTask<F, T>)taskPtr;
+            result = taskGeneric.process((F)result);
             taskPtr = taskPtr.next;
-         } while(taskPtr != null);
-
+         } while (taskPtr != null);
          return result;
-      } catch (Exception var5) {
-         logger.info("An unhandled exception to occurred while processing pipeline [{}]", task.getName(), var5);
+      }
+      catch (Exception e) {
+         FilterPipelineExecutor.logger.info("An unhandled exception to occurred while processing pipeline [{}]", (Object)task.getName(), (Object)e);
          return null;
       }
    }

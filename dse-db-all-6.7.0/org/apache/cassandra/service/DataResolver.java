@@ -247,9 +247,9 @@ public class DataResolver extends ResponseResolver<FlowablePartition> {
       }
 
       private Flow<FlowableUnfilteredPartition> executeReadCommand(ReadCommand cmd) {
-         DataResolver.RetryResolver resolver = new DataResolver.RetryResolver(cmd, DataResolver.this.ctx.withConsistency(ConsistencyLevel.ONE).withObserver((ReadReconciliationObserver)null));
-         ReadCallback<FlowableUnfilteredPartition> handler = ReadCallback.forResolver(resolver, UnmodifiableArrayList.of((Object)this.source));
-         MessagingService.instance().send((Request)cmd.requestTo(this.source), handler);
+         RetryResolver resolver = new RetryResolver(cmd, DataResolver.this.ctx.withConsistency(ConsistencyLevel.ONE).withObserver(null));
+         ReadCallback handler = ReadCallback.forResolver(resolver, UnmodifiableArrayList.of(this.source));
+         MessagingService.instance().send(cmd.requestTo(this.source), handler);
          return handler.result();
       }
 
@@ -486,7 +486,7 @@ public class DataResolver extends ResponseResolver<FlowablePartition> {
                   }
                }
 
-               Arrays.fill(this.currentRows, (Object)null);
+               Arrays.fill(this.currentRows, null);
                if(DataResolver.this.ctx.readObserver != null) {
                   DataResolver.this.ctx.readObserver.onRow(merged, isConsistent);
                }

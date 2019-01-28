@@ -644,7 +644,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean {
             this.firstSynSendAt = ApolloTime.approximateNanoTime();
          }
 
-         MessagingService.instance().send(Verbs.GOSSIP.SYN.newRequest(to, (Object)message));
+         MessagingService.instance().send(Verbs.GOSSIP.SYN.newRequest(to, message));
          return this.seeds.contains(to);
       }
    }
@@ -1212,7 +1212,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean {
          logger.trace("gossip started with generation {}", Integer.valueOf(localState.getHeartBeatState().getGeneration()));
       }
 
-      this.scheduledGossipTask = executor.scheduleWithFixedDelay(new Gossiper.GossipTask(null), 1000L, 1000L, TimeUnit.MILLISECONDS);
+      this.scheduledGossipTask = executor.scheduleWithFixedDelay(new Gossiper.GossipTask(), 1000L, 1000L, TimeUnit.MILLISECONDS);
    }
 
    @VisibleForTesting
@@ -1557,10 +1557,10 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean {
       if(!FBUtilities.getBroadcastAddress().equals(InetAddress.getLoopbackAddress())) {
          int forceAfter = PropertyConfiguration.getInteger("cassandra.skip_wait_for_gossip_to_settle", -1);
          if(forceAfter != 0) {
-            int GOSSIP_SETTLE_MIN_WAIT_MS = true;
+            int GOSSIP_SETTLE_MIN_WAIT_MS = 5000;
             long GOSSIP_SETTLE_POLL_INTERVAL_NS = FailureDetector.getMaxLocalPause();
             int GOSSIP_SETTLE_POLL_SUCCESSES_REQUIRED = PropertyConfiguration.getInteger("cassandra.rounds_to_wait_for_gossip_to_settle", 3);
-            int MAX_BACKLOG_CHECKS = true;
+            int MAX_BACKLOG_CHECKS = 10;
             int MAX_UNSTABLE_FLIPS = PropertyConfiguration.getInteger("cassandra.max_gossip_settle_state_flips", GOSSIP_SETTLE_POLL_SUCCESSES_REQUIRED - 1);
             Map<InetAddress, Integer> unstableTracking = new HashMap();
             Set<InetAddress> unstableEndpoints = SetsFactory.newSet();

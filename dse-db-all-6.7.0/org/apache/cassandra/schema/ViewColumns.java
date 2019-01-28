@@ -43,25 +43,25 @@ public class ViewColumns extends AbstractCollection<ViewColumnMetadata> {
    public Collection<ViewColumnMetadata> regularColumns() {
       return (Collection)this.viewColumns.stream().filter((c) -> {
          return c.isRegularColumn();
-      }).collect(Collectors.toCollection(LinkedHashSet::<init>));
+      }).collect(Collectors.toCollection(LinkedHashSet::new));
    }
 
    public Collection<ViewColumnMetadata> hiddenColumns() {
       return (Collection)this.viewColumns.stream().filter((c) -> {
          return c.hasHiddenColumn();
-      }).collect(Collectors.toCollection(LinkedHashSet::<init>));
+      }).collect(Collectors.toCollection(LinkedHashSet::new));
    }
 
    public Collection<ViewColumnMetadata> regularBaseColumnsInViewPrimaryKey() {
       return (Collection)this.viewColumns.stream().filter((c) -> {
          return c.isRegularBaseColumnInViewPrimaryKey();
-      }).collect(Collectors.toCollection(LinkedHashSet::<init>));
+      }).collect(Collectors.toCollection(LinkedHashSet::new));
    }
 
    public Collection<ViewColumnMetadata> requiredForLiveness() {
       return (Collection)this.viewColumns.stream().filter((c) -> {
          return c.isRequiredForLiveness();
-      }).collect(Collectors.toCollection(LinkedHashSet::<init>));
+      }).collect(Collectors.toCollection(LinkedHashSet::new));
    }
 
    public Iterator<ViewColumnMetadata> iterator() {
